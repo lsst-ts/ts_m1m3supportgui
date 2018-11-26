@@ -5,16 +5,19 @@ from MTM1M3Enumerations import InterlockSystemFlags
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
 
 class InterlockPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
-
         self.layout.addLayout(self.dataLayout)
+        self.layout.addWidget(QLabel(" "))
         self.layout.addLayout(self.warningLayout)
         self.setLayout(self.layout)
+        self.setFixedHeight(250)
+        
+        self.heartbeatLabel = QLabel("UNKNOWN")
         
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.auxPowerNetworksOffLabel = QLabel("UNKNOWN")
@@ -23,8 +26,12 @@ class InterlockPageWidget(QWidget):
         self.tmaMotionStopLabel = QLabel("UNKNOWN")
         self.gisHeartbeatLostLabel = QLabel("UNKNOWN")
         self.cabinetDoorOpenLabel = QLabel("UNKNOWN")
-        self.heartbeatLabel = QLabel("UNKNOWN")
 
+        row = 0
+        col = 0
+        self.dataLayout.addWidget(QLabel("Controller to Interlock Heartbeat"), row, col)
+        self.dataLayout.addWidget(self.heartbeatLabel, row, col + 1)
+        
         row = 0
         col = 0
         self.warningLayout.addWidget(QLabel("Any Warnings"), row, col)
@@ -50,13 +57,8 @@ class InterlockPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Cabinet Door Open"), row, col)
         self.warningLayout.addWidget(self.cabinetDoorOpenLabel, row, col + 1)
         
-        row = 0
-        col = 0
-        self.dataLayout.addWidget(QLabel("Controller to Interlock Heartbeat"), row, col)
-        self.dataLayout.addWidget(self.heartbeatLabel, row, col + 1)
-        
-        self.mtm1m3.subscribeEvent_interlockWarning(self.processEventInterlockWarning)
-        self.mtm1m3.subscribeEvent_interlockStatus(self.processEventInterlockStatus)
+        self.MTM1M3.subscribeEvent_interlockWarning(self.processEventInterlockWarning)
+        self.MTM1M3.subscribeEvent_interlockStatus(self.processEventInterlockStatus)
 
     def processEventInterlockWarning(self, data):
         data = data[-1]

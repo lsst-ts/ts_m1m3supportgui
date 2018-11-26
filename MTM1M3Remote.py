@@ -232,6 +232,8 @@ class MTM1M3Remote:
                 break
         return lastResult, lastData
 
+    def getTimestamp(self):
+        return self.sal.getCurrentTime()
 
     def issueCommand_abort(self, value):
         data = MTM1M3_command_abortC()

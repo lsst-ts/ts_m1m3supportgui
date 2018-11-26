@@ -3,18 +3,46 @@ import QTHelpers
 from BitHelper import BitHelper
 from MTM1M3Enumerations import PIDIndexMap
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
+import numpy as np
+import pyqtgraph as pg
+from pyqtgraph.ptime import time
+from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class PIDPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.commandLayout = QVBoxLayout()
+        self.plotLayout = QVBoxLayout()
+
+        self.maxPlotSize = 50 * 30 # 50Hz * 30s
+
+        self.plot = pg.PlotWidget()
+        self.plot.plotItem.addLegend()
+        self.plot.plotItem.setTitle("Control")
+        self.plot.plotItem.setLabel(axis = 'left', text = 'Control')
+        self.plot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
+        self.plotLayout.addWidget(self.plot)
 
         self.layout.addLayout(self.commandLayout)
         self.layout.addLayout(self.dataLayout)
+        self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
+
+        self.fxControlCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.fyControlCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.fzControlCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.mxControlCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.myControlCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.mzControlCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.fxControlCurve = self.plot.plot(name = 'Fx', pen = 'r') 
+        self.fyControlCurve = self.plot.plot(name = 'Fy', pen = 'g')
+        self.fzControlCurve = self.plot.plot(name = 'Fz', pen = 'b')
+        self.mxControlCurve = self.plot.plot(name = 'Mx', pen = 'w')
+        self.myControlCurve = self.plot.plot(name = 'My', pen = 'y')
+        self.mzControlCurve = self.plot.plot(name = 'Mz', pen = 'c')
         
         self.fxSetpointLabel = QLabel("UNKNOWN")
         self.fxMeasurementLabel = QLabel("UNKNOWN")
@@ -195,9 +223,9 @@ class PIDPageWidget(QWidget):
         self.dataLayout.addWidget(self.mzControlLabel, row, col + 6)
         self.dataLayout.addWidget(self.mzControlT1Label, row, col + 7)
         self.dataLayout.addWidget(self.mzControlT2Label, row, col + 8)
-        
-        col = 0
-        row = 9
+        row += 1
+        self.dataLayout.addWidget(QLabel(" "), row, col)
+        row += 1
         self.dataLayout.addWidget(QLabel("Timestep"), row, col + 1)
         self.dataLayout.addWidget(QLabel("P"), row, col + 2)
         self.dataLayout.addWidget(QLabel("I"), row, col + 3)
@@ -281,8 +309,8 @@ class PIDPageWidget(QWidget):
         self.dataLayout.addWidget(self.mzCalculatedDLabel, row, col + 9)
         self.dataLayout.addWidget(self.mzCalculatedELabel, row, col + 10)
         
-        self.mtm1m3.subscribeEvent_pidInfo(self.processEventPIDInfo)
-        self.mtm1m3.subscribeTelemetry_pidData(self.processTelemetryPIDData)
+        self.MTM1M3.subscribeEvent_pidInfo(self.processEventPIDInfo)
+        self.MTM1M3.subscribeTelemetry_pidData(self.processTelemetryPIDData)
 
     def processEventPIDInfo(self, data):
         data = data[-1]
@@ -348,6 +376,19 @@ class PIDPageWidget(QWidget):
         self.mzCalculatedELabel.setText("%0.3f" % data.calculatedE[PIDIndexMap.Mz])
 
     def processTelemetryPIDData(self, data):
+        self.fxControlCurveData = QTHelpers.appendAndResizeCurveData(self.fxControlCurveData, [x.control[PIDIndexMap.Fx] for x in data], self.maxPlotSize)
+        self.fyControlCurveData = QTHelpers.appendAndResizeCurveData(self.fyControlCurveData, [x.control[PIDIndexMap.Fy] for x in data], self.maxPlotSize)
+        self.fzControlCurveData = QTHelpers.appendAndResizeCurveData(self.fzControlCurveData, [x.control[PIDIndexMap.Fz] for x in data], self.maxPlotSize)
+        self.mxControlCurveData = QTHelpers.appendAndResizeCurveData(self.mxControlCurveData, [x.control[PIDIndexMap.Mx] for x in data], self.maxPlotSize)
+        self.myControlCurveData = QTHelpers.appendAndResizeCurveData(self.myControlCurveData, [x.control[PIDIndexMap.My] for x in data], self.maxPlotSize)
+        self.mzControlCurveData = QTHelpers.appendAndResizeCurveData(self.mzControlCurveData, [x.control[PIDIndexMap.Mz] for x in data], self.maxPlotSize)
+        self.fxControlCurve.setData(self.fxControlCurveData)
+        self.fyControlCurve.setData(self.fyControlCurveData)
+        self.fzControlCurve.setData(self.fzControlCurveData)
+        self.mxControlCurve.setData(self.mxControlCurveData)
+        self.myControlCurve.setData(self.myControlCurveData)
+        self.mzControlCurve.setData(self.mzControlCurveData)
+
         data = data[-1]
         self.fxSetpointLabel.setText("%0.3f" % data.setpoint[PIDIndexMap.Fx])
         self.fxMeasurementLabel.setText("%0.3f" % data.measurement[PIDIndexMap.Fx])

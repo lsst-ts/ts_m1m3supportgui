@@ -2,38 +2,28 @@
 import QTHelpers
 from BitHelper import BitHelper
 from MTM1M3Enumerations import AccelerometerFlags, AccelerometerIndexMap
-from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout)
+from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout, QSpacerItem)
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.ptime import time
 from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class DCAccelerometerPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QVBoxLayout()
-        self.gridLayout = QGridLayout()
+        self.dataLayout = QGridLayout()
+        self.warningLayout = QGridLayout()
+        self.plotLayout = QVBoxLayout()
+        self.layout.addLayout(self.dataLayout)
+        self.layout.addWidget(QLabel(" "))
+        self.layout.addLayout(self.warningLayout)
+        self.layout.addLayout(self.plotLayout)
+        self.setLayout(self.layout)
         
         self.maxPlotSize = 50 * 30 # 50Hz * 30s
 
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.setTitle("Angular Acceleration")
-        self.plot.plotItem.setLabel(axis = 'left', text = "Angular Acceleration (rad/s^2)")
-        self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")
-        self.layout.addLayout(self.gridLayout)
-        self.layout.addWidget(self.plot)
-        self.setLayout(self.layout)
-        
-        self.plot.plotItem.addLegend()
-        self.angularAccelerationXCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.angularAccelerationYCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.angularAccelerationZCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.angularAccelerationXCurve = self.plot.plot(name = 'X', pen = 'r')
-        self.angularAccelerationYCurve = self.plot.plot(name = 'Y', pen = 'g')
-        self.angularAccelerationZCurve = self.plot.plot(name = 'Z', pen = 'b')
-        self.anyWarningLabel = QLabel("UNKNOWN")
-        self.responseTimeoutLabel = QLabel("UNKNOWN")
         self.rawAccelerometer1XLabel = QLabel("UNKNOWN")
         self.rawAccelerometer1YLabel = QLabel("UNKNOWN")
         self.rawAccelerometer2XLabel = QLabel("UNKNOWN")
@@ -54,51 +44,75 @@ class DCAccelerometerPageWidget(QWidget):
         self.angularAccelerationYLabel = QLabel("UNKNOWN")
         self.angularAccelerationZLabel = QLabel("UNKNOWN")
 
+        self.anyWarningLabel = QLabel("UNKNOWN")
+        self.responseTimeoutLabel = QLabel("UNKNOWN")
+
+        self.plot = pg.PlotWidget()
+        self.plot.plotItem.addLegend()
+        self.plot.plotItem.setTitle("Angular Acceleration")
+        self.plot.plotItem.setLabel(axis = 'left', text = "Angular Acceleration (rad/s^2)")
+        self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")      
+        self.angularAccelerationXCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.angularAccelerationYCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.angularAccelerationZCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.angularAccelerationXCurve = self.plot.plot(name = 'X', pen = 'r')
+        self.angularAccelerationYCurve = self.plot.plot(name = 'Y', pen = 'g')
+        self.angularAccelerationZCurve = self.plot.plot(name = 'Z', pen = 'b')
+
         row = 0
         col = 0
-        self.gridLayout.addWidget(QLabel("Any Warnings"), row, col)
-        self.gridLayout.addWidget(self.anyWarningLabel, row, col + 1)
-        self.gridLayout.addWidget(QLabel("Response Timeout"), row + 1, col)
-        self.gridLayout.addWidget(self.responseTimeoutLabel, row + 1, col + 1)
-
+        self.dataLayout.addWidget(QLabel("X"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Angular Acceleration (rad/s^2)"), row, col)
+        self.dataLayout.addWidget(self.angularAccelerationXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.angularAccelerationYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.angularAccelerationZLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel(" "), row, col)
+        row += 1
+        self.dataLayout.addWidget(QLabel("1X"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("1Y"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("2X"), row, col + 3)
+        self.dataLayout.addWidget(QLabel("2Y"), row, col + 4)
+        self.dataLayout.addWidget(QLabel("3X"), row, col + 5)
+        self.dataLayout.addWidget(QLabel("3Y"), row, col + 6)
+        self.dataLayout.addWidget(QLabel("4X"), row, col + 7)
+        self.dataLayout.addWidget(QLabel("4Y"), row, col + 8)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Raw (V)"), row, col)
+        self.dataLayout.addWidget(self.rawAccelerometer1XLabel, row, col + 1)
+        self.dataLayout.addWidget(self.rawAccelerometer1YLabel, row, col + 2)
+        self.dataLayout.addWidget(self.rawAccelerometer2XLabel, row, col + 3)
+        self.dataLayout.addWidget(self.rawAccelerometer2YLabel, row, col + 4)
+        self.dataLayout.addWidget(self.rawAccelerometer3XLabel, row, col + 5)
+        self.dataLayout.addWidget(self.rawAccelerometer3YLabel, row, col + 6)
+        self.dataLayout.addWidget(self.rawAccelerometer4XLabel, row, col + 7)
+        self.dataLayout.addWidget(self.rawAccelerometer4YLabel, row, col + 8)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Acceleration (m/s^2)"), row, col)
+        self.dataLayout.addWidget(self.accelerometer1XLabel, row, col + 1)
+        self.dataLayout.addWidget(self.accelerometer1YLabel, row, col + 2)
+        self.dataLayout.addWidget(self.accelerometer2XLabel, row, col + 3)
+        self.dataLayout.addWidget(self.accelerometer2YLabel, row, col + 4)
+        self.dataLayout.addWidget(self.accelerometer3XLabel, row, col + 5)
+        self.dataLayout.addWidget(self.accelerometer3YLabel, row, col + 6)
+        self.dataLayout.addWidget(self.accelerometer4XLabel, row, col + 7)
+        self.dataLayout.addWidget(self.accelerometer4YLabel, row, col + 8)
+        
         row = 0
-        col = 2
-        self.gridLayout.addWidget(QLabel("1X"), row, col + 1)
-        self.gridLayout.addWidget(QLabel("1Y"), row, col + 2)
-        self.gridLayout.addWidget(QLabel("2X"), row, col + 3)
-        self.gridLayout.addWidget(QLabel("2Y"), row, col + 4)
-        self.gridLayout.addWidget(QLabel("3X"), row, col + 5)
-        self.gridLayout.addWidget(QLabel("3Y"), row, col + 6)
-        self.gridLayout.addWidget(QLabel("4X"), row, col + 7)
-        self.gridLayout.addWidget(QLabel("4Y"), row, col + 8)
-        self.gridLayout.addWidget(QLabel("Raw (V)"), row + 1, col)
-        self.gridLayout.addWidget(self.rawAccelerometer1XLabel, row + 1, col + 1)
-        self.gridLayout.addWidget(self.rawAccelerometer1YLabel, row + 1, col + 2)
-        self.gridLayout.addWidget(self.rawAccelerometer2XLabel, row + 1, col + 3)
-        self.gridLayout.addWidget(self.rawAccelerometer2YLabel, row + 1, col + 4)
-        self.gridLayout.addWidget(self.rawAccelerometer3XLabel, row + 1, col + 5)
-        self.gridLayout.addWidget(self.rawAccelerometer3YLabel, row + 1, col + 6)
-        self.gridLayout.addWidget(self.rawAccelerometer4XLabel, row + 1, col + 7)
-        self.gridLayout.addWidget(self.rawAccelerometer4YLabel, row + 1, col + 8)
-        self.gridLayout.addWidget(QLabel("Acceleration (m/s^2)"), row + 2, col)
-        self.gridLayout.addWidget(self.accelerometer1XLabel, row + 2, col + 1)
-        self.gridLayout.addWidget(self.accelerometer1YLabel, row + 2, col + 2)
-        self.gridLayout.addWidget(self.accelerometer2XLabel, row + 2, col + 3)
-        self.gridLayout.addWidget(self.accelerometer2YLabel, row + 2, col + 4)
-        self.gridLayout.addWidget(self.accelerometer3XLabel, row + 2, col + 5)
-        self.gridLayout.addWidget(self.accelerometer3YLabel, row + 2, col + 6)
-        self.gridLayout.addWidget(self.accelerometer4XLabel, row + 2, col + 7)
-        self.gridLayout.addWidget(self.accelerometer4YLabel, row + 2, col + 8)
-        self.gridLayout.addWidget(QLabel("X"), row + 3, col + 1)
-        self.gridLayout.addWidget(QLabel("Y"), row + 3, col + 2)
-        self.gridLayout.addWidget(QLabel("Z"), row + 3, col + 3)
-        self.gridLayout.addWidget(QLabel("Angular Acceleration (rad/s^2)"), row + 4, col)
-        self.gridLayout.addWidget(self.angularAccelerationXLabel, row + 4, col + 1)
-        self.gridLayout.addWidget(self.angularAccelerationYLabel, row + 4, col + 2)
-        self.gridLayout.addWidget(self.angularAccelerationZLabel, row + 4, col + 3)
+        col = 0
+        self.warningLayout.addWidget(QLabel("Any Warnings"), row, col)
+        self.warningLayout.addWidget(self.anyWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("Response Timeout"), row, col)
+        self.warningLayout.addWidget(self.responseTimeoutLabel, row, col + 1)
 
-        self.mtm1m3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
-        self.mtm1m3.subscribeTelemetry_accelerometerData(self.processTelemetryAccelerometerData)
+        self.plotLayout.addWidget(self.plot)
+
+        self.MTM1M3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
+        self.MTM1M3.subscribeTelemetry_accelerometerData(self.processTelemetryAccelerometerData)
 
     def processEventAccelerometerWarning(self, data):
         data = data[-1]

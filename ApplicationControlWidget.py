@@ -4,10 +4,14 @@ from MTM1M3Enumerations import DetailedStates
 from PySide2.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout)
 
 class ApplicationControlWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
-        self.label = QLabel("Application Control")
+        self.MTM1M3 = MTM1M3
+        self.layout = QVBoxLayout()
+        self.commandLayout = QVBoxLayout()
+        self.layout.addLayout(self.commandLayout)
+        self.setLayout(self.layout)
+
         self.button1 = QPushButton("Button1")
         QTHelpers.updateSizePolicy(self.button1)
         self.button1.clicked.connect(QTHelpers.doNothing)
@@ -20,44 +24,48 @@ class ApplicationControlWidget(QWidget):
         self.button4 = QPushButton("Button4")
         QTHelpers.updateSizePolicy(self.button4)
         self.button4.clicked.connect(QTHelpers.doNothing)
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.button1)
-        self.layout.addWidget(self.button2)
-        self.layout.addWidget(self.button3)
-        self.layout.addWidget(self.button4)
-        self.setLayout(self.layout)
-        self.mtm1m3.subscribeEvent_detailedState(self.processEventDetailedState)
+
+        self.commandLayout.addWidget(self.button1)
+        self.commandLayout.addWidget(self.button2)
+        self.commandLayout.addWidget(self.button3)
+        self.commandLayout.addWidget(self.button4)
+
+        QTHelpers.hideButton(self.button1)
+        QTHelpers.hideButton(self.button2)
+        QTHelpers.hideButton(self.button3)
+        QTHelpers.hideButton(self.button4)
+        
+        self.MTM1M3.subscribeEvent_detailedState(self.processEventDetailedState)
 
     def issueCommandStart(self):
-        self.mtm1m3.issueCommandThenWait_start("Simulator")
+        self.MTM1M3.issueCommandThenWait_start("Simulator")
 
     def issueCommandEnable(self):
-        self.mtm1m3.issueCommandThenWait_enable(False)
+        self.MTM1M3.issueCommandThenWait_enable(False)
 
     def issueCommandRaiseM1M3(self):
-        self.mtm1m3.issueCommandThenWait_raiseM1M3(False)
+        self.MTM1M3.issueCommandThenWait_raiseM1M3(False)
 
     def issueCommandAbortRaiseM1M3(self):
-        self.mtm1m3.issueCommandThenWait_abortRaiseM1M3(False)
+        self.MTM1M3.issueCommandThenWait_abortRaiseM1M3(False)
 
     def issueCommandLowerM1M3(self):
-        self.mtm1m3.issueCommandThenWait_lowerM1M3(False)
+        self.MTM1M3.issueCommandThenWait_lowerM1M3(False)
 
     def issueCommandEnterEngineering(self):
-        self.mtm1m3.issueCommandThenWait_enterEngineering(False)
+        self.MTM1M3.issueCommandThenWait_enterEngineering(False)
 
     def issueCommandExitEngineering(self):
-        self.mtm1m3.issueCommandThenWait_exitEngineering(False)
+        self.MTM1M3.issueCommandThenWait_exitEngineering(False)
 
     def issueCommandDisable(self):
-        self.mtm1m3.issueCommandThenWait_disable(False)
+        self.MTM1M3.issueCommandThenWait_disable(False)
 
     def issueCommandStandby(self):
-        self.mtm1m3.issueCommandThenWait_standby(False)
+        self.MTM1M3.issueCommandThenWait_standby(False)
 
     def issueCommandShutdown(self):
-        self.mtm1m3.issueCommandThenWait_shutdown(False)
+        self.MTM1M3.issueCommandThenWait_shutdown(False)
 
     def processEventDetailedState(self, data):
         state = data[len(data) - 1].detailedState

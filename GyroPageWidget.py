@@ -9,31 +9,27 @@ from pyqtgraph.ptime import time
 from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class GyroPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
-        
+        self.plotLayout = QVBoxLayout()
+        self.layout.addLayout(self.dataLayout)
+        self.layout.addWidget(QLabel(" "))
+        self.layout.addLayout(self.warningLayout)
+        self.layout.addLayout(self.plotLayout)
+        self.setLayout(self.layout)
+
         self.maxPlotSize = 50 * 30 # 50Hz * 30s
 
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Angular Velocity")
-        self.plot.plotItem.setLabel(axis = 'left', text = "Angular Velocity (rad/s)")
-        self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")
-        self.layout.addLayout(self.dataLayout)
-        self.layout.addLayout(self.warningLayout)
-        self.layout.addWidget(self.plot)
-        self.setLayout(self.layout)
-        
-        self.angularVelocityXCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.angularVelocityYCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.angularVelocityZCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.angularVelocityXCurve = self.plot.plot(name = 'X', pen = 'r')
-        self.angularVelocityYCurve = self.plot.plot(name = 'Y', pen = 'g')
-        self.angularVelocityZCurve = self.plot.plot(name = 'Z', pen = 'b')
+        self.velocityXLabel = QLabel("UNKNOWN")
+        self.velocityYLabel = QLabel("UNKNOWN")
+        self.velocityZLabel = QLabel("UNKNOWN")
+        self.sequenceNumberLabel = QLabel("UNKNOWN")
+        self.temperatureLabel = QLabel("UNKNOWN")        
+
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.gyroXStatusWarningLabel = QLabel("UNKNOWN")
         self.gyroYStatusWarningLabel = QLabel("UNKNOWN")
@@ -82,11 +78,37 @@ class GyroPageWidget(QWidget):
         self.gyroZVoltsWarningLabel = QLabel("UNKNOWN")
         self.gcbADCCommsWarningLabel = QLabel("UNKNOWN")
         self.mSYNCExternalTimingWarningLabel = QLabel("UNKNOWN")
-        self.velocityXLabel = QLabel("UNKNOWN")
-        self.velocityYLabel = QLabel("UNKNOWN")
-        self.velocityZLabel = QLabel("UNKNOWN")
-        self.sequenceNumberLabel = QLabel("UNKNOWN")
-        self.temperatureLabel = QLabel("UNKNOWN")
+
+        self.plot = pg.PlotWidget()
+        self.plot.plotItem.addLegend()
+        self.plot.plotItem.setTitle("Angular Velocity")
+        self.plot.plotItem.setLabel(axis = 'left', text = "Angular Velocity (rad/s)")
+        self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")     
+        self.angularVelocityXCurveData = np.array(np.zeros(self.maxPlotSize))
+        self.angularVelocityYCurveData = np.array(np.zeros(self.maxPlotSize))
+        self.angularVelocityZCurveData = np.array(np.zeros(self.maxPlotSize))
+        self.angularVelocityXCurve = self.plot.plot(self.angularVelocityXCurveData, name = 'X', pen = 'r')
+        self.angularVelocityYCurve = self.plot.plot(self.angularVelocityYCurveData, name = 'Y', pen = 'g')
+        self.angularVelocityZCurve = self.plot.plot(self.angularVelocityZCurveData, name = 'Z', pen = 'b')
+
+        row = 0
+        col = 0
+        self.dataLayout.addWidget(QLabel("X"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Angular Velocity (rad/s)"), row, col)
+        self.dataLayout.addWidget(self.velocityXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.velocityYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.velocityZLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel(" "), row, col)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Sequence Number"), row, col)
+        self.dataLayout.addWidget(self.sequenceNumberLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Temperature (C)"), row, col)
+        self.dataLayout.addWidget(self.temperatureLabel, row, col + 1)
 
         row = 0
         col = 0
@@ -112,22 +134,10 @@ class GyroPageWidget(QWidget):
         self.warningLayout.addWidget(self.gyroXSLDTemperatureStatusWarningLabel, row, col + 1)
         row += 1
         self.warningLayout.addWidget(QLabel("X Volts"), row, col)
-        self.warningLayout.addWidget(self.gyroXVoltsWarningLabel, row, col + 1)
+        self.warningLayout.addWidget(self.gyroXVoltsWarningLabel, row, col + 1)    
         row += 1
-        self.warningLayout.addWidget(QLabel("Sequence Number"), row, col)
-        self.warningLayout.addWidget(self.sequenceNumberWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("CRC Mismatch"), row, col)
-        self.warningLayout.addWidget(self.crcMismatchWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("Invalid Length"), row, col)
-        self.warningLayout.addWidget(self.invalidLengthWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("Invalid Header"), row, col)
-        self.warningLayout.addWidget(self.invalidHeaderWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("Incomplete Frame"), row, col)
-        self.warningLayout.addWidget(self.incompleteFrameWarningLabel, row, col + 1)
+        self.warningLayout.addWidget(QLabel("Hi-Speed SPORT"), row, col)
+        self.warningLayout.addWidget(self.hiSpeedSPORTStatusWarningLabel, row, col + 1)   
         
         row = 1
         col = 2
@@ -152,20 +162,8 @@ class GyroPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Y Volts"), row, col)
         self.warningLayout.addWidget(self.gyroYVoltsWarningLabel, row, col + 1)
         row += 1
-        self.warningLayout.addWidget(QLabel("GCB DSP SPI Flash"), row, col)
-        self.warningLayout.addWidget(self.gcbDSPSPIFlashStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("GCB FPGA SPI Flash"), row, col)
-        self.warningLayout.addWidget(self.gcbFPGASPIFlashStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("DSP SPI Flash"), row, col)
-        self.warningLayout.addWidget(self.dspSPIFlashWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("FPGA SPI Flash"), row, col)
-        self.warningLayout.addWidget(self.fpgaSPIFlashStatusWarningLabel, row, col + 1)
-        row += 1  
-        self.warningLayout.addWidget(QLabel("GCB ADC Comms"), row, col)
-        self.warningLayout.addWidget(self.gcbADCCommsWarningLabel, row, col + 1)
+        self.warningLayout.addWidget(QLabel("Aux SPORT"), row, col)
+        self.warningLayout.addWidget(self.auxSPORTStatusWarningLabel, row, col + 1)
         
         row = 1
         col = 4
@@ -190,20 +188,8 @@ class GyroPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Z Volts"), row, col)
         self.warningLayout.addWidget(self.gyroZVoltsWarningLabel, row, col + 1)
         row += 1
-        self.warningLayout.addWidget(QLabel("GCB FPGA"), row, col)
-        self.warningLayout.addWidget(self.gcbFPGAStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("FPGA"), row, col)
-        self.warningLayout.addWidget(self.fpgaStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("GCB Temperature"), row, col)
-        self.warningLayout.addWidget(self.gcbTemperatureStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("Temperature"), row, col)
-        self.warningLayout.addWidget(self.temperatureStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("M SYNC External Timing"), row, col)
-        self.warningLayout.addWidget(self.mSYNCExternalTimingWarningLabel, row, col + 1)
+        self.warningLayout.addWidget(QLabel("Sufficient Resources"), row, col)
+        self.warningLayout.addWidget(self.sufficientSoftwareResourcesWarningLabel, row, col + 1)
         
         row = 1
         col = 6
@@ -225,40 +211,65 @@ class GyroPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("5v"), row, col)
         self.warningLayout.addWidget(self.v5StatusWarningLabel, row, col + 1)
         row += 1
-        self.warningLayout.addWidget(QLabel("Hi-Speed SPORT"), row, col)
-        self.warningLayout.addWidget(self.hiSpeedSPORTStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("Aux SPORT"), row, col)
-        self.warningLayout.addWidget(self.auxSPORTStatusWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("Sufficient Resources"), row, col)
-        self.warningLayout.addWidget(self.sufficientSoftwareResourcesWarningLabel, row, col + 1)
-        row += 1
         self.warningLayout.addWidget(QLabel("EO Volts Positive"), row, col)
         self.warningLayout.addWidget(self.gyroEOVoltsPositiveWarningLabel, row, col + 1)
         row += 1
         self.warningLayout.addWidget(QLabel("EO Volts Negative"), row, col)
         self.warningLayout.addWidget(self.gyroEOVoltsNegativeWarningLabel, row, col + 1)
 
-        row = 0
-        col = 0
-        self.dataLayout.addWidget(QLabel("X"), row, col + 1)
-        self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
-        self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
-        self.dataLayout.addWidget(QLabel("Angular Velocity (rad/s)"), row + 1, col)
-        self.dataLayout.addWidget(self.velocityXLabel, row + 1, col + 1)
-        self.dataLayout.addWidget(self.velocityYLabel, row + 1, col + 2)
-        self.dataLayout.addWidget(self.velocityZLabel, row + 1, col + 3)
+        row = 1
+        col = 8
+        self.warningLayout.addWidget(QLabel("Sequence Number"), row, col)
+        self.warningLayout.addWidget(self.sequenceNumberWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("CRC Mismatch"), row, col)
+        self.warningLayout.addWidget(self.crcMismatchWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("Invalid Length"), row, col)
+        self.warningLayout.addWidget(self.invalidLengthWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("Invalid Header"), row, col)
+        self.warningLayout.addWidget(self.invalidHeaderWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("Incomplete Frame"), row, col)
+        self.warningLayout.addWidget(self.incompleteFrameWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("M SYNC External Timing"), row, col)
+        self.warningLayout.addWidget(self.mSYNCExternalTimingWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("GCB FPGA"), row, col)
+        self.warningLayout.addWidget(self.gcbFPGAStatusWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("FPGA"), row, col)
+        self.warningLayout.addWidget(self.fpgaStatusWarningLabel, row, col + 1)
+        
+        row = 1
+        col = 10
+        self.warningLayout.addWidget(QLabel("GCB DSP SPI Flash"), row, col)
+        self.warningLayout.addWidget(self.gcbDSPSPIFlashStatusWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("GCB FPGA SPI Flash"), row, col)
+        self.warningLayout.addWidget(self.gcbFPGASPIFlashStatusWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("DSP SPI Flash"), row, col)
+        self.warningLayout.addWidget(self.dspSPIFlashWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("FPGA SPI Flash"), row, col)
+        self.warningLayout.addWidget(self.fpgaSPIFlashStatusWarningLabel, row, col + 1)
+        row += 1  
+        self.warningLayout.addWidget(QLabel("GCB ADC Comms"), row, col)
+        self.warningLayout.addWidget(self.gcbADCCommsWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("GCB Temperature"), row, col)
+        self.warningLayout.addWidget(self.gcbTemperatureStatusWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("Temperature"), row, col)
+        self.warningLayout.addWidget(self.temperatureStatusWarningLabel, row, col + 1)  
+        
+        self.plotLayout.addWidget(self.plot)
 
-        row = 2
-        col = 0
-        self.dataLayout.addWidget(QLabel("Sequence Number"), row, col)
-        self.dataLayout.addWidget(self.sequenceNumberLabel, row, col + 1)
-        self.dataLayout.addWidget(QLabel("Temperature (C)"), row + 1, col)
-        self.dataLayout.addWidget(self.temperatureLabel, row + 1, col + 1)
-
-        self.mtm1m3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
-        self.mtm1m3.subscribeTelemetry_gyroData(self.processTelemetryGyroData)
+        self.MTM1M3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
+        self.MTM1M3.subscribeTelemetry_gyroData(self.processTelemetryGyroData)
 
     def processEventGyroWarning(self, data):
         data = data[-1]

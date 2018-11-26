@@ -5,40 +5,38 @@ from MTM1M3Enumerations import AirSupplyFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
 
 class AirPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
         self.commandLayout = QVBoxLayout()
-
         self.layout.addLayout(self.commandLayout)
+        self.layout.addWidget(QLabel(" "))
         self.layout.addLayout(self.dataLayout)
+        self.layout.addWidget(QLabel(" "))
         self.layout.addLayout(self.warningLayout)
         self.setLayout(self.layout)
+        self.setFixedHeight(300)
         
         self.turnAirOnButton = QPushButton("Turn Air On")
         self.turnAirOnButton.clicked.connect(self.issueCommandTurnAirOn)
+        self.turnAirOnButton.setFixedWidth(256)
         self.turnAirOffButton = QPushButton("Turn Air Off")
         self.turnAirOffButton.clicked.connect(self.issueCommandTurnAirOff)
-        self.anyWarningLabel = QLabel("UNKNOWN")
-        self.airValveSensorMismatch = QLabel("UNKNOWN")
+        self.turnAirOffButton.setFixedWidth(256)
+
         self.airCommandedOnLabel = QLabel("UNKNOWN")
         self.airValveOpenedLabel = QLabel("UNKNOWN")
         self.airValveClosedLabel = QLabel("UNKNOWN")
 
+        self.anyWarningLabel = QLabel("UNKNOWN")
+        self.airValveSensorMismatch = QLabel("UNKNOWN")
+        
         self.commandLayout.addWidget(self.turnAirOnButton)
         self.commandLayout.addWidget(self.turnAirOffButton)
 
-        row = 0
-        col = 0
-        self.warningLayout.addWidget(QLabel("Any Warnings"), row, col)
-        self.warningLayout.addWidget(self.anyWarningLabel, row, col + 1)
-        row += 1
-        self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
-        self.warningLayout.addWidget(self.airValveSensorMismatch, row, col + 1)
-        
         row = 0
         col = 0
         self.dataLayout.addWidget(QLabel("Commanded On"), row, col)
@@ -49,15 +47,23 @@ class AirPageWidget(QWidget):
         row += 1
         self.dataLayout.addWidget(QLabel("Valve Closed"), row, col)
         self.dataLayout.addWidget(self.airValveClosedLabel, row, col + 1)
+
+        row = 0
+        col = 0
+        self.warningLayout.addWidget(QLabel("Any Warnings"), row, col)
+        self.warningLayout.addWidget(self.anyWarningLabel, row, col + 1)
+        row += 1
+        self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
+        self.warningLayout.addWidget(self.airValveSensorMismatch, row, col + 1)
         
-        self.mtm1m3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
-        self.mtm1m3.subscribeEvent_airSupplyStatus(self.processEventAirSupplyStatus)
+        self.MTM1M3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
+        self.MTM1M3.subscribeEvent_airSupplyStatus(self.processEventAirSupplyStatus)
 
     def issueCommandTurnAirOn(self):
-        self.mtm1m3.issueCommandThenWait_turnAirOn(False)
+        self.MTM1M3.issueCommandThenWait_turnAirOn(False)
 
     def issueCommandTurnAirOff(self):
-        self.mtm1m3.issueCommandThenWait_turnAirOff(False)
+        self.MTM1M3.issueCommandThenWait_turnAirOff(False)
 
     def processEventAirSupplyWarning(self, data):
         data = data[-1]

@@ -10,15 +10,51 @@ from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 from pyqtgraph import mkPen
 
 class IMSPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
         self.plotLayout = QHBoxLayout()
+        self.layout.addLayout(self.dataLayout)
+        self.layout.addWidget(QLabel(" "))
+        self.layout.addLayout(self.warningLayout)
+        self.layout.addLayout(self.plotLayout)
+        self.setLayout(self.layout)
         
         self.maxPlotSize = 50 * 30 # 50Hz * 30s
+
+        self.rawPositiveXAxialLabel = QLabel("UNKNOWN")
+        self.rawPositiveXTangentLabel = QLabel("UNKNOWN")
+        self.rawNegativeYAxialLabel = QLabel("UNKNOWN")
+        self.rawNegativeYTangentLabel = QLabel("UNKNOWN")
+        self.rawNegativeXAxialLabel = QLabel("UNKNOWN")
+        self.rawNegativeXTangentLabel = QLabel("UNKNOWN")
+        self.rawPositiveYAxialLabel = QLabel("UNKNOWN")
+        self.rawPositiveYTangentLabel = QLabel("UNKNOWN")
+        self.xPositionLabel = QLabel("UNKNOWN")
+        self.yPositionLabel = QLabel("UNKNOWN")
+        self.zPositionLabel = QLabel("UNKNOWN")
+        self.xRotationLabel = QLabel("UNKNOWN")
+        self.yRotationLabel = QLabel("UNKNOWN")
+        self.zRotationLabel = QLabel("UNKNOWN")
+       
+        self.anyWarningLabel = QLabel("UNKNOWN")
+        self.sensorReportsInvalidCommandLabel = QLabel("UNKNOWN")
+        self.sensorReportsCommunicationTimeoutErrorLabel = QLabel("UNKNOWN")
+        self.sensorReportsDataLengthErrorLabel = QLabel("UNKNOWN")
+        self.sensorReportsNumberOfParametersErrorLabel = QLabel("UNKNOWN")
+        self.sensorReportsParameterErrorLabel = QLabel("UNKNOWN")
+        self.sensorReportsCommunicationErrorLabel = QLabel("UNKNOWN")
+        self.sensorReportsIDNumberErrorLabel = QLabel("UNKNOWN")
+        self.sensorReportsExpansionLineErrorLabel = QLabel("UNKNOWN")
+        self.sensorReportsWriteControlErrorLabel = QLabel("UNKNOWN")
+        self.responseTimeoutLabel = QLabel("UNKNOWN")
+        self.invalidLengthLabel = QLabel("UNKNOWN")
+        self.invalidResponseLabel = QLabel("UNKNOWN")
+        self.unknownCommandLabel = QLabel("UNKNOWN")
+        self.unknownProblemLabel = QLabel("UNKNOWN")
 
         self.rawPlot = pg.PlotWidget()
         self.rawPlot.plotItem.addLegend()
@@ -31,13 +67,6 @@ class IMSPageWidget(QWidget):
         self.posPlot.plotItem.setLabel(axis = 'left', text = 'Displacement (m)')
         self.posPlot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
         self.posPlot.plotItem.setLabel(axis = 'right', text = 'Rotation (rad)')
-        self.layout.addLayout(self.dataLayout)
-        self.layout.addLayout(self.warningLayout)
-        self.layout.addLayout(self.plotLayout)
-        self.plotLayout.addWidget(self.rawPlot)
-        self.plotLayout.addWidget(self.posPlot)
-        self.setLayout(self.layout)
-        
         self.rawPositiveXAxialCurveData = np.array([np.zeros(self.maxPlotSize)])
         self.rawPositiveXTangentCurveData = np.array([np.zeros(self.maxPlotSize)])
         self.rawNegativeYAxialCurveData = np.array([np.zeros(self.maxPlotSize)])
@@ -66,35 +95,41 @@ class IMSPageWidget(QWidget):
         self.xRotationCurve = self.posPlot.plot(name = 'X Rotation', pen = 'w')
         self.yRotationCurve = self.posPlot.plot(name = 'Y Rotation', pen = 'y')
         self.zRotationCurve = self.posPlot.plot(name = 'Z Rotation', pen = 'c')
-        self.anyWarningLabel = QLabel("UNKNOWN")
-        self.sensorReportsInvalidCommandLabel = QLabel("UNKNOWN")
-        self.sensorReportsCommunicationTimeoutErrorLabel = QLabel("UNKNOWN")
-        self.sensorReportsDataLengthErrorLabel = QLabel("UNKNOWN")
-        self.sensorReportsNumberOfParametersErrorLabel = QLabel("UNKNOWN")
-        self.sensorReportsParameterErrorLabel = QLabel("UNKNOWN")
-        self.sensorReportsCommunicationErrorLabel = QLabel("UNKNOWN")
-        self.sensorReportsIDNumberErrorLabel = QLabel("UNKNOWN")
-        self.sensorReportsExpansionLineErrorLabel = QLabel("UNKNOWN")
-        self.sensorReportsWriteControlErrorLabel = QLabel("UNKNOWN")
-        self.responseTimeoutLabel = QLabel("UNKNOWN")
-        self.invalidLengthLabel = QLabel("UNKNOWN")
-        self.invalidResponseLabel = QLabel("UNKNOWN")
-        self.unknownCommandLabel = QLabel("UNKNOWN")
-        self.unknownProblemLabel = QLabel("UNKNOWN")
-        self.rawPositiveXAxialLabel = QLabel("UNKNOWN")
-        self.rawPositiveXTangentLabel = QLabel("UNKNOWN")
-        self.rawNegativeYAxialLabel = QLabel("UNKNOWN")
-        self.rawNegativeYTangentLabel = QLabel("UNKNOWN")
-        self.rawNegativeXAxialLabel = QLabel("UNKNOWN")
-        self.rawNegativeXTangentLabel = QLabel("UNKNOWN")
-        self.rawPositiveYAxialLabel = QLabel("UNKNOWN")
-        self.rawPositiveYTangentLabel = QLabel("UNKNOWN")
-        self.xPositionLabel = QLabel("UNKNOWN")
-        self.yPositionLabel = QLabel("UNKNOWN")
-        self.zPositionLabel = QLabel("UNKNOWN")
-        self.xRotationLabel = QLabel("UNKNOWN")
-        self.yRotationLabel = QLabel("UNKNOWN")
-        self.zRotationLabel = QLabel("UNKNOWN")
+
+        row = 0
+        col = 0
+        self.dataLayout.addWidget(QLabel("X"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Position (mm)"), row, col)
+        self.dataLayout.addWidget(self.xPositionLabel, row, col + 1)
+        self.dataLayout.addWidget(self.yPositionLabel, row, col + 2)
+        self.dataLayout.addWidget(self.zPositionLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Rotation (rad)"), row, col)
+        self.dataLayout.addWidget(self.xRotationLabel, row, col + 1)
+        self.dataLayout.addWidget(self.yRotationLabel, row, col + 2)
+        self.dataLayout.addWidget(self.zRotationLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel(" "), row, col)
+        row += 1
+        self.dataLayout.addWidget(QLabel("+X"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("-Y"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("-X"), row, col + 3)
+        self.dataLayout.addWidget(QLabel("+Y"), row, col + 4)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Axial (mm)"), row, col)
+        self.dataLayout.addWidget(self.rawPositiveXAxialLabel, row, col + 1)
+        self.dataLayout.addWidget(self.rawNegativeYAxialLabel, row, col + 2)
+        self.dataLayout.addWidget(self.rawNegativeXAxialLabel, row, col + 3)
+        self.dataLayout.addWidget(self.rawPositiveYAxialLabel, row, col + 4)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Tangent (mm)"), row, col)
+        self.dataLayout.addWidget(self.rawPositiveXTangentLabel, row, col + 1)
+        self.dataLayout.addWidget(self.rawNegativeYTangentLabel, row, col + 2)
+        self.dataLayout.addWidget(self.rawNegativeXTangentLabel, row, col + 3)
+        self.dataLayout.addWidget(self.rawPositiveYTangentLabel, row, col + 4)
 
         row = 0
         col = 0
@@ -146,40 +181,12 @@ class IMSPageWidget(QWidget):
         row += 1
         self.warningLayout.addWidget(QLabel("Unknown Problem"), row, col)
         self.warningLayout.addWidget(self.unknownProblemLabel, row, col + 1)
-        
-        row = 0
-        col = 0
-        self.dataLayout.addWidget(QLabel("X"), row, col + 1)
-        self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
-        self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
-        self.dataLayout.addWidget(QLabel("Position (mm)"), row + 1, col)
-        self.dataLayout.addWidget(self.xPositionLabel, row + 1, col + 1)
-        self.dataLayout.addWidget(self.yPositionLabel, row + 1, col + 2)
-        self.dataLayout.addWidget(self.zPositionLabel, row + 1, col + 3)
-        self.dataLayout.addWidget(QLabel("Rotation (rad)"), row + 2, col)
-        self.dataLayout.addWidget(self.xRotationLabel, row + 2, col + 1)
-        self.dataLayout.addWidget(self.yRotationLabel, row + 2, col + 2)
-        self.dataLayout.addWidget(self.zRotationLabel, row + 2, col + 3)
 
-        row = 4
-        col = 0
-        self.dataLayout.addWidget(QLabel("+X"), row, col + 1)
-        self.dataLayout.addWidget(QLabel("-Y"), row, col + 2)
-        self.dataLayout.addWidget(QLabel("-X"), row, col + 3)
-        self.dataLayout.addWidget(QLabel("+Y"), row, col + 4)
-        self.dataLayout.addWidget(QLabel("Axial (mm)"), row + 1, col)
-        self.dataLayout.addWidget(self.rawPositiveXAxialLabel, row + 1, col + 1)
-        self.dataLayout.addWidget(self.rawNegativeYAxialLabel, row + 1, col + 2)
-        self.dataLayout.addWidget(self.rawNegativeXAxialLabel, row + 1, col + 3)
-        self.dataLayout.addWidget(self.rawPositiveYAxialLabel, row + 1, col + 4)
-        self.dataLayout.addWidget(QLabel("Tangent (mm)"), row + 2, col)
-        self.dataLayout.addWidget(self.rawPositiveXTangentLabel, row + 2, col + 1)
-        self.dataLayout.addWidget(self.rawNegativeYTangentLabel, row + 2, col + 2)
-        self.dataLayout.addWidget(self.rawNegativeXTangentLabel, row + 2, col + 3)
-        self.dataLayout.addWidget(self.rawPositiveYTangentLabel, row + 2, col + 4)
+        self.plotLayout.addWidget(self.posPlot)        
+        #self.plotLayout.addWidget(self.rawPlot)
 
-        self.mtm1m3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
-        self.mtm1m3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
+        self.MTM1M3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
+        self.MTM1M3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
 
     def processEventDisplacementSensorWarning(self, data):
         data = data[-1]

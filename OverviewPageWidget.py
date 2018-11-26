@@ -3,9 +3,9 @@ import QTHelpers
 from PySide2.QtWidgets import (QWidget, QLabel, QGridLayout)
 
 class OverviewPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QGridLayout()
         
         row = 0
@@ -200,24 +200,24 @@ class OverviewPageWidget(QWidget):
         self.layout.addWidget(self.tmaElevationLabel, row + 2, col + 2)
 
         self.setLayout(self.layout)
-        self.mtm1m3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
-        self.mtm1m3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
-        self.mtm1m3.subscribeEvent_appliedForces(self.processEventAppliedForces)
-        self.mtm1m3.subscribeEvent_cellLightWarning(self.processEventCellLightWarning)
-        self.mtm1m3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
-        self.mtm1m3.subscribeEvent_detailedState(self.processEventDetailedState)
-        self.mtm1m3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
-        self.mtm1m3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
-        self.mtm1m3.subscribeEvent_hardpointActuatorWarning(self.processEventHardpointActuatorWarning)
-        self.mtm1m3.subscribeEvent_hardpointMonitorWarning(self.processEventHardpointMonitorWarning)
-        self.mtm1m3.subscribeEvent_inclinometerSensorWarning(self.processEventInclinometerSensorWarning)
-        self.mtm1m3.subscribeEvent_powerWarning(self.processEventPowerWarning)
-        self.mtm1m3.subscribeTelemetry_accelerometerData(self.processTelemetryAccelerometerData)
-        self.mtm1m3.subscribeTelemetry_forceActuatorData(self.processTelemetryForceActuatorData)
-        self.mtm1m3.subscribeTelemetry_gyroData(self.processTelemetryGyroData)
-        self.mtm1m3.subscribeTelemetry_hardpointActuatorData(self.processTelemetryHardpointActuatorData)
-        self.mtm1m3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
-        self.mtm1m3.subscribeTelemetry_inclinometerData(self.processTelemetryInclinometerData)
+        self.MTM1M3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
+        self.MTM1M3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
+        self.MTM1M3.subscribeEvent_appliedForces(self.processEventAppliedForces)
+        self.MTM1M3.subscribeEvent_cellLightWarning(self.processEventCellLightWarning)
+        self.MTM1M3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
+        self.MTM1M3.subscribeEvent_detailedState(self.processEventDetailedState)
+        self.MTM1M3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
+        self.MTM1M3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
+        self.MTM1M3.subscribeEvent_hardpointActuatorWarning(self.processEventHardpointActuatorWarning)
+        self.MTM1M3.subscribeEvent_hardpointMonitorWarning(self.processEventHardpointMonitorWarning)
+        self.MTM1M3.subscribeEvent_inclinometerSensorWarning(self.processEventInclinometerSensorWarning)
+        self.MTM1M3.subscribeEvent_powerWarning(self.processEventPowerWarning)
+        self.MTM1M3.subscribeTelemetry_accelerometerData(self.processTelemetryAccelerometerData)
+        self.MTM1M3.subscribeTelemetry_forceActuatorData(self.processTelemetryForceActuatorData)
+        self.MTM1M3.subscribeTelemetry_gyroData(self.processTelemetryGyroData)
+        self.MTM1M3.subscribeTelemetry_hardpointActuatorData(self.processTelemetryHardpointActuatorData)
+        self.MTM1M3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
+        self.MTM1M3.subscribeTelemetry_inclinometerData(self.processTelemetryInclinometerData)
 
     def processEventAccelerometerWarning(self, data):
         QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data[-1].anyWarning)

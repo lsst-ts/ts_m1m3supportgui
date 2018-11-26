@@ -9,91 +9,73 @@ from pyqtgraph.ptime import time
 from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class PowerPageWidget(QWidget):
-    def __init__(self, mtm1m3):
+    def __init__(self, MTM1M3):
         QWidget.__init__(self)
-        self.mtm1m3 = mtm1m3
+        self.MTM1M3 = MTM1M3
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
         self.commandLayout = QGridLayout()
         self.plotLayout = QVBoxLayout()
-
-        self.maxPlotSize = 50 * 30 # 50Hz * 30s
-
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Current")
-        self.plot.plotItem.setLabel(axis = 'left', text = 'Current (A)')
-        self.plot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
-        self.plotLayout.addWidget(self.plot)
         self.layout.addLayout(self.commandLayout)
         self.layout.addLayout(self.dataLayout)
+        self.layout.addWidget(QLabel(" "))
         self.layout.addLayout(self.warningLayout)
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
 
-        self.powerNetworkACurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.powerNetworkBCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.powerNetworkCCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.powerNetworkDCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.lightPowerNetworkCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.controlsPowerNetworkCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.powerNetworkACurrentCurve = self.plot.plot(name = 'A', pen = 'r') 
-        self.powerNetworkBCurrentCurve = self.plot.plot(name = 'B', pen = 'g')
-        self.powerNetworkCCurrentCurve = self.plot.plot(name = 'C', pen = 'b')
-        self.powerNetworkDCurrentCurve = self.plot.plot(name = 'D', pen = 'w')
-        self.lightPowerNetworkCurrentCurve = self.plot.plot(name = 'Lights', pen = 'y')
-        self.controlsPowerNetworkCurrentCurve = self.plot.plot(name = 'Controls', pen = 'c')
+        self.maxPlotSize = 50 * 30 # 50Hz * 30s
 
         self.turnMainAOnButton = QPushButton("Turn Main A On")
+        self.turnMainAOnButton.setFixedWidth(256)
         self.turnMainAOnButton.clicked.connect(self.issueCommandTurnMainAOn)
         self.turnMainAOffButton = QPushButton("Turn Main A Off")
+        self.turnMainAOffButton.setFixedWidth(256)
         self.turnMainAOffButton.clicked.connect(self.issueCommandTurnMainAOff)
         self.turnMainBOnButton = QPushButton("Turn Main B On")
+        self.turnMainBOnButton.setFixedWidth(256)
         self.turnMainBOnButton.clicked.connect(self.issueCommandTurnMainBOn)
         self.turnMainBOffButton = QPushButton("Turn Main B Off")
+        self.turnMainBOffButton.setFixedWidth(256)
         self.turnMainBOffButton.clicked.connect(self.issueCommandTurnMainBOff)
         self.turnMainCOnButton = QPushButton("Turn Main C On")
+        self.turnMainCOnButton.setFixedWidth(256)
         self.turnMainCOnButton.clicked.connect(self.issueCommandTurnMainCOn)
         self.turnMainCOffButton = QPushButton("Turn Main C Off")
+        self.turnMainCOffButton.setFixedWidth(256)
         self.turnMainCOffButton.clicked.connect(self.issueCommandTurnMainCOff)
         self.turnMainDOnButton = QPushButton("Turn Main D On")
+        self.turnMainDOnButton.setFixedWidth(256)
         self.turnMainDOnButton.clicked.connect(self.issueCommandTurnMainDOn)
         self.turnMainDOffButton = QPushButton("Turn Main D Off")
+        self.turnMainDOffButton.setFixedWidth(256)
         self.turnMainDOffButton.clicked.connect(self.issueCommandTurnMainDOff)
         self.turnAuxAOnButton = QPushButton("Turn Aux A On")
+        self.turnAuxAOnButton.setFixedWidth(256)
         self.turnAuxAOnButton.clicked.connect(self.issueCommandTurnAuxAOn)
         self.turnAuxAOffButton = QPushButton("Turn Aux A Off")
+        self.turnAuxAOffButton.setFixedWidth(256)
         self.turnAuxAOffButton.clicked.connect(self.issueCommandTurnAuxAOff)
         self.turnAuxBOnButton = QPushButton("Turn Aux B On")
+        self.turnAuxBOnButton.setFixedWidth(256)
         self.turnAuxBOnButton.clicked.connect(self.issueCommandTurnAuxBOn)
         self.turnAuxBOffButton = QPushButton("Turn Aux B Off")
+        self.turnAuxBOffButton.setFixedWidth(256)
         self.turnAuxBOffButton.clicked.connect(self.issueCommandTurnAuxBOff)
         self.turnAuxCOnButton = QPushButton("Turn Aux C On")
+        self.turnAuxCOnButton.setFixedWidth(256)
         self.turnAuxCOnButton.clicked.connect(self.issueCommandTurnAuxCOn)
         self.turnAuxCOffButton = QPushButton("Turn Aux C Off")
+        self.turnAuxCOffButton.setFixedWidth(256)
         self.turnAuxCOffButton.clicked.connect(self.issueCommandTurnAuxCOff)
         self.turnAuxDOnButton = QPushButton("Turn Aux D On")
+        self.turnAuxDOnButton.setFixedWidth(256)
         self.turnAuxDOnButton.clicked.connect(self.issueCommandTurnAuxDOn)
         self.turnAuxDOffButton = QPushButton("Turn Aux D Off")
+        self.turnAuxDOffButton.setFixedWidth(256)
         self.turnAuxDOffButton.clicked.connect(self.issueCommandTurnAuxDOff)
 
-        self.powerNetworkACurrentLabel = QLabel("UNKNOWN")
-        self.powerNetworkBCurrentLabel = QLabel("UNKNOWN")
-        self.powerNetworkCCurrentLabel = QLabel("UNKNOWN")
-        self.powerNetworkDCurrentLabel = QLabel("UNKNOWN")
-        self.lightPowerNetworkCurrentLabel = QLabel("UNKNOWN")
-        self.controlsPowerNetworkCurrentLabel = QLabel("UNKNOWN")
-
-        self.powerNetworkACommandedOnLabel = QLabel("UNKNOWN")
-        self.powerNetworkBCommandedOnLabel = QLabel("UNKNOWN")
-        self.powerNetworkCCommandedOnLabel = QLabel("UNKNOWN")
-        self.powerNetworkDCommandedOnLabel = QLabel("UNKNOWN")
-        self.auxPowerNetworkACommandedOnLabel = QLabel("UNKNOWN")
-        self.auxPowerNetworkBCommandedOnLabel = QLabel("UNKNOWN")
-        self.auxPowerNetworkCCommandedOnLabel = QLabel("UNKNOWN")
-        self.auxPowerNetworkDCommandedOnLabel = QLabel("UNKNOWN")
-
+        self.anyWarningLabel = QLabel("UNKNOWN")
         self.rcpMirrorCellUtility220VAC1StatusLabel = QLabel("UNKNOWN")
         self.rcpCabinetUtility220VACStatusLabel = QLabel("UNKNOWN")
         self.rcpExternalEquipment220VACStatusLabel = QLabel("UNKNOWN")
@@ -118,11 +100,38 @@ class PowerPageWidget(QWidget):
         self.externalEquipmentPowerNetworkStatusLabel = QLabel("UNKNOWN")
         self.laserTrackerPowerNetworkStatusLabel = QLabel("UNKNOWN")
         
-        self.anyWarningLabel = QLabel("UNKNOWN")
-        self.airValveSensorMismatch = QLabel("UNKNOWN")
-        self.airCommandedOnLabel = QLabel("UNKNOWN")
-        self.airValveOpenedLabel = QLabel("UNKNOWN")
-        self.airValveClosedLabel = QLabel("UNKNOWN")
+        self.powerNetworkACurrentLabel = QLabel("UNKNOWN")
+        self.powerNetworkBCurrentLabel = QLabel("UNKNOWN")
+        self.powerNetworkCCurrentLabel = QLabel("UNKNOWN")
+        self.powerNetworkDCurrentLabel = QLabel("UNKNOWN")
+        self.lightPowerNetworkCurrentLabel = QLabel("UNKNOWN")
+        self.controlsPowerNetworkCurrentLabel = QLabel("UNKNOWN")
+        self.powerNetworkACommandedOnLabel = QLabel("UNKNOWN")
+        self.powerNetworkBCommandedOnLabel = QLabel("UNKNOWN")
+        self.powerNetworkCCommandedOnLabel = QLabel("UNKNOWN")
+        self.powerNetworkDCommandedOnLabel = QLabel("UNKNOWN")
+        self.auxPowerNetworkACommandedOnLabel = QLabel("UNKNOWN")
+        self.auxPowerNetworkBCommandedOnLabel = QLabel("UNKNOWN")
+        self.auxPowerNetworkCCommandedOnLabel = QLabel("UNKNOWN")
+        self.auxPowerNetworkDCommandedOnLabel = QLabel("UNKNOWN")
+
+        self.plot = pg.PlotWidget()
+        self.plot.plotItem.addLegend()
+        self.plot.plotItem.setTitle("Current")
+        self.plot.plotItem.setLabel(axis = 'left', text = 'Current (A)')
+        self.plot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
+        self.powerNetworkACurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.powerNetworkBCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.powerNetworkCCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.powerNetworkDCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.lightPowerNetworkCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.controlsPowerNetworkCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.powerNetworkACurrentCurve = self.plot.plot(name = 'A', pen = 'r') 
+        self.powerNetworkBCurrentCurve = self.plot.plot(name = 'B', pen = 'g')
+        self.powerNetworkCCurrentCurve = self.plot.plot(name = 'C', pen = 'b')
+        self.powerNetworkDCurrentCurve = self.plot.plot(name = 'D', pen = 'w')
+        self.lightPowerNetworkCurrentCurve = self.plot.plot(name = 'Lights', pen = 'y')
+        self.controlsPowerNetworkCurrentCurve = self.plot.plot(name = 'Controls', pen = 'c')
 
         row = 0
         col = 0
@@ -144,6 +153,42 @@ class PowerPageWidget(QWidget):
         self.commandLayout.addWidget(self.turnMainDOffButton, row + 4, col + 1)
         self.commandLayout.addWidget(self.turnAuxDOnButton, row + 4, col + 2)
         self.commandLayout.addWidget(self.turnAuxDOffButton, row + 4, col + 3)
+
+        row = 0
+        col = 0
+        self.dataLayout.addWidget(QLabel("Main (ON/OFF)"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Aux (ON/OFF)"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Current (A)"), row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Power Network A"), row, col)
+        self.dataLayout.addWidget(self.powerNetworkACommandedOnLabel, row, col + 1)
+        self.dataLayout.addWidget(self.auxPowerNetworkACommandedOnLabel, row, col + 2)
+        self.dataLayout.addWidget(self.powerNetworkACurrentLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Power Network B"), row, col)
+        self.dataLayout.addWidget(self.powerNetworkBCommandedOnLabel, row, col + 1)
+        self.dataLayout.addWidget(self.auxPowerNetworkBCommandedOnLabel, row, col + 2)
+        self.dataLayout.addWidget(self.powerNetworkBCurrentLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Power Network C"), row, col)
+        self.dataLayout.addWidget(self.powerNetworkCCommandedOnLabel, row, col + 1)
+        self.dataLayout.addWidget(self.auxPowerNetworkCCommandedOnLabel, row, col + 2)
+        self.dataLayout.addWidget(self.powerNetworkCCurrentLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Power Network D"), row, col)
+        self.dataLayout.addWidget(self.powerNetworkDCommandedOnLabel, row, col + 1)
+        self.dataLayout.addWidget(self.auxPowerNetworkDCommandedOnLabel, row, col + 2)
+        self.dataLayout.addWidget(self.powerNetworkDCurrentLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Light Network"), row, col)
+        self.dataLayout.addWidget(QLabel("-"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("-"), row, col + 2)
+        self.dataLayout.addWidget(self.lightPowerNetworkCurrentLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Controls Network"), row, col)
+        self.dataLayout.addWidget(QLabel("-"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("-"), row, col + 2)
+        self.dataLayout.addWidget(self.controlsPowerNetworkCurrentLabel, row, col + 3)
 
         row = 0
         col = 0
@@ -225,93 +270,59 @@ class PowerPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Laser Tracker Status"), row, col)
         self.warningLayout.addWidget(self.laserTrackerPowerNetworkStatusLabel, row, col + 1)
 
-        row = 0
-        col = 0
-        self.dataLayout.addWidget(QLabel("Main (ON/OFF)"), row, col + 1)
-        self.dataLayout.addWidget(QLabel("Aux (ON/OFF)"), row, col + 2)
-        self.dataLayout.addWidget(QLabel("Current (A)"), row, col + 3)
-        row += 1
-        self.dataLayout.addWidget(QLabel("Power Network A"), row, col)
-        self.dataLayout.addWidget(self.powerNetworkACommandedOnLabel, row, col + 1)
-        self.dataLayout.addWidget(self.auxPowerNetworkACommandedOnLabel, row, col + 2)
-        self.dataLayout.addWidget(self.powerNetworkACurrentLabel, row, col + 3)
-        row += 1
-        self.dataLayout.addWidget(QLabel("Power Network B"), row, col)
-        self.dataLayout.addWidget(self.powerNetworkBCommandedOnLabel, row, col + 1)
-        self.dataLayout.addWidget(self.auxPowerNetworkBCommandedOnLabel, row, col + 2)
-        self.dataLayout.addWidget(self.powerNetworkBCurrentLabel, row, col + 3)
-        row += 1
-        self.dataLayout.addWidget(QLabel("Power Network C"), row, col)
-        self.dataLayout.addWidget(self.powerNetworkCCommandedOnLabel, row, col + 1)
-        self.dataLayout.addWidget(self.auxPowerNetworkCCommandedOnLabel, row, col + 2)
-        self.dataLayout.addWidget(self.powerNetworkCCurrentLabel, row, col + 3)
-        row += 1
-        self.dataLayout.addWidget(QLabel("Power Network D"), row, col)
-        self.dataLayout.addWidget(self.powerNetworkDCommandedOnLabel, row, col + 1)
-        self.dataLayout.addWidget(self.auxPowerNetworkDCommandedOnLabel, row, col + 2)
-        self.dataLayout.addWidget(self.powerNetworkDCurrentLabel, row, col + 3)
-        row += 1
-        self.dataLayout.addWidget(QLabel("Light Network"), row, col)
-        self.dataLayout.addWidget(QLabel("-"), row, col + 1)
-        self.dataLayout.addWidget(QLabel("-"), row, col + 2)
-        self.dataLayout.addWidget(self.lightPowerNetworkCurrentLabel, row, col + 3)
-        row += 1
-        self.dataLayout.addWidget(QLabel("Controls Network"), row, col)
-        self.dataLayout.addWidget(QLabel("-"), row, col + 1)
-        self.dataLayout.addWidget(QLabel("-"), row, col + 2)
-        self.dataLayout.addWidget(self.controlsPowerNetworkCurrentLabel, row, col + 3)
+        self.plotLayout.addWidget(self.plot)
         
-        self.mtm1m3.subscribeEvent_powerWarning(self.processEventPowerWarning)
-        self.mtm1m3.subscribeEvent_powerStatus(self.processEventPowerStatus)
-        self.mtm1m3.subscribeTelemetry_powerData(self.processTelemetryPowerData)
+        self.MTM1M3.subscribeEvent_powerWarning(self.processEventPowerWarning)
+        self.MTM1M3.subscribeEvent_powerStatus(self.processEventPowerStatus)
+        self.MTM1M3.subscribeTelemetry_powerData(self.processTelemetryPowerData)
 
     def issueCommandTurnMainAOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(True, False, False, False, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(True, False, False, False, False, False, False, False)
 
     def issueCommandTurnMainAOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(True, False, False, False, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(True, False, False, False, False, False, False, False)
 
     def issueCommandTurnMainBOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(False, True, False, False, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, True, False, False, False, False, False, False)
 
     def issueCommandTurnMainBOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(False, True, False, False, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, True, False, False, False, False, False, False)
 
     def issueCommandTurnMainCOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(False, False, True, False, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, True, False, False, False, False, False)
 
     def issueCommandTurnMainCOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(False, False, True, False, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, True, False, False, False, False, False)
 
     def issueCommandTurnMainDOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(False, False, False, True, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, True, False, False, False, False)
 
     def issueCommandTurnMainDOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(False, False, False, True, False, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, True, False, False, False, False)
 
     def issueCommandTurnAuxAOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(False, False, False, False, True, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, True, False, False, False)
 
     def issueCommandTurnAuxAOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(False, False, False, False, True, False, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, True, False, False, False)
 
     def issueCommandTurnAuxBOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, True, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, True, False, False)
 
     def issueCommandTurnAuxBOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, True, False, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, True, False, False)
 
     def issueCommandTurnAuxCOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, False, True, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, False, True, False)
 
     def issueCommandTurnAuxCOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, False, True, False)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, False, True, False)
 
     def issueCommandTurnAuxDOn(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, False, False, True)
+        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, False, False, True)
 
     def issueCommandTurnAuxDOff(self):
-        self.mtm1m3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, False, False, True)
+        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, False, False, True)
 
     def processEventPowerWarning(self, data):
         data = data[-1]
