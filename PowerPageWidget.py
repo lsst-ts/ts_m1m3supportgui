@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import PowerSystemFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
@@ -120,12 +121,6 @@ class PowerPageWidget(QWidget):
         self.plot.plotItem.setTitle("Current")
         self.plot.plotItem.setLabel(axis = 'left', text = 'Current (A)')
         self.plot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
-        self.powerNetworkACurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.powerNetworkBCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.powerNetworkCCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.powerNetworkDCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.lightPowerNetworkCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.controlsPowerNetworkCurrentCurveData = np.array([np.zeros(self.maxPlotSize)])
         self.powerNetworkACurrentCurve = self.plot.plot(name = 'A', pen = 'r') 
         self.powerNetworkBCurrentCurve = self.plot.plot(name = 'B', pen = 'g')
         self.powerNetworkCCurrentCurve = self.plot.plot(name = 'C', pen = 'b')
@@ -271,10 +266,100 @@ class PowerPageWidget(QWidget):
         self.warningLayout.addWidget(self.laserTrackerPowerNetworkStatusLabel, row, col + 1)
 
         self.plotLayout.addWidget(self.plot)
+
+        self.dataEventPowerWarning = DataCache()
+        self.dataEventPowerStatus = DataCache()
+        self.powerNetworkACurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.powerNetworkBCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.powerNetworkCCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.powerNetworkDCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.lightPowerNetworkCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.controlsPowerNetworkCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.dataTelemetryPowerData = DataCache()
         
         self.MTM1M3.subscribeEvent_powerWarning(self.processEventPowerWarning)
         self.MTM1M3.subscribeEvent_powerStatus(self.processEventPowerStatus)
         self.MTM1M3.subscribeTelemetry_powerData(self.processTelemetryPowerData)
+
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventPowerWarning.hasBeenUpdated():
+            data = self.dataEventPowerWarning.get()
+            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+            QTHelpers.setWarningLabel(self.rcpMirrorCellUtility220VAC1StatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPMirrorCellUtility220VAC1Status))
+            QTHelpers.setWarningLabel(self.rcpCabinetUtility220VACStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPCabinetUtility220VACStatus))
+            QTHelpers.setWarningLabel(self.rcpExternalEquipment220VACStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPExternalEquipment220VACStatus))
+            QTHelpers.setWarningLabel(self.rcpMirrorCellUtility220VAC2StatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPMirrorCellUtility220VAC2Status))
+            QTHelpers.setWarningLabel(self.rcpMirrorCellUtility220VAC3StatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPMirrorCellUtility220VAC3Status))
+            QTHelpers.setWarningLabel(self.powerNetworkARedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkARedundancyControlStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkBRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkBRedundancyControlStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkCRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkCRedundancyControlStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkDRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkDRedundancyControlStatus))
+            QTHelpers.setWarningLabel(self.controlsPowerNetworkRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ControlsPowerNetworkRedundancyControlStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkAStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkAStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkARedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkARedundantStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkBStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkBStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkBRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkBRedundantStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkCStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkCStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkCRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkCRedundantStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkDStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkDStatus))
+            QTHelpers.setWarningLabel(self.powerNetworkDRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkDRedundantStatus))
+            QTHelpers.setWarningLabel(self.controlsPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ControlsPowerNetworkStatus))
+            QTHelpers.setWarningLabel(self.controlsPowerNetworkRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ControlsPowerNetworkRedundantStatus))
+            QTHelpers.setWarningLabel(self.lightPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.LightPowerNetworkStatus))
+            QTHelpers.setWarningLabel(self.externalEquipmentPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ExternalEquipmentPowerNetworkStatus))
+            QTHelpers.setWarningLabel(self.laserTrackerPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.LaserTrackerPowerNetworkStatus))
+
+        if self.dataEventPowerStatus.hasBeenUpdated():
+            data = self.dataEventPowerStatus.get()
+            QTHelpers.setBoolLabelOnOff(self.powerNetworkACommandedOnLabel, data.powerNetworkACommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.powerNetworkBCommandedOnLabel, data.powerNetworkBCommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.powerNetworkCCommandedOnLabel, data.powerNetworkCCommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.powerNetworkDCommandedOnLabel, data.powerNetworkDCommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkACommandedOnLabel, data.auxPowerNetworkACommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkBCommandedOnLabel, data.auxPowerNetworkBCommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkCCommandedOnLabel, data.auxPowerNetworkCCommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkDCommandedOnLabel, data.auxPowerNetworkDCommandedOn)
+
+        if self.powerNetworkACurrentCurveData.hasBeenUpdated():
+            data = self.powerNetworkACurrentCurveData.get()
+            self.powerNetworkACurrentCurve.setData(data)
+
+        if self.powerNetworkBCurrentCurveData.hasBeenUpdated():
+            data = self.powerNetworkBCurrentCurveData.get()
+            self.powerNetworkBCurrentCurve.setData(data)
+
+        if self.powerNetworkCCurrentCurveData.hasBeenUpdated():
+            data = self.powerNetworkCCurrentCurveData.get()
+            self.powerNetworkCCurrentCurve.setData(data)
+
+        if self.powerNetworkDCurrentCurveData.hasBeenUpdated():
+            data = self.powerNetworkDCurrentCurveData.get()
+            self.powerNetworkDCurrentCurve.setData(data)
+        
+        if self.lightPowerNetworkCurrentCurveData.hasBeenUpdated():
+            data = self.lightPowerNetworkCurrentCurveData.get()
+            self.lightPowerNetworkCurrentCurve.setData(data)
+
+        if self.controlsPowerNetworkCurrentCurveData.hasBeenUpdated():
+            data = self.controlsPowerNetworkCurrentCurveData.get()
+            self.controlsPowerNetworkCurrentCurve.setData(data)
+
+        if self.dataTelemetryPowerData.hasBeenUpdated():
+            data = self.dataTelemetryPowerData.get()
+            self.powerNetworkACurrentLabel.setText("%0.3f" % data.powerNetworkACurrent)
+            self.powerNetworkBCurrentLabel.setText("%0.3f" % data.powerNetworkBCurrent)
+            self.powerNetworkCCurrentLabel.setText("%0.3f" % data.powerNetworkCCurrent)
+            self.powerNetworkDCurrentLabel.setText("%0.3f" % data.powerNetworkDCurrent)
+            self.lightPowerNetworkCurrentLabel.setText("%0.3f" % data.lightPowerNetworkCurrent)
+            self.controlsPowerNetworkCurrentLabel.setText("%0.3f" % data.controlsPowerNetworkCurrent)
 
     def issueCommandTurnMainAOn(self):
         self.MTM1M3.issueCommandThenWait_turnPowerOn(True, False, False, False, False, False, False, False)
@@ -325,61 +410,16 @@ class PowerPageWidget(QWidget):
         self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, False, False, True)
 
     def processEventPowerWarning(self, data):
-        data = data[-1]
-        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        QTHelpers.setWarningLabel(self.rcpMirrorCellUtility220VAC1StatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPMirrorCellUtility220VAC1Status))
-        QTHelpers.setWarningLabel(self.rcpCabinetUtility220VACStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPCabinetUtility220VACStatus))
-        QTHelpers.setWarningLabel(self.rcpExternalEquipment220VACStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPExternalEquipment220VACStatus))
-        QTHelpers.setWarningLabel(self.rcpMirrorCellUtility220VAC2StatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPMirrorCellUtility220VAC2Status))
-        QTHelpers.setWarningLabel(self.rcpMirrorCellUtility220VAC3StatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPMirrorCellUtility220VAC3Status))
-        QTHelpers.setWarningLabel(self.powerNetworkARedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkARedundancyControlStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkBRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkBRedundancyControlStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkCRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkCRedundancyControlStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkDRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkDRedundancyControlStatus))
-        QTHelpers.setWarningLabel(self.controlsPowerNetworkRedundancyControlStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ControlsPowerNetworkRedundancyControlStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkAStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkAStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkARedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkARedundantStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkBStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkBStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkBRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkBRedundantStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkCStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkCStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkCRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkCRedundantStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkDStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkDStatus))
-        QTHelpers.setWarningLabel(self.powerNetworkDRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.PowerNetworkDRedundantStatus))
-        QTHelpers.setWarningLabel(self.controlsPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ControlsPowerNetworkStatus))
-        QTHelpers.setWarningLabel(self.controlsPowerNetworkRedundantStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ControlsPowerNetworkRedundantStatus))
-        QTHelpers.setWarningLabel(self.lightPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.LightPowerNetworkStatus))
-        QTHelpers.setWarningLabel(self.externalEquipmentPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ExternalEquipmentPowerNetworkStatus))
-        QTHelpers.setWarningLabel(self.laserTrackerPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.LaserTrackerPowerNetworkStatus))
+        self.dataEventPowerWarning.set(data[-1])
 
     def processEventPowerStatus(self, data):
-        data = data[-1]
-        QTHelpers.setBoolLabelOnOff(self.powerNetworkACommandedOnLabel, data.powerNetworkACommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.powerNetworkBCommandedOnLabel, data.powerNetworkBCommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.powerNetworkCCommandedOnLabel, data.powerNetworkCCommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.powerNetworkDCommandedOnLabel, data.powerNetworkDCommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkACommandedOnLabel, data.auxPowerNetworkACommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkBCommandedOnLabel, data.auxPowerNetworkBCommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkCCommandedOnLabel, data.auxPowerNetworkCCommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkDCommandedOnLabel, data.auxPowerNetworkDCommandedOn)
+        self.dataEventPowerStatus.set(data[-1])
 
     def processTelemetryPowerData(self, data):
-        self.powerNetworkACurrentCurveData = QTHelpers.appendAndResizeCurveData(self.powerNetworkACurrentCurveData, [x.powerNetworkACurrent for x in data], self.maxPlotSize)
-        self.powerNetworkBCurrentCurveData = QTHelpers.appendAndResizeCurveData(self.powerNetworkBCurrentCurveData, [x.powerNetworkBCurrent for x in data], self.maxPlotSize)
-        self.powerNetworkCCurrentCurveData = QTHelpers.appendAndResizeCurveData(self.powerNetworkCCurrentCurveData, [x.powerNetworkCCurrent for x in data], self.maxPlotSize)
-        self.powerNetworkDCurrentCurveData = QTHelpers.appendAndResizeCurveData(self.powerNetworkDCurrentCurveData, [x.powerNetworkDCurrent for x in data], self.maxPlotSize)
-        self.lightPowerNetworkCurrentCurveData = QTHelpers.appendAndResizeCurveData(self.lightPowerNetworkCurrentCurveData, [x.lightPowerNetworkCurrent for x in data], self.maxPlotSize)
-        self.controlsPowerNetworkCurrentCurveData = QTHelpers.appendAndResizeCurveData(self.controlsPowerNetworkCurrentCurveData, [x.controlsPowerNetworkCurrent for x in data], self.maxPlotSize)
-        self.powerNetworkACurrentCurve.setData(self.powerNetworkACurrentCurveData)
-        self.powerNetworkBCurrentCurve.setData(self.powerNetworkBCurrentCurveData)
-        self.powerNetworkCCurrentCurve.setData(self.powerNetworkCCurrentCurveData)
-        self.powerNetworkDCurrentCurve.setData(self.powerNetworkDCurrentCurveData)
-        self.lightPowerNetworkCurrentCurve.setData(self.lightPowerNetworkCurrentCurveData)
-        self.controlsPowerNetworkCurrentCurve.setData(self.controlsPowerNetworkCurrentCurveData)
-
-        data = data[-1]
-        self.powerNetworkACurrentLabel.setText("%0.3f" % data.powerNetworkACurrent)
-        self.powerNetworkBCurrentLabel.setText("%0.3f" % data.powerNetworkBCurrent)
-        self.powerNetworkCCurrentLabel.setText("%0.3f" % data.powerNetworkCCurrent)
-        self.powerNetworkDCurrentLabel.setText("%0.3f" % data.powerNetworkDCurrent)
-        self.lightPowerNetworkCurrentLabel.setText("%0.3f" % data.lightPowerNetworkCurrent)
-        self.controlsPowerNetworkCurrentLabel.setText("%0.3f" % data.controlsPowerNetworkCurrent)
+        self.powerNetworkACurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkACurrentCurveData.get(), [x.powerNetworkACurrent for x in data], self.maxPlotSize))
+        self.powerNetworkBCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkBCurrentCurveData.get(), [x.powerNetworkBCurrent for x in data], self.maxPlotSize))
+        self.powerNetworkCCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkCCurrentCurveData.get(), [x.powerNetworkCCurrent for x in data], self.maxPlotSize))
+        self.powerNetworkDCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkDCurrentCurveData.get(), [x.powerNetworkDCurrent for x in data], self.maxPlotSize))
+        self.lightPowerNetworkCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.lightPowerNetworkCurrentCurveData.get(), [x.lightPowerNetworkCurrent for x in data], self.maxPlotSize))
+        self.controlsPowerNetworkCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.controlsPowerNetworkCurrentCurveData.get(), [x.controlsPowerNetworkCurrent for x in data], self.maxPlotSize))
+        self.dataTelemetryPowerData.set(data[-1])

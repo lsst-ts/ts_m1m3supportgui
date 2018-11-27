@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import InterlockSystemFlags
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
@@ -56,20 +57,38 @@ class InterlockPageWidget(QWidget):
         row += 1
         self.warningLayout.addWidget(QLabel("Cabinet Door Open"), row, col)
         self.warningLayout.addWidget(self.cabinetDoorOpenLabel, row, col + 1)
+
+        self.dataEventInterlockWarning = DataCache()
+        self.dataEventInterlockStatus = DataCache()
         
         self.MTM1M3.subscribeEvent_interlockWarning(self.processEventInterlockWarning)
         self.MTM1M3.subscribeEvent_interlockStatus(self.processEventInterlockStatus)
 
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventInterlockWarning.hasBeenUpdated():
+            data = self.dataEventInterlockWarning.get()
+            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+            QTHelpers.setWarningLabel(self.auxPowerNetworksOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AuxPowerNetworksOff))
+            QTHelpers.setWarningLabel(self.thermalEquipmentOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.ThermalEquipmentOff))
+            QTHelpers.setWarningLabel(self.airSupplyOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AirSupplyOff))
+            QTHelpers.setWarningLabel(self.tmaMotionStopLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.TMAMotionStop))
+            QTHelpers.setWarningLabel(self.gisHeartbeatLostLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.GISHeartbeatLost))
+            QTHelpers.setWarningLabel(self.cabinetDoorOpenLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.CabinetDoorOpen))
+
+        if self.dataEventInterlockStatus.hasBeenUpdated():
+            data = self.dataEventInterlockStatus.get()
+            QTHelpers.setBoolLabelHighLow(self.heartbeatLabel, data.heartbeatCommandedState)
+
     def processEventInterlockWarning(self, data):
-        data = data[-1]
-        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        QTHelpers.setWarningLabel(self.auxPowerNetworksOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AuxPowerNetworksOff))
-        QTHelpers.setWarningLabel(self.thermalEquipmentOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.ThermalEquipmentOff))
-        QTHelpers.setWarningLabel(self.airSupplyOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AirSupplyOff))
-        QTHelpers.setWarningLabel(self.tmaMotionStopLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.TMAMotionStop))
-        QTHelpers.setWarningLabel(self.gisHeartbeatLostLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.GISHeartbeatLost))
-        QTHelpers.setWarningLabel(self.cabinetDoorOpenLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.CabinetDoorOpen))
+        self.dataEventInterlockWarning.set(data[-1])
 
     def processEventInterlockStatus(self, data):
-        data = data[-1]
-        QTHelpers.setBoolLabelHighLow(self.heartbeatLabel, data.heartbeatCommandedState)
+        self.dataEventInterlockStatus.set(data[-1])

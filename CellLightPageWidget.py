@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import CellLightFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
@@ -51,9 +52,31 @@ class CellLightPageWidget(QWidget):
         row += 1
         self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
         self.warningLayout.addWidget(self.cellLightSensorMismatchLabel, row, col + 1)
+
+        self.dataEventCellLightWarning = DataCache()
+        self.dataEventCellLightStatus = DataCache()
         
         self.MTM1M3.subscribeEvent_cellLightWarning(self.processEventCellLightWarning)
         self.MTM1M3.subscribeEvent_cellLightStatus(self.processEventCellLightStatus)
+
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventCellLightWarning.hasBeenUpdated():
+            data = self.dataEventCellLightWarning.get()
+            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+            QTHelpers.setWarningLabel(self.cellLightSensorMismatchLabel, BitHelper.get(data.cellLightFlags, CellLightFlags.CellLightSensorMismatch))
+
+        if self.dataEventCellLightStatus.hasBeenUpdated():
+            data = self.dataEventCellLightStatus.get()
+            QTHelpers.setBoolLabelOnOff(self.cellLightsCommandedOnLabel, data.cellLightsCommandedOn)
+            QTHelpers.setBoolLabelOnOff(self.cellLightsOnLabel, data.cellLightsOn)
 
     def issueCommandTurnLightsOn(self):
         self.MTM1M3.issueCommandThenWait_turnLightsOn(False)
@@ -62,11 +85,7 @@ class CellLightPageWidget(QWidget):
         self.MTM1M3.issueCommandThenWait_turnLightsOff(False)
 
     def processEventCellLightWarning(self, data):
-        data = data[-1]
-        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        QTHelpers.setWarningLabel(self.cellLightSensorMismatchLabel, BitHelper.get(data.cellLightFlags, CellLightFlags.CellLightSensorMismatch))
-
+        self.dataEventCellLightWarning.set(data[-1])
+        
     def processEventCellLightStatus(self, data):
-        data = data[-1]
-        QTHelpers.setBoolLabelOnOff(self.cellLightsCommandedOnLabel, data.cellLightsCommandedOn)
-        QTHelpers.setBoolLabelOnOff(self.cellLightsOnLabel, data.cellLightsOn)
+        self.dataEventCellLightStatus.set(data[-1])

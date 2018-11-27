@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import DisplacementSensorFlags
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout)
@@ -61,20 +62,6 @@ class IMSPageWidget(QWidget):
         self.rawPlot.plotItem.setTitle("Displacement")
         self.rawPlot.plotItem.setLabel(axis = 'left', text = "Displacement (m)")
         self.rawPlot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")
-        self.posPlot = pg.PlotWidget()
-        self.posPlot.plotItem.addLegend()
-        self.posPlot.plotItem.setTitle("Position / Rotation")
-        self.posPlot.plotItem.setLabel(axis = 'left', text = 'Displacement (m)')
-        self.posPlot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
-        self.posPlot.plotItem.setLabel(axis = 'right', text = 'Rotation (rad)')
-        self.rawPositiveXAxialCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.rawPositiveXTangentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.rawNegativeYAxialCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.rawNegativeYTangentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.rawNegativeXAxialCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.rawNegativeXTangentCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.rawPositiveYAxialCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.rawPositiveYTangentCurveData = np.array([np.zeros(self.maxPlotSize)])
         self.rawPositiveXAxialCurve = self.rawPlot.plot(name = '+X Axial', pen = 'r') 
         self.rawPositiveXTangentCurve = self.rawPlot.plot(name = '+X Tangent', pen = 'g')
         self.rawNegativeYAxialCurve = self.rawPlot.plot(name = '-Y Axial', pen = 'b')
@@ -83,12 +70,12 @@ class IMSPageWidget(QWidget):
         self.rawNegativeXTangentCurve = self.rawPlot.plot(name = '-X Tangent', pen = 'c')
         self.rawPositiveYAxialCurve = self.rawPlot.plot(name = '+Y Axial', pen = 'm')
         self.rawPositiveYTangentCurve = self.rawPlot.plot(name = '+Y Tangent', pen = mkPen("FFA500"))
-        self.xPositionCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.yPositionCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.zPositionCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.xRotationCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.yRotationCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.zRotationCurveData = np.array([np.zeros(self.maxPlotSize)])
+        self.posPlot = pg.PlotWidget()
+        self.posPlot.plotItem.addLegend()
+        self.posPlot.plotItem.setTitle("Position / Rotation")
+        self.posPlot.plotItem.setLabel(axis = 'left', text = 'Displacement (m)')
+        self.posPlot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
+        self.posPlot.plotItem.setLabel(axis = 'right', text = 'Rotation (rad)')
         self.xPositionCurve = self.posPlot.plot(name = 'X Position', pen = 'r')
         self.yPositionCurve = self.posPlot.plot(name = 'Y Position', pen = 'g')
         self.zPositionCurve = self.posPlot.plot(name = 'Z Position', pen = 'b')
@@ -183,71 +170,144 @@ class IMSPageWidget(QWidget):
         self.warningLayout.addWidget(self.unknownProblemLabel, row, col + 1)
 
         self.plotLayout.addWidget(self.posPlot)        
-        #self.plotLayout.addWidget(self.rawPlot)
+        self.plotLayout.addWidget(self.rawPlot)
+
+        self.dataEventDisplacementSensorWarning = DataCache()
+        self.rawPositiveXAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.rawPositiveXTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.rawNegativeYAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.rawNegativeYTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.rawNegativeXAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.rawNegativeXTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.rawPositiveYAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.rawPositiveYTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.xPositionCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.yPositionCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.zPositionCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.xRotationCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.yRotationCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.zRotationCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.dataTelemetryIMSData = DataCache()
 
         self.MTM1M3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
         self.MTM1M3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
 
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventDisplacementSensorWarning.hasBeenUpdated():
+            data = self.dataEventDisplacementSensorWarning.get()
+            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+            QTHelpers.setWarningLabel(self.sensorReportsInvalidCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsInvalidCommand))
+            QTHelpers.setWarningLabel(self.sensorReportsCommunicationTimeoutErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationTimeoutError))
+            QTHelpers.setWarningLabel(self.sensorReportsDataLengthErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsDataLengthError))
+            QTHelpers.setWarningLabel(self.sensorReportsNumberOfParametersErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsNumberOfParametersError))
+            QTHelpers.setWarningLabel(self.sensorReportsParameterErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
+            QTHelpers.setWarningLabel(self.sensorReportsCommunicationErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
+            QTHelpers.setWarningLabel(self.sensorReportsIDNumberErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsIDNumberError))
+            QTHelpers.setWarningLabel(self.sensorReportsExpansionLineErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsExpansionLineError))
+            QTHelpers.setWarningLabel(self.sensorReportsWriteControlErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsWriteControlError))
+            QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.ResponseTimeout))
+            QTHelpers.setWarningLabel(self.invalidLengthLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidLength))
+            QTHelpers.setWarningLabel(self.invalidResponseLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidResponse))
+            QTHelpers.setWarningLabel(self.unknownCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownCommand))
+            QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownProblem))
+
+        if self.rawPositiveXAxialCurveData.hasBeenUpdated():
+            data = self.rawPositiveXAxialCurveData.get()
+            self.rawPositiveXAxialCurve.setData(data)
+
+        if self.rawPositiveXTangentCurveData.hasBeenUpdated():
+            data = self.rawPositiveXTangentCurveData.get()
+            self.rawPositiveXTangentCurve.setData(data)
+
+        if self.rawNegativeYAxialCurveData.hasBeenUpdated():
+            data = self.rawNegativeYAxialCurveData.get()
+            self.rawNegativeYAxialCurve.setData(data)
+
+        if self.rawNegativeYTangentCurveData.hasBeenUpdated():
+            data = self.rawNegativeYTangentCurveData.get()
+            self.rawNegativeYTangentCurve.setData(data)
+
+        if self.rawNegativeXAxialCurveData.hasBeenUpdated():
+            data = self.rawNegativeXAxialCurveData.get()
+            self.rawNegativeXAxialCurve.setData(data)
+
+        if self.rawNegativeXTangentCurveData.hasBeenUpdated():
+            data = self.rawNegativeXTangentCurveData.get()
+            self.rawNegativeXTangentCurve.setData(data)
+
+        if self.rawPositiveYAxialCurveData.hasBeenUpdated():
+            data = self.rawPositiveYAxialCurveData.get()
+            self.rawPositiveYAxialCurve.setData(data)
+
+        if self.rawPositiveYTangentCurveData.hasBeenUpdated():
+            data = self.rawPositiveYTangentCurveData.get()
+            self.rawPositiveYTangentCurve.setData(data)
+
+        if self.xPositionCurveData.hasBeenUpdated():
+            data = self.xPositionCurveData.get()
+            self.xPositionCurve.setData(data)
+
+        if self.yPositionCurveData.hasBeenUpdated():
+            data = self.yPositionCurveData.get()
+            self.yPositionCurve.setData(data)
+
+        if self.zPositionCurveData.hasBeenUpdated():
+            data = self.zPositionCurveData.get()
+            self.zPositionCurve.setData(data)
+
+        if self.xRotationCurveData.hasBeenUpdated():
+            data = self.xRotationCurveData.get()
+            self.xRotationCurve.setData(data)
+
+        if self.yRotationCurveData.hasBeenUpdated():
+            data = self.yRotationCurveData.get()
+            self.yRotationCurve.setData(data)
+
+        if self.zRotationCurveData.hasBeenUpdated():
+            data = self.zRotationCurveData.get()
+            self.zRotationCurve.setData(data)
+
+        if self.dataTelemetryIMSData.hasBeenUpdated():
+            data = self.dataTelemetryIMSData.get()
+            self.rawPositiveXAxialLabel.setText("%0.3f" % (data.rawSensorData[0]))
+            self.rawPositiveXTangentLabel.setText("%0.3f" % (data.rawSensorData[1]))
+            self.rawNegativeYAxialLabel.setText("%0.3f" % (data.rawSensorData[2]))
+            self.rawNegativeYTangentLabel.setText("%0.3f" % (data.rawSensorData[3]))
+            self.rawNegativeXAxialLabel.setText("%0.3f" % (data.rawSensorData[4]))
+            self.rawNegativeXTangentLabel.setText("%0.3f" % (data.rawSensorData[5]))
+            self.rawPositiveYAxialLabel.setText("%0.3f" % (data.rawSensorData[6]))
+            self.rawPositiveYTangentLabel.setText("%0.3f" % (data.rawSensorData[7]))
+            self.xPositionLabel.setText("%0.3f" % (data.xPosition * 1000.0))
+            self.yPositionLabel.setText("%0.3f" % (data.yPosition * 1000.0))
+            self.zPositionLabel.setText("%0.3f" % (data.zPosition * 1000.0))
+            self.xRotationLabel.setText("%0.3f" % (data.xRotation))
+            self.yRotationLabel.setText("%0.3f" % (data.yRotation))
+            self.zRotationLabel.setText("%0.3f" % (data.zRotation))
+
     def processEventDisplacementSensorWarning(self, data):
-        data = data[-1]
-        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        QTHelpers.setWarningLabel(self.sensorReportsInvalidCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsInvalidCommand))
-        QTHelpers.setWarningLabel(self.sensorReportsCommunicationTimeoutErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationTimeoutError))
-        QTHelpers.setWarningLabel(self.sensorReportsDataLengthErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsDataLengthError))
-        QTHelpers.setWarningLabel(self.sensorReportsNumberOfParametersErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsNumberOfParametersError))
-        QTHelpers.setWarningLabel(self.sensorReportsParameterErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
-        QTHelpers.setWarningLabel(self.sensorReportsCommunicationErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
-        QTHelpers.setWarningLabel(self.sensorReportsIDNumberErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsIDNumberError))
-        QTHelpers.setWarningLabel(self.sensorReportsExpansionLineErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsExpansionLineError))
-        QTHelpers.setWarningLabel(self.sensorReportsWriteControlErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsWriteControlError))
-        QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.ResponseTimeout))
-        QTHelpers.setWarningLabel(self.invalidLengthLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidLength))
-        QTHelpers.setWarningLabel(self.invalidResponseLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidResponse))
-        QTHelpers.setWarningLabel(self.unknownCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownCommand))
-        QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownProblem))
+        self.dataEventDisplacementSensorWarning.set(data[-1])        
 
     def processTelemetryIMSData(self, data):
-        self.rawPositiveXAxialCurveData = QTHelpers.appendAndResizeCurveData(self.rawPositiveXAxialCurveData, [x.rawSensorData[0] for x in data], self.maxPlotSize)
-        self.rawPositiveXTangentCurveData = QTHelpers.appendAndResizeCurveData(self.rawPositiveXTangentCurveData, [x.rawSensorData[1] for x in data], self.maxPlotSize)
-        self.rawNegativeYAxialCurveData = QTHelpers.appendAndResizeCurveData(self.rawNegativeYAxialCurveData, [x.rawSensorData[2] for x in data], self.maxPlotSize)
-        self.rawNegativeYTangentCurveData = QTHelpers.appendAndResizeCurveData(self.rawNegativeYTangentCurveData, [x.rawSensorData[3] for x in data], self.maxPlotSize)
-        self.rawNegativeXAxialCurveData = QTHelpers.appendAndResizeCurveData(self.rawNegativeXAxialCurveData, [x.rawSensorData[4] for x in data], self.maxPlotSize)
-        self.rawNegativeXTangentCurveData = QTHelpers.appendAndResizeCurveData(self.rawNegativeXTangentCurveData, [x.rawSensorData[5] for x in data], self.maxPlotSize)
-        self.rawPositiveYAxialCurveData = QTHelpers.appendAndResizeCurveData(self.rawPositiveYAxialCurveData, [x.rawSensorData[6] for x in data], self.maxPlotSize)
-        self.rawPositiveYTangentCurveData = QTHelpers.appendAndResizeCurveData(self.rawPositiveYTangentCurveData, [x.rawSensorData[7] for x in data], self.maxPlotSize)
-        self.rawPositiveXAxialCurve.setData(self.rawPositiveXAxialCurveData)
-        self.rawPositiveXTangentCurve.setData(self.rawPositiveXTangentCurveData)
-        self.rawNegativeYAxialCurve.setData(self.rawNegativeYAxialCurveData)
-        self.rawNegativeYTangentCurve.setData(self.rawNegativeYTangentCurveData)
-        self.rawNegativeXAxialCurve.setData(self.rawNegativeXAxialCurveData)
-        self.rawNegativeXTangentCurve.setData(self.rawNegativeXTangentCurveData)
-        self.rawPositiveYAxialCurve.setData(self.rawPositiveYAxialCurveData)
-        self.rawPositiveYTangentCurve.setData(self.rawPositiveYTangentCurveData)
-        self.xPositionCurveData = QTHelpers.appendAndResizeCurveData(self.xPositionCurveData, [x.xPosition for x in data], self.maxPlotSize)
-        self.yPositionCurveData = QTHelpers.appendAndResizeCurveData(self.yPositionCurveData, [x.yPosition for x in data], self.maxPlotSize)
-        self.zPositionCurveData = QTHelpers.appendAndResizeCurveData(self.zPositionCurveData, [x.zPosition for x in data], self.maxPlotSize)
-        self.xRotationCurveData = QTHelpers.appendAndResizeCurveData(self.xRotationCurveData, [x.xRotation for x in data], self.maxPlotSize)
-        self.yRotationCurveData = QTHelpers.appendAndResizeCurveData(self.yRotationCurveData, [x.yRotation for x in data], self.maxPlotSize)
-        self.zRotationCurveData = QTHelpers.appendAndResizeCurveData(self.zRotationCurveData, [x.zRotation for x in data], self.maxPlotSize)
-        self.xPositionCurve.setData(self.xPositionCurveData)
-        self.yPositionCurve.setData(self.yPositionCurveData)
-        self.zPositionCurve.setData(self.zPositionCurveData)
-        self.xRotationCurve.setData(self.xRotationCurveData)
-        self.yRotationCurve.setData(self.yRotationCurveData)
-        self.zRotationCurve.setData(self.zRotationCurveData)
-        
-        data = data[-1]
-        self.rawPositiveXAxialLabel.setText("%0.3f" % (data.rawSensorData[0]))
-        self.rawPositiveXTangentLabel.setText("%0.3f" % (data.rawSensorData[1]))
-        self.rawNegativeYAxialLabel.setText("%0.3f" % (data.rawSensorData[2]))
-        self.rawNegativeYTangentLabel.setText("%0.3f" % (data.rawSensorData[3]))
-        self.rawNegativeXAxialLabel.setText("%0.3f" % (data.rawSensorData[4]))
-        self.rawNegativeXTangentLabel.setText("%0.3f" % (data.rawSensorData[5]))
-        self.rawPositiveYAxialLabel.setText("%0.3f" % (data.rawSensorData[6]))
-        self.rawPositiveYTangentLabel.setText("%0.3f" % (data.rawSensorData[7]))
-        self.xPositionLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-        self.yPositionLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-        self.zPositionLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-        self.xRotationLabel.setText("%0.3f" % (data.xRotation))
-        self.yRotationLabel.setText("%0.3f" % (data.yRotation))
-        self.zRotationLabel.setText("%0.3f" % (data.zRotation))
+        self.rawPositiveXAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveXAxialCurveData.get(), [x.rawSensorData[0] for x in data], self.maxPlotSize))
+        self.rawPositiveXTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveXTangentCurveData.get(), [x.rawSensorData[1] for x in data], self.maxPlotSize))
+        self.rawNegativeYAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeYAxialCurveData.get(), [x.rawSensorData[2] for x in data], self.maxPlotSize))
+        self.rawNegativeYTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeYTangentCurveData.get(), [x.rawSensorData[3] for x in data], self.maxPlotSize))
+        self.rawNegativeXAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeXAxialCurveData.get(), [x.rawSensorData[4] for x in data], self.maxPlotSize))
+        self.rawNegativeXTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeXTangentCurveData.get(), [x.rawSensorData[5] for x in data], self.maxPlotSize))
+        self.rawPositiveYAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveYAxialCurveData.get(), [x.rawSensorData[6] for x in data], self.maxPlotSize))
+        self.rawPositiveYTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveYTangentCurveData.get(), [x.rawSensorData[7] for x in data], self.maxPlotSize))
+        self.xPositionCurveData.set(QTHelpers.appendAndResizeCurveData(self.xPositionCurveData.get(), [x.xPosition for x in data], self.maxPlotSize))
+        self.yPositionCurveData.set(QTHelpers.appendAndResizeCurveData(self.yPositionCurveData.get(), [x.yPosition for x in data], self.maxPlotSize))
+        self.zPositionCurveData.set(QTHelpers.appendAndResizeCurveData(self.zPositionCurveData.get(), [x.zPosition for x in data], self.maxPlotSize))
+        self.xRotationCurveData.set(QTHelpers.appendAndResizeCurveData(self.xRotationCurveData.get(), [x.xRotation for x in data], self.maxPlotSize))
+        self.yRotationCurveData.set(QTHelpers.appendAndResizeCurveData(self.yRotationCurveData.get(), [x.yRotation for x in data], self.maxPlotSize))
+        self.zRotationCurveData.set(QTHelpers.appendAndResizeCurveData(self.zRotationCurveData.get(), [x.zRotation for x in data], self.maxPlotSize))
+        self.dataTelemetryIMSData.set(data[-1])

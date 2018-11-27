@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import InclinometerSensorFlags
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout)
@@ -41,7 +42,6 @@ class InclinometerPageWidget(QWidget):
         self.plot.plotItem.setTitle("Inclination")
         self.plot.plotItem.setLabel(axis = 'left', text = 'Inclinometer Angle (deg)')
         self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")
-        self.inclinometerAngleCurveData = np.array([np.zeros(self.maxPlotSize)])
         self.inclinometerAngleCurve = self.plot.plot(name = 'Angle', pen = 'r') 
 
         row = 0
@@ -81,25 +81,46 @@ class InclinometerPageWidget(QWidget):
         self.warningLayout.addWidget(self.unknownProblemLabel, row, col + 1)
         
         self.plotLayout.addWidget(self.plot)
+
+        self.dataEventInclinometerSensorWarning = DataCache()
+        self.inclinometerAngleCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.dataTelemetryInclinometerData = DataCache()
         
         self.MTM1M3.subscribeEvent_inclinometerSensorWarning(self.processEventInclinometerSensorWarning)
         self.MTM1M3.subscribeTelemetry_inclinometerData(self.processTelemetryInclinometerData)
 
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventInclinometerSensorWarning.hasBeenUpdated():
+            data = self.dataEventInclinometerSensorWarning.get()
+            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+            QTHelpers.setWarningLabel(self.sensorReportsIllegalFunctionLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.SensorReportsIllegalFunction))
+            QTHelpers.setWarningLabel(self.sensorReportsIllegalDataAddressLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.SensorReportsIllegalDataAddress))
+            QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.ResponseTimeout))
+            QTHelpers.setWarningLabel(self.invalidCRCLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.InvalidCRC))
+            QTHelpers.setWarningLabel(self.invalidLengthLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.InvalidLength))
+            QTHelpers.setWarningLabel(self.unknownAddressLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownAddress))
+            QTHelpers.setWarningLabel(self.unknownFunctionLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownFunction))
+            QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownProblem))
+
+        if self.inclinometerAngleCurveData.hasBeenUpdated():
+            data = self.inclinometerAngleCurveData.get()
+            self.inclinometerAngleCurve.setData(data)
+
+        if self.dataTelemetryInclinometerData.hasBeenUpdated():
+            data = self.dataTelemetryInclinometerData.get()
+            self.angleLabel.setText("%0.3f" % (data.inclinometerAngle))
+
     def processEventInclinometerSensorWarning(self, data):
-        data = data[-1]
-        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        QTHelpers.setWarningLabel(self.sensorReportsIllegalFunctionLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.SensorReportsIllegalFunction))
-        QTHelpers.setWarningLabel(self.sensorReportsIllegalDataAddressLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.SensorReportsIllegalDataAddress))
-        QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.ResponseTimeout))
-        QTHelpers.setWarningLabel(self.invalidCRCLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.InvalidCRC))
-        QTHelpers.setWarningLabel(self.invalidLengthLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.InvalidLength))
-        QTHelpers.setWarningLabel(self.unknownAddressLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownAddress))
-        QTHelpers.setWarningLabel(self.unknownFunctionLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownFunction))
-        QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownProblem))
+        self.dataEventInclinometerSensorWarning.set(data[-1])
 
     def processTelemetryInclinometerData(self, data):
-        self.inclinometerAngleCurveData = QTHelpers.appendAndResizeCurveData(self.inclinometerAngleCurveData, [x.inclinometerAngle for x in data], self.maxPlotSize)
-        self.inclinometerAngleCurve.setData(self.inclinometerAngleCurveData)
-        
-        data = data[-1]
-        self.angleLabel.setText("%0.3f" % (data.inclinometerAngle))
+        self.inclinometerAngleCurveData.set(QTHelpers.appendAndResizeCurveData(self.inclinometerAngleCurveData.get(), [x.inclinometerAngle for x in data], self.maxPlotSize))
+        self.dataTelemetryInclinometerData.set(data[-1])

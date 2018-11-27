@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import HardpointIndexMap, ForceActuatorFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout
@@ -71,12 +72,6 @@ class ForceBalanceSystemPageWidget(QWidget):
         self.balancePlot.plotItem.setTitle("Balance Forces")
         self.balancePlot.plotItem.setLabel(axis = 'left', text = 'Force (N)')
         self.balancePlot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
-        self.balanceFxCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.balanceFyCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.balanceFzCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.balanceMxCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.balanceMyCurveData = np.array([np.zeros(self.maxPlotSize)])
-        self.balanceMzCurveData = np.array([np.zeros(self.maxPlotSize)])
         self.balanceFxCurve = self.balancePlot.plot(name = 'Fx', pen = 'r')
         self.balanceFyCurve = self.balancePlot.plot(name = 'Fy', pen = 'g')
         self.balanceFzCurve = self.balancePlot.plot(name = 'Fz', pen = 'b')
@@ -150,9 +145,85 @@ class ForceBalanceSystemPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.balancePlot)
 
+        self.balanceFxCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.balanceFyCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.balanceFzCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.balanceMxCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.balanceMyCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.balanceMzCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.dataEventAppliedBalanceForces = DataCache()
+        self.dataEventForceActuatorWarning = DataCache()
+        self.dataTelemetryHardpointData = DataCache()
+
         self.MTM1M3.subscribeEvent_appliedBalanceForces(self.processEventAppliedBalanceForces)
         self.MTM1M3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
         self.MTM1M3.subscribeTelemetry_hardpointActuatorData(self.processTelemetryHardpointActuatorData)
+
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.balanceFxCurveData.hasBeenUpdated():
+            data = self.balanceFxCurveData.get()
+            self.balanceFxCurve.setData(data)
+
+        if self.balanceFyCurveData.hasBeenUpdated():
+            data = self.balanceFyCurveData.get()
+            self.balanceFyCurve.setData(data)
+
+        if self.balanceFzCurveData.hasBeenUpdated():
+            data = self.balanceFzCurveData.get()
+            self.balanceFzCurve.setData(data)
+
+        if self.balanceMxCurveData.hasBeenUpdated():
+            data = self.balanceMxCurveData.get()
+            self.balanceMxCurve.setData(data)
+
+        if self.balanceMyCurveData.hasBeenUpdated():
+            data = self.balanceMyCurveData.get()
+            self.balanceMyCurve.setData(data)
+
+        if self.balanceMzCurveData.hasBeenUpdated():
+            data = self.balanceMzCurveData.get()
+            self.balanceMzCurve.setData(data)
+
+        if self.dataEventAppliedBalanceForces.hasBeenUpdated():
+            data = self.dataEventAppliedBalanceForces.get()
+            self.balanceFxLabel.setText("%0.1f" % data.fX)
+            self.balanceFyLabel.setText("%0.1f" % data.fY)
+            self.balanceFzLabel.setText("%0.1f" % data.fZ)
+            self.balanceMxLabel.setText("%0.1f" % data.mX)
+            self.balanceMyLabel.setText("%0.1f" % data.mY)
+            self.balanceMzLabel.setText("%0.1f" % data.mZ)
+            self.balanceMagLabel.setText("%0.1f" % data.forceMagnitude)
+            self.setTotalForces()
+
+        if self.dataEventForceActuatorWarning.hasBeenUpdated():
+            data = self.dataEventForceActuatorWarning.get()
+            QTHelpers.setBoolLabelYesNo(self.balanceForcesClippedLabel, BitHelper.get(data.anyForceActuatorFlags, ForceActuatorFlags.ForceSetpointBalanceForceClipped))
+
+        if self.dataTelemetryHardpointData.hasBeenUpdated():
+            data = self.dataTelemetryHardpointData.get()
+            self.hardpoint1ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint1])
+            self.hardpoint2ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint2])
+            self.hardpoint3ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint3])
+            self.hardpoint4ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint4])
+            self.hardpoint5ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint5])
+            self.hardpoint6ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint6])
+            self.hardpointMagForceLabel.setText("%0.1f" % (sum(data.measuredForce)))
+            self.hardpointFxLabel.setText("%0.1f" % data.fX)
+            self.hardpointFyLabel.setText("%0.1f" % data.fY)
+            self.hardpointFzLabel.setText("%0.1f" % data.fZ)
+            self.hardpointMxLabel.setText("%0.1f" % data.mX)
+            self.hardpointMyLabel.setText("%0.1f" % data.mY)
+            self.hardpointMzLabel.setText("%0.1f" % data.mZ)
+            self.hardpointMagLabel.setText("%0.1f" % data.forceMagnitude)
+            self.setTotalForces()
 
     def issueCommandEnableHardpointCorrections(self):
         self.MTM1M3.issueCommandThenWait_enableHardpointCorrections(False)
@@ -161,56 +232,27 @@ class ForceBalanceSystemPageWidget(QWidget):
         self.MTM1M3.issueCommandThenWait_disableHardpointCorrections(False)
 
     def processEventAppliedBalanceForces(self, data):
-        self.balanceFxCurveData = QTHelpers.appendAndResizeCurveData(self.balanceFxCurveData, [x.fX for x in data], self.maxPlotSize)
-        self.balanceFyCurveData = QTHelpers.appendAndResizeCurveData(self.balanceFyCurveData, [x.fY for x in data], self.maxPlotSize)
-        self.balanceFzCurveData = QTHelpers.appendAndResizeCurveData(self.balanceFzCurveData, [x.fZ for x in data], self.maxPlotSize)
-        self.balanceMxCurveData = QTHelpers.appendAndResizeCurveData(self.balanceMxCurveData, [x.mX for x in data], self.maxPlotSize)
-        self.balanceMyCurveData = QTHelpers.appendAndResizeCurveData(self.balanceMyCurveData, [x.mY for x in data], self.maxPlotSize)
-        self.balanceMzCurveData = QTHelpers.appendAndResizeCurveData(self.balanceMzCurveData, [x.mZ for x in data], self.maxPlotSize)
-        self.balanceFxCurve.setData(self.balanceFxCurveData)
-        self.balanceFyCurve.setData(self.balanceFyCurveData)
-        self.balanceFzCurve.setData(self.balanceFzCurveData)
-        self.balanceMxCurve.setData(self.balanceMxCurveData)
-        self.balanceMyCurve.setData(self.balanceMyCurveData)
-        self.balanceMzCurve.setData(self.balanceMzCurveData)
-
-        data = data[-1]
-        self.balanceFxLabel.setText("%0.1f" % data.fX)
-        self.balanceFyLabel.setText("%0.1f" % data.fY)
-        self.balanceFzLabel.setText("%0.1f" % data.fZ)
-        self.balanceMxLabel.setText("%0.1f" % data.mX)
-        self.balanceMyLabel.setText("%0.1f" % data.mY)
-        self.balanceMzLabel.setText("%0.1f" % data.mZ)
-        self.balanceMagLabel.setText("%0.1f" % data.forceMagnitude)
-        self.setTotalForces()
+        self.balanceFxCurveData.set(QTHelpers.appendAndResizeCurveData(self.balanceFxCurveData.get(), [x.fX for x in data], self.maxPlotSize))
+        self.balanceFyCurveData.set(QTHelpers.appendAndResizeCurveData(self.balanceFyCurveData.get(), [x.fY for x in data], self.maxPlotSize))
+        self.balanceFzCurveData.set(QTHelpers.appendAndResizeCurveData(self.balanceFzCurveData.get(), [x.fZ for x in data], self.maxPlotSize))
+        self.balanceMxCurveData.set(QTHelpers.appendAndResizeCurveData(self.balanceMxCurveData.get(), [x.mX for x in data], self.maxPlotSize))
+        self.balanceMyCurveData.set(QTHelpers.appendAndResizeCurveData(self.balanceMyCurveData.get(), [x.mY for x in data], self.maxPlotSize))
+        self.balanceMzCurveData.set(QTHelpers.appendAndResizeCurveData(self.balanceMzCurveData.get(), [x.mZ for x in data], self.maxPlotSize))
+        self.dataEventAppliedBalanceForces.set(data[-1])
 
     def processEventForceActuatorWarning(self, data):
-        data = data[-1]
-        QTHelpers.setBoolLabelYesNo(self.balanceForcesClippedLabel, BitHelper.get(data.anyForceActuatorFlags, ForceActuatorFlags.ForceSetpointBalanceForceClipped))
+        self.dataEventForceActuatorWarning.set(data[-1])
 
     def processTelemetryHardpointActuatorData(self, data):
-        data = data[-1]
-        self.hardpoint1ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint1])
-        self.hardpoint2ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint2])
-        self.hardpoint3ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint3])
-        self.hardpoint4ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint4])
-        self.hardpoint5ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint5])
-        self.hardpoint6ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint6])
-        self.hardpointMagForceLabel.setText("%0.1f" % (sum(data.measuredForce)))
-        self.hardpointFxLabel.setText("%0.1f" % data.fX)
-        self.hardpointFyLabel.setText("%0.1f" % data.fY)
-        self.hardpointFzLabel.setText("%0.1f" % data.fZ)
-        self.hardpointMxLabel.setText("%0.1f" % data.mX)
-        self.hardpointMyLabel.setText("%0.1f" % data.mY)
-        self.hardpointMzLabel.setText("%0.1f" % data.mZ)
-        self.hardpointMagLabel.setText("%0.1f" % data.forceMagnitude)
-        self.setTotalForces()
-
+        self.dataTelemetryHardpointData.set(data[-1])
+        
     def setTotalForces(self):
-        self.totalFxLabel.setText("%0.1f" % (float(self.balanceFxLabel.text()) + float(self.hardpointFxLabel.text())))
-        self.totalFyLabel.setText("%0.1f" % (float(self.balanceFyLabel.text()) + float(self.hardpointFyLabel.text())))
-        self.totalFzLabel.setText("%0.1f" % (float(self.balanceFzLabel.text()) + float(self.hardpointFzLabel.text())))
-        self.totalMxLabel.setText("%0.1f" % (float(self.balanceMxLabel.text()) + float(self.hardpointMxLabel.text())))
-        self.totalMyLabel.setText("%0.1f" % (float(self.balanceMyLabel.text()) + float(self.hardpointMyLabel.text())))
-        self.totalMzLabel.setText("%0.1f" % (float(self.balanceMzLabel.text()) + float(self.hardpointMzLabel.text())))
-        self.totalMagLabel.setText("%0.1f" % (float(self.balanceMagLabel.text()) + float(self.hardpointMagLabel.text())))
+        balanceData = self.dataEventAppliedBalanceForces.get()
+        hardpointData = self.dataTelemetryHardpointData.get()
+        self.totalFxLabel.setText("%0.1f" % (balanceData.fX + hardpointData.fX))
+        self.totalFyLabel.setText("%0.1f" % (balanceData.fY + hardpointData.fY))
+        self.totalFzLabel.setText("%0.1f" % (balanceData.fZ + hardpointData.fZ))
+        self.totalMxLabel.setText("%0.1f" % (balanceData.mX + hardpointData.mX))
+        self.totalMyLabel.setText("%0.1f" % (balanceData.mY + hardpointData.mY))
+        self.totalMzLabel.setText("%0.1f" % (balanceData.mZ + hardpointData.mZ))
+        self.totalMagLabel.setText("%0.1f" % (balanceData.forceMagnitude + hardpointData.forceMagnitude))

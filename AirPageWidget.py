@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import AirSupplyFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
@@ -55,9 +56,32 @@ class AirPageWidget(QWidget):
         row += 1
         self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
         self.warningLayout.addWidget(self.airValveSensorMismatch, row, col + 1)
+
+        self.dataEventAirSupplyWarning = DataCache()
+        self.dataEventAirSupplyStatus = DataCache()
         
         self.MTM1M3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
         self.MTM1M3.subscribeEvent_airSupplyStatus(self.processEventAirSupplyStatus)
+
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventAirSupplyWarning.hasBeenUpdated():
+            data = self.dataEventAirSupplyWarning.get()
+            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+            QTHelpers.setWarningLabel(self.airValveSensorMismatch, BitHelper.get(data.airSupplyFlags, AirSupplyFlags.AirValveSensorMismatch))
+
+        if self.dataEventAirSupplyStatus.hasBeenUpdated():
+            data = self.dataEventAirSupplyStatus.get()
+            QTHelpers.setBoolLabelOnOff(self.airCommandedOnLabel, data.airCommandedOn)
+            QTHelpers.setBoolLabelHighLow(self.airValveOpenedLabel, data.airValveOpened)
+            QTHelpers.setBoolLabelHighLow(self.airValveClosedLabel, data.airValveClosed)
 
     def issueCommandTurnAirOn(self):
         self.MTM1M3.issueCommandThenWait_turnAirOn(False)
@@ -66,12 +90,7 @@ class AirPageWidget(QWidget):
         self.MTM1M3.issueCommandThenWait_turnAirOff(False)
 
     def processEventAirSupplyWarning(self, data):
-        data = data[-1]
-        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        QTHelpers.setWarningLabel(self.airValveSensorMismatch, BitHelper.get(data.airSupplyFlags, AirSupplyFlags.AirValveSensorMismatch))
-
+        self.dataEventAirSupplyWarning.set(data[-1])
+        
     def processEventAirSupplyStatus(self, data):
-        data = data[-1]
-        QTHelpers.setBoolLabelOnOff(self.airCommandedOnLabel, data.airCommandedOn)
-        QTHelpers.setBoolLabelHighLow(self.airValveOpenedLabel, data.airValveOpened)
-        QTHelpers.setBoolLabelHighLow(self.airValveClosedLabel, data.airValveClosed)
+        self.dataEventAirSupplyStatus.set(data[-1])

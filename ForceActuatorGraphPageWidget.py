@@ -1,5 +1,6 @@
 
 import QTHelpers
+from DataCache import DataCache
 from BitHelper import BitHelper
 from MTM1M3Enumerations import HardpointIndexMap, ForceActuatorFlags
 from FATABLE import *
@@ -29,7 +30,6 @@ class ForceActuatorGraphPageWidget(QWidget):
 
         self.selectedActuatorZIndex = -1
         self.ignoreFieldChange = False
-        self.actuatorWarningData = None
 
         self.plot = ScatterPlotWidget(0.4, 0, 1800)
         self.plot.setFixedSize(750, 750)
@@ -74,7 +74,7 @@ class ForceActuatorGraphPageWidget(QWidget):
             TopicData("Force Actuator ILC Info", [["Subnet", lambda x: x.modbusSubnet, lambda: FATABLE_ZINDEX], ["Address", lambda x: x.modbusAddress, lambda: FATABLE_ZINDEX], ["ILC Status", lambda x: x.ilcStatus, lambda: FATABLE_ZINDEX], ["Mezzanine Status", lambda x: x.mezzanineStatus, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator Id Info", [["X Data Reference Id", lambda x: x.xDataReferenceId, lambda: FATABLE_XINDEX], ["Y Data Reference Id", lambda x: x.yDataReferenceId, lambda: FATABLE_YINDEX], ["Z Data Reference Id", lambda x: x.zDataReferenceId, lambda: FATABLE_ZINDEX], ["S Data Reference Id", lambda x: x.sDataReferenceId, lambda: FATABLE_SINDEX], ["ILC Unique Id", lambda x: x.ilcUniqueId, lambda: FATABLE_ZINDEX], ["Mezzanine Unique Id", lambda x: x.xDataReferenceId, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator Main Calibration Info", [["Primary Coefficient", lambda x: x.primaryCoefficient, lambda: FATABLE_ZINDEX], ["Primary Offset", lambda x: x.primaryOffset, lambda: FATABLE_ZINDEX], ["Primary Sensitivity", lambda x: x.primarySensitivity, lambda: FATABLE_ZINDEX], ["Secondary Coefficient", lambda x: x.secondaryCoefficient, lambda: FATABLE_SINDEX], ["Secondary Offset", lambda x: x.secondaryOffset, lambda: FATABLE_SINDEX], ["Secondary Sensitivity", lambda x: x.secondarySensitivity, lambda: FATABLE_SINDEX]]),
-            TopicData("Force Actuator Mezzanine Calibration Info", [["Primary Cylinder Gain", lambda x: x.primaryCylinderFain, lambda: FATABLE_ZINDEX], ["Secondary Cylinder Gain", lambda x: x.secondaryCylinderGain, lambda: FATABLE_SINDEX]]),
+            TopicData("Force Actuator Mezzanine Calibration Info", [["Primary Cylinder Gain", lambda x: x.primaryCylinderGain, lambda: FATABLE_ZINDEX], ["Secondary Cylinder Gain", lambda x: x.secondaryCylinderGain, lambda: FATABLE_SINDEX]]),
             TopicData("Force Actuator Position Info", [["Actuator Type", lambda x: x.actuatorType, lambda: FATABLE_ZINDEX], ["Actuator Orientation", lambda x: x.actuatorOrientation, lambda: FATABLE_ZINDEX], ["X Position", lambda x: x.xPosition, lambda: FATABLE_ZINDEX], ["Y Position", lambda x: x.yPosition, lambda: FATABLE_ZINDEX], ["Z Position", lambda x: x.zPosition, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator State", [["ILC State", lambda x: x.ilcState, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator Warning", [["Force Actuator Flags", lambda x: x.forceActuatorFlags, lambda: FATABLE_ZINDEX]]),#, ["ILC Major Fault", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX], ["Broadcast Counter Mismatch", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX]]),
@@ -106,6 +106,72 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.filterLayout.addWidget(self.topicList)
         self.topicList.setCurrentRow(0)
         self.filterLayout.addWidget(self.fieldList)
+
+        self.dataEventAppliedAberrationForces = DataCache()
+        self.dataEventAppliedAccelerationForces = DataCache()
+        self.dataEventAppliedActiveOpticForces = DataCache()
+        self.dataEventAppliedAzimuthForces = DataCache()
+        self.dataEventAppliedBalanceForces = DataCache()
+        self.dataEventAppliedCylinderForces = DataCache()
+        self.dataEventAppliedElevationForces = DataCache()
+        self.dataEventAppliedForces = DataCache()
+        self.dataEventAppliedOffsetForces = DataCache()
+        self.dataEventAppliedStaticForces = DataCache()
+        self.dataEventAppliedThermalForces = DataCache()
+        self.dataEventAppliedVelocityForces = DataCache()
+        self.dataEventForceActuatorBackupCalibrationInfo = DataCache()
+        self.dataEventForceActuatorIdInfo = DataCache()
+        self.dataEventForceActuatorILCInfo = DataCache()
+        self.dataEventForceActuatorMainCalibrationInfo = DataCache()
+        self.dataEventForceActuatorMezzanineCalibrationInfo = DataCache()
+        self.dataEventForceActuatorPositionInfo = DataCache()
+        self.dataEventForceActuatorState = DataCache()
+        self.dataEventForceActuatorWarning = DataCache()
+        self.dataEventRejectedAberrationForces = DataCache()
+        self.dataEventRejectedAccelerationForces = DataCache()
+        self.dataEventRejectedActiveOpticForces = DataCache()
+        self.dataEventRejectedAzimuthForces = DataCache()
+        self.dataEventRejectedBalanceForces = DataCache()
+        self.dataEventRejectedCylinderForces = DataCache()
+        self.dataEventRejectedElevationForces = DataCache()
+        self.dataEventRejectedForces = DataCache()
+        self.dataEventRejectedOffsetForces = DataCache()
+        self.dataEventRejectedStaticForces = DataCache()
+        self.dataEventRejectedThermalForces = DataCache()
+        self.dataEventRejectedVelocityForces = DataCache()
+
+        self.setTopicData("Applied Aberration Forces", self.dataEventAppliedAberrationForces)
+        self.setTopicData("Applied Acceleration Forces", self.dataEventAppliedAccelerationForces)
+        self.setTopicData("Applied Active Optic Forces", self.dataEventAppliedActiveOpticForces)
+        self.setTopicData("Applied Azimuth Forces", self.dataEventAppliedAzimuthForces)
+        self.setTopicData("Applied Balance Forces", self.dataEventAppliedBalanceForces)
+        self.setTopicData("Applied Cylinder Forces", self.dataEventAppliedCylinderForces)
+        self.setTopicData("Applied Elevation Forces", self.dataEventAppliedElevationForces)
+        self.setTopicData("Applied Forces", self.dataEventAppliedForces)
+        self.setTopicData("Applied Offset Forces", self.dataEventAppliedOffsetForces)
+        self.setTopicData("Applied Static Forces", self.dataEventAppliedStaticForces)
+        self.setTopicData("Applied Thermal Forces", self.dataEventAppliedThermalForces)
+        self.setTopicData("Applied Velocity Forces", self.dataEventAppliedVelocityForces)
+        self.setTopicData("Force Actuator Backup Calibration Info", self.dataEventForceActuatorBackupCalibrationInfo)
+        self.setTopicData("Force Actuator Id Info", self.dataEventForceActuatorIdInfo)
+        self.setTopicData("Force Actuator ILC Info", self.dataEventForceActuatorILCInfo)
+        self.setTopicData("Force Actuator Main Calibration Info", self.dataEventForceActuatorMainCalibrationInfo)
+        self.setTopicData("Force Actuator Mezzanine Calibration Info", self.dataEventForceActuatorMezzanineCalibrationInfo)
+        self.setTopicData("Force Actuator Position Info", self.dataEventForceActuatorPositionInfo)
+        self.setTopicData("Force Actuator State", self.dataEventForceActuatorState)
+        self.setTopicData("Force Actuator Warning", self.dataEventForceActuatorWarning)
+        self.setTopicData("Rejected Aberration Forces", self.dataEventRejectedAberrationForces)
+        self.setTopicData("Rejected Acceleration Forces", self.dataEventRejectedAccelerationForces)
+        self.setTopicData("Rejected Active Optic Forces", self.dataEventRejectedActiveOpticForces)
+        self.setTopicData("Rejected Azimuth Forces", self.dataEventRejectedAzimuthForces)
+        self.setTopicData("Rejected Balance Forces", self.dataEventRejectedBalanceForces)
+        self.setTopicData("Rejected Cylinder Forces", self.dataEventRejectedCylinderForces)
+        self.setTopicData("Rejected Elevation Forces", self.dataEventRejectedElevationForces)
+        self.setTopicData("Rejected Forces", self.dataEventRejectedForces)
+        self.setTopicData("Rejected Offset Forces", self.dataEventRejectedOffsetForces)
+        self.setTopicData("Rejected Static Forces", self.dataEventRejectedStaticForces)
+        self.setTopicData("Rejected Thermal Forces", self.dataEventRejectedThermalForces)
+        self.setTopicData("Rejected Velocity Forces", self.dataEventRejectedVelocityForces)
 
         self.MTM1M3.subscribeEvent_appliedAberrationForces(self.processEventAppliedAberrationForces)
         self.MTM1M3.subscribeEvent_appliedAccelerationForces(self.processEventAppliedAccelerationForces)
@@ -142,140 +208,141 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.MTM1M3.subscribeEvent_rejectedThermalForces(self.processEventRejectedThermalForces)
         self.MTM1M3.subscribeEvent_rejectedVelocityForces(self.processEventRejectedVelocityForces)
 
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return
+
+        for i in range(len(self.topics)):
+            if self.topicList.currentRow() == i:
+                topic = self.topics[i]
+                if topic.Data.hasBeenUpdated() or self.dataEventForceActuatorWarning.hasBeenUpdated():
+                    self.updatePlot()
+                self.updateLastUpdated()
+
     def processEventAppliedAberrationForces(self, data):
-        self.updateTopicData('Applied Aberration Forces', data[-1])
+        self.dataEventAppliedAberrationForces.set(data[-1])
 
     def processEventAppliedAccelerationForces(self, data):
-        self.updateTopicData('Applied Acceleration Forces', data[-1])
+        self.dataEventAppliedAccelerationForces.set(data[-1])
 
     def processEventAppliedActiveOpticForces(self, data):
-        self.updateTopicData('Applied Active Optic Forces', data[-1])
+        self.dataEventAppliedActiveOpticForces.set(data[-1])
     
     def processEventAppliedAzimuthForces(self, data):
-        self.updateTopicData('Applied Azimuth Forces', data[-1])
+        self.dataEventAppliedAzimuthForces.set(data[-1])
 
     def processEventAppliedBalanceForces(self, data):
-        self.updateTopicData('Applied Balance Forces', data[-1])
+        self.dataEventAppliedBalanceForces.set(data[-1])
 
     def processEventAppliedCylinderForces(self, data):
-        self.updateTopicData('Applied Cylinder Forces', data[-1])
+        self.dataEventAppliedCylinderForces.set(data[-1])
 
     def processEventAppliedElevationForces(self, data):
-        self.updateTopicData('Applied Elevation Forces', data[-1])
+        self.dataEventAppliedElevationForces.set(data[-1])
 
     def processEventAppliedForces(self, data):
-        self.updateTopicData('Applied Forces', data[-1])
+        self.dataEventAppliedForces.set(data[-1])
 
     def processEventAppliedOffsetForces(self, data):
-        self.updateTopicData('Applied Offset Forces', data[-1])
+        self.dataEventAppliedOffsetForces.set(data[-1])
 
     def processEventAppliedStaticForces(self, data):
-        self.updateTopicData('Applied Static Forces', data[-1])
+        self.dataEventAppliedStaticForces.set(data[-1])
 
     def processEventAppliedThermalForces(self, data):
-        self.updateTopicData('Applied Thermal Forces', data[-1])
+        self.dataEventAppliedThermalForces.set(data[-1])
 
     def processEventAppliedVelocityForces(self, data):
-        self.updateTopicData('Applied Velocity Forces', data[-1])
+        self.dataEventAppliedVelocityForces.set(data[-1])
 
     def processEventForceActuatorBackupCalibrationInfo(self, data):
-        self.updateTopicData('Force Actuator Backup Calibration Info', data[-1])
+        self.dataEventForceActuatorBackupCalibrationInfo.set(data[-1])
 
     def processEventForceActuatorILCInfo(self, data):
-        self.updateTopicData('Force Actuator ILC Info', data[-1])
+        self.dataEventForceActuatorILCInfo.set(data[-1])
 
     def processEventForceActuatorIdInfo(self, data):
-        self.updateTopicData('Force Actuator Id Info', data[-1])
+        self.dataEventForceActuatorIdInfo.set(data[-1])
 
     def processEventForceActuatorMainCalibrationInfo(self, data):
-        self.updateTopicData('Force Actuator Main Calibration Info', data[-1])
+        self.dataEventForceActuatorMainCalibrationInfo.set(data[-1])
     
     def processEventForceActuatorMezzanineCalibrationInfo(self, data):
-        self.updateTopicData('Force Actuator Mezzanine Calibration Info', data[-1])
+        self.dataEventForceActuatorMezzanineCalibrationInfo.set(data[-1])
 
     def processEventForceActuatorPositionInfo(self, data):
-        self.updateTopicData('Force Actuator Position Info', data[-1])
+        self.dataEventForceActuatorPositionInfo.set(data[-1])
 
     def processEventForceActuatorState(self, data):
-        self.updateTopicData('Force Actuator State', data[-1])
+        self.dataEventForceActuatorState.set(data[-1])
 
     def processEventForceActuatorWarning(self, data):
-        self.actuatorWarningData = data[-1]
-        self.updateTopicData('Force Actuator Warning', self.actuatorWarningData)
+        self.dataEventForceActuatorWarning.set(data[-1])
 
     def processEventRejectedAberrationForces(self, data):
-        self.updateTopicData('Rejected Aberration Forces', data[-1])
+        self.dataEventRejectedAberrationForces.set(data[-1])
 
     def processEventRejectedAccelerationForces(self, data):
-        self.updateTopicData('Rejected Acceleration Forces', data[-1])
+        self.dataEventRejectedAccelerationForces.set(data[-1])
 
     def processEventRejectedActiveOpticForces(self, data):
-        self.updateTopicData('Rejected Active Optic Forces', data[-1])
+        self.dataEventRejectedActiveOpticForces.set(data[-1])
     
     def processEventRejectedAzimuthForces(self, data):
-        self.updateTopicData('Rejected Azimuth Forces', data[-1])
+        self.dataEventRejectedAzimuthForces.set(data[-1])
 
     def processEventRejectedBalanceForces(self, data):
-        self.updateTopicData('Rejected Balance Forces', data[-1])
+        self.dataEventRejectedBalanceForces.set(data[-1])
 
     def processEventRejectedCylinderForces(self, data):
-        self.updateTopicData('Rejected Cylinder Forces', data[-1])
+        self.dataEventRejectedCylinderForces.set(data[-1])
 
     def processEventRejectedElevationForces(self, data):
-        self.updateTopicData('Rejected Elevation Forces', data[-1])
+        self.dataEventRejectedElevationForces.set(data[-1])
 
     def processEventRejectedForces(self, data):
-        self.updateTopicData('Rejected Forces', data[-1])
+        self.dataEventRejectedForces.set(data[-1])
 
     def processEventRejectedOffsetForces(self, data):
-        self.updateTopicData('Rejected Offset Forces', data[-1])
+        self.dataEventRejectedOffsetForces.set(data[-1])
 
     def processEventRejectedStaticForces(self, data):
-        self.updateTopicData('Rejected Static Forces', data[-1])
+        self.dataEventRejectedStaticForces.set(data[-1])
 
     def processEventRejectedThermalForces(self, data):
-        self.updateTopicData('Rejected Thermal Forces', data[-1])
+        self.dataEventRejectedThermalForces.set(data[-1])
 
     def processEventRejectedVelocityForces(self, data):
-        self.updateTopicData('Rejected Velocity Forces', data[-1])
-
-    def updateTopicData(self, topicName, data):
-        for topic in self.topics:
-            if topic.Topic == topicName:
-                topic.Data = data
-                topic.LastUpdated = self.MTM1M3.getTimestamp()
-        if self.isCurrentTopic(topicName):
-            self.updatePlot()
-
-    def isCurrentTopic(self, topic):
-        if len(self.topicList.selectedItems()) == 0:
-            return False
-        return self.topicList.selectedItems()[0].text() == topic
+        self.dataEventRejectedVelocityForces.set(data[-1])
 
     def selectedTopicChanged(self):
-        if self.topicList.currentRow() < 0:
+        topicIndex = self.topicList.currentRow()
+        if topicIndex < 0:
             return
         self.ignoreFieldChange = True
         self.fieldList.clear()
-        newTopicIndex = self.topicList.currentRow()
-        for field in self.topics[newTopicIndex].Fields:
+        for field in self.topics[topicIndex].Fields:
             self.fieldList.addItem(field[0])
-        self.fieldList.setCurrentRow(self.topics[newTopicIndex].SelectedField) 
+        self.fieldList.setCurrentRow(self.topics[topicIndex].SelectedField) 
 
     def selectedFieldChanged(self):
         if self.ignoreFieldChange:
             self.ignoreFieldChange = False
             return
-        if self.topicList.currentRow() < 0 or self.fieldList.currentRow() < 0:
-            return
         topicIndex = self.topicList.currentRow()
         fieldIndex = self.fieldList.currentRow()
+        if topicIndex < 0 or fieldIndex < 0:
+            return
         self.topics[topicIndex].SelectedField = fieldIndex
         self.updatePlot()
 
     def plotPointClicked(self, plot, points):
         for p in points:
-            p.setPen('w', width = 4)
             x = p.pos().x()
             y = p.pos().y()
             for row in FATABLE:
@@ -283,30 +350,38 @@ class ForceActuatorGraphPageWidget(QWidget):
                 actY = row[FATABLE_YPOSITION]
                 if x == actX and y == actY:
                     self.selectedActuatorZIndex = row[FATABLE_INDEX]
-                    self.updateSelectedActuator()
+                    self.updatePlot()
                     break
 
     def updatePlot(self):
-        if len(self.topicList.selectedIndexes()) == 0 or len(self.fieldList.selectedIndexes()) == 0:
-            self.lastUpdatedLabel.setText("UNKNOWN")
+        if not self.pageActive:
             return
         topicIndex = self.topicList.currentRow()
         fieldIndex = self.fieldList.currentRow()
+        if topicIndex < 0 or fieldIndex < 0:
+            self.lastUpdatedLabel.setText("UNKNOWN")
+            self.plot.setPoints([])
+            self.plot.refreshPlot()
+            return
         topic = self.topics[topicIndex]
         field = topic.Fields[fieldIndex]
         fieldGetter = field[1]
         fieldDataIndex = field[2]()
-        if topic.Data == None:
+        topicData = topic.Data.get()
+        if topicData == None:
             self.lastUpdatedLabel.setText("UNKNOWN")
+            self.plot.setPoints([])
+            self.plot.refreshPlot()
             return
-        data = fieldGetter(topic.Data)
+        data = fieldGetter(topicData)
+        warningData = self.dataEventForceActuatorWarning.get()
         points = []
         self.plot.setZScale(min(data), max(data))
         for row in FATABLE:
             index = row[fieldDataIndex]
             warning = False
-            if self.actuatorWarningData is not None:
-                warning = self.actuatorWarningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
+            if warningData is not None:
+                warning = warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
             if index != -1:
                 points.append([row[FATABLE_XPOSITION], row[FATABLE_YPOSITION], data[index], row[FATABLE_INDEX] == self.selectedActuatorZIndex, True, warning])
             elif row[FATABLE_INDEX] == self.selectedActuatorZIndex:
@@ -314,8 +389,6 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.plot.setPoints(points)
         self.plot.refreshPlot()
         self.updateSelectedActuator()
-        lastUpdated = self.MTM1M3.getTimestamp() - topic.LastUpdated
-        self.lastUpdatedLabel.setText("%0.1fs" % lastUpdated)
 
     def updateSelectedActuator(self):
         if self.selectedActuatorZIndex == -1:
@@ -326,9 +399,11 @@ class ForceActuatorGraphPageWidget(QWidget):
         field = topic.Fields[fieldIndex]
         fieldGetter = field[1]
         fieldDataIndex = field[2]()
-        if topic.Data == None:
+        topicData = topic.Data.get()
+        if topicData == None:
             return
-        data = fieldGetter(topic.Data)
+        data = fieldGetter(topicData)
+        warningData = self.dataEventForceActuatorWarning.get()
         self.selectedActuatorIdLabel.setText("%d" % FATABLE[self.selectedActuatorZIndex][FATABLE_ID])
         dataIndex = FATABLE[self.selectedActuatorZIndex][fieldDataIndex]
         if dataIndex == -1:
@@ -336,6 +411,25 @@ class ForceActuatorGraphPageWidget(QWidget):
         else:
             self.selectedActuatorValueLabel.setText("%0.1f" % data[dataIndex])
         warning = False
-        if self.actuatorWarningData is not None:
-            warning = self.actuatorWarningData.forceActuatorFlags[self.selectedActuatorZIndex] != 0
+        if warningData is not None:
+            warning = warningData.forceActuatorFlags[self.selectedActuatorZIndex] != 0
         QTHelpers.setWarningLabel(self.selectedActuatorWarningLabel, warning)
+
+    def updateLastUpdated(self):
+        topicIndex = self.topicList.currentRow()
+        fieldIndex = self.fieldList.currentRow()
+        if topicIndex < 0 or fieldIndex < 0:
+            self.lastUpdatedLabel.setText("UNKNOWN")
+            return
+        topic = self.topics[topicIndex]
+        topicData = topic.Data.get()
+        if topicData == None:
+            self.lastUpdatedLabel.setText("UNKNOWN")
+            return
+        self.lastUpdatedLabel.setText("%0.1fs" % topic.Data.getTimeSinceLastUpdate())
+
+    def setTopicData(self, topic, data):
+        for i in self.topics:
+            if i.Topic == topic:
+                i.Data = data
+                break

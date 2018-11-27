@@ -1,27 +1,20 @@
 
 import QTHelpers
-from PySide2.QtWidgets import (QWidget, QLabel, QGridLayout)
+from DataCache import DataCache
+from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QGridLayout
 
 class OverviewPageWidget(QWidget):
     def __init__(self, MTM1M3):
         QWidget.__init__(self)
         self.MTM1M3 = MTM1M3
-        self.layout = QGridLayout()
-        
-        row = 0
-        col = 0
+        self.layout = QHBoxLayout()
+        self.dataLayout = QGridLayout()
+        self.layout.addLayout(self.dataLayout)
+        self.setLayout(self.layout)
+
         self.summaryStateLabel = QLabel("UNKNOWN")
         self.mirrorStateLabel = QLabel("UNKNOWN")
         self.modeStateLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("Summary State:"), row, col)
-        self.layout.addWidget(self.summaryStateLabel, row, col + 1)
-        self.layout.addWidget(QLabel("Mirror State:"), row + 1, col)
-        self.layout.addWidget(self.mirrorStateLabel, row + 1, col + 1)
-        self.layout.addWidget(QLabel("Mode State:"), row + 2, col)
-        self.layout.addWidget(self.modeStateLabel, row + 2, col + 1)
-
-        row = 3
-        col = 0
         self.interlockWarningLabel = QLabel("UNKNOWN")
         self.powerWarningLabel = QLabel("UNKNOWN")
         self.forceActuatorWarningLabel = QLabel("UNKNOWN")
@@ -33,32 +26,6 @@ class OverviewPageWidget(QWidget):
         self.airSupplyWarningLabel = QLabel("UNKNOWN")
         self.imsWarningLabel = QLabel("UNKNOWN")
         self.cellLightingWarningLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("Warnings:"), row, col)
-        self.layout.addWidget(QLabel("Interlocks"), row + 1, col)
-        self.layout.addWidget(self.interlockWarningLabel, row + 1, col + 1)
-        self.layout.addWidget(QLabel("Power"), row + 2, col)
-        self.layout.addWidget(self.powerWarningLabel, row + 2, col + 1)
-        self.layout.addWidget(QLabel("Force Actuators"), row + 3, col)
-        self.layout.addWidget(self.forceActuatorWarningLabel, row + 3, col + 1)
-        self.layout.addWidget(QLabel("Hardpoint Actuators"), row + 4, col)
-        self.layout.addWidget(self.hardpointActuatorWarningLabel, row + 4, col + 1)
-        self.layout.addWidget(QLabel("Hardpoint Monitors"), row + 5, col)
-        self.layout.addWidget(self.hardpointMonitorWarningLabel, row + 5, col + 1)
-        self.layout.addWidget(QLabel("Inclinometer"), row + 6, col)
-        self.layout.addWidget(self.inclinometerWarningLabel, row + 6, col + 1)
-        self.layout.addWidget(QLabel("Accelerometer"), row + 7, col)
-        self.layout.addWidget(self.accelerometerWarningLabel, row + 7, col + 1)
-        self.layout.addWidget(QLabel("Gyro"), row + 8, col)
-        self.layout.addWidget(self.gyroWarningLabel, row + 8, col + 1)
-        self.layout.addWidget(QLabel("Air Supply"), row + 9, col)
-        self.layout.addWidget(self.airSupplyWarningLabel, row + 9, col + 1)
-        self.layout.addWidget(QLabel("IMS"), row + 10, col)
-        self.layout.addWidget(self.imsWarningLabel, row + 10, col + 1)
-        self.layout.addWidget(QLabel("Cell Lighting"), row + 11, col) 
-        self.layout.addWidget(self.cellLightingWarningLabel, row + 11, col + 1)
-
-        row = 0
-        col = 2
         self.faCommandedXLabel = QLabel("UNKNOWN")
         self.faCommandedYLabel = QLabel("UNKNOWN")
         self.faCommandedZLabel = QLabel("UNKNOWN")
@@ -80,41 +47,6 @@ class OverviewPageWidget(QWidget):
         self.hpMeasuredMyLabel = QLabel("UNKNOWN")
         self.hpMeasuredMzLabel = QLabel("UNKNOWN")
         self.hpMeasuredMagLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("Forces:"), row, col)
-        self.layout.addWidget(QLabel("X (N)"), row, col + 1)
-        self.layout.addWidget(QLabel("Y (N)"), row, col + 2)
-        self.layout.addWidget(QLabel("Z (N)"), row, col + 3)
-        self.layout.addWidget(QLabel("Mx (Nm)"), row, col + 4)
-        self.layout.addWidget(QLabel("My (Nm)"), row, col + 5)
-        self.layout.addWidget(QLabel("Mz (Nm)"), row, col + 6)
-        self.layout.addWidget(QLabel("Mag (N)"), row, col + 7)
-        self.layout.addWidget(QLabel("Commanded"), row + 1, col)
-        self.layout.addWidget(self.faCommandedXLabel, row + 1, col + 1)
-        self.layout.addWidget(self.faCommandedYLabel, row + 1, col + 2)
-        self.layout.addWidget(self.faCommandedZLabel, row + 1, col + 3)
-        self.layout.addWidget(self.faCommandedMxLabel, row + 1, col + 4)
-        self.layout.addWidget(self.faCommandedMyLabel, row + 1, col + 5)
-        self.layout.addWidget(self.faCommandedMzLabel, row + 1, col + 6)
-        self.layout.addWidget(self.faCommandedMagLabel, row + 1, col + 7)
-        self.layout.addWidget(QLabel("Measured"), row + 2, col)
-        self.layout.addWidget(self.faMeasuredXLabel, row + 2, col + 1)
-        self.layout.addWidget(self.faMeasuredYLabel, row + 2, col + 2)
-        self.layout.addWidget(self.faMeasuredZLabel, row + 2, col + 3)
-        self.layout.addWidget(self.faMeasuredMxLabel, row + 2, col + 4)
-        self.layout.addWidget(self.faMeasuredMyLabel, row + 2, col + 5)
-        self.layout.addWidget(self.faMeasuredMzLabel, row + 2, col + 6)
-        self.layout.addWidget(self.faMeasuredMagLabel, row + 2, col + 7)
-        self.layout.addWidget(QLabel("Hardpoints"), row + 3, col)
-        self.layout.addWidget(self.hpMeasuredXLabel, row + 3, col + 1)
-        self.layout.addWidget(self.hpMeasuredYLabel, row + 3, col + 2)
-        self.layout.addWidget(self.hpMeasuredZLabel, row + 3, col + 3)
-        self.layout.addWidget(self.hpMeasuredMxLabel, row + 3, col + 4)
-        self.layout.addWidget(self.hpMeasuredMyLabel, row + 3, col + 5)
-        self.layout.addWidget(self.hpMeasuredMzLabel, row + 3, col + 6)
-        self.layout.addWidget(self.hpMeasuredMagLabel, row + 3, col + 7)
-        
-        row = 4
-        col = 2
         self.hpPositionXLabel = QLabel("UNKNOWN")
         self.hpPositionYLabel = QLabel("UNKNOWN")
         self.hpPositionZLabel = QLabel("UNKNOWN")
@@ -127,79 +59,184 @@ class OverviewPageWidget(QWidget):
         self.imsPositionRxLabel = QLabel("UNKNOWN")
         self.imsPositionRyLabel = QLabel("UNKNOWN")
         self.imsPositionRzLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("Mirror Position:"), row, col)
-        self.layout.addWidget(QLabel("X (mm)"), row, col + 1)
-        self.layout.addWidget(QLabel("Y (mm)"), row, col + 2)
-        self.layout.addWidget(QLabel("Z (mm)"), row, col + 3)
-        self.layout.addWidget(QLabel("Rx (mrad)"), row, col + 4)
-        self.layout.addWidget(QLabel("Ry (mrad)"), row, col + 5)
-        self.layout.addWidget(QLabel("Rz (mrad)"), row, col + 6)
-        self.layout.addWidget(QLabel("Hardpoints:"), row + 1, col)
-        self.layout.addWidget(self.hpPositionXLabel, row + 1, col + 1)
-        self.layout.addWidget(self.hpPositionYLabel, row + 1, col + 2)
-        self.layout.addWidget(self.hpPositionZLabel, row + 1, col + 3)
-        self.layout.addWidget(self.hpPositionRxLabel, row + 1, col + 4)
-        self.layout.addWidget(self.hpPositionRyLabel, row + 1, col + 5)
-        self.layout.addWidget(self.hpPositionRzLabel, row + 1, col + 6)
-        self.layout.addWidget(QLabel("IMS:"), row + 2, col)
-        self.layout.addWidget(self.imsPositionXLabel, row + 2, col + 1)
-        self.layout.addWidget(self.imsPositionYLabel, row + 2, col + 2)
-        self.layout.addWidget(self.imsPositionZLabel, row + 2, col + 3)
-        self.layout.addWidget(self.imsPositionRxLabel, row + 2, col + 4)
-        self.layout.addWidget(self.imsPositionRyLabel, row + 2, col + 5)
-        self.layout.addWidget(self.imsPositionRzLabel, row + 2, col + 6)
-
-        row = 7
-        col = 2
         self.accelationXLabel = QLabel("UNKNOWN")
         self.accelationYLabel = QLabel("UNKNOWN")
         self.accelationZLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("Angular Acceleration:"), row, col)
-        self.layout.addWidget(QLabel("X (?)"), row, col + 1)
-        self.layout.addWidget(QLabel("Y (?)"), row, col + 2)
-        self.layout.addWidget(QLabel("Z (?)"), row, col + 3)
-        self.layout.addWidget(self.accelationXLabel, row + 1, col + 1)
-        self.layout.addWidget(self.accelationYLabel, row + 1, col + 2)
-        self.layout.addWidget(self.accelationZLabel, row + 1, col + 3)
-
-        row = 9
-        col = 2
         self.velocityXLabel = QLabel("UNKNOWN")
         self.velocityYLabel = QLabel("UNKNOWN")
         self.velocityZLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("Angular Velocity:"), row, col)
-        self.layout.addWidget(QLabel("X (?)"), row, col + 1)
-        self.layout.addWidget(QLabel("Y (?)"), row, col + 2)
-        self.layout.addWidget(QLabel("Z (?)"), row, col + 3)
-        self.layout.addWidget(self.velocityXLabel, row + 1, col + 1)
-        self.layout.addWidget(self.velocityYLabel, row + 1, col + 2)
-        self.layout.addWidget(self.velocityZLabel, row + 1, col + 3)
-
-        row = 11
-        col = 2
         self.airCommandLabel = QLabel("UNKNOWN")
         self.airValveLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("Air Supply"), row, col)
-        self.layout.addWidget(QLabel("Commanded"), row, col + 1)
-        self.layout.addWidget(QLabel("Valve State"), row, col + 2)
-        self.layout.addWidget(self.airCommandLabel, row + 1, col + 1)
-        self.layout.addWidget(self.airValveLabel, row + 1, col + 2)       
-
-        row = 13
-        col = 2
         self.inclinometerLabel = QLabel("UNKNOWN")
         self.tmaAzimuthLabel = QLabel("UNKNOWN")
         self.tmaElevationLabel = QLabel("UNKNOWN")
-        self.layout.addWidget(QLabel("M1M3"), row, col + 1)
-        self.layout.addWidget(QLabel("TMA"), row, col + 2)
-        self.layout.addWidget(QLabel("Azimuth (deg)"), row + 1, col)
-        self.layout.addWidget(QLabel("-"), row + 1, col + 1)
-        self.layout.addWidget(self.tmaAzimuthLabel, row + 1, col + 2)
-        self.layout.addWidget(QLabel("Elevation (deg)"), row + 2, col)
-        self.layout.addWidget(self.inclinometerLabel, row + 2, col + 1)
-        self.layout.addWidget(self.tmaElevationLabel, row + 2, col + 2)
+        
+        row = 0
+        col = 0
+        self.dataLayout.addWidget(QLabel("Summary State"), row, col)
+        self.dataLayout.addWidget(self.summaryStateLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Mirror State"), row, col)
+        self.dataLayout.addWidget(self.mirrorStateLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Mode State"), row, col)
+        self.dataLayout.addWidget(self.modeStateLabel, row, col + 1)
+        row += 1    
+        self.dataLayout.addWidget(QLabel("Warnings"), row, col)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Interlocks"), row, col)
+        self.dataLayout.addWidget(self.interlockWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Power"), row, col)
+        self.dataLayout.addWidget(self.powerWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Force Actuators"), row, col)
+        self.dataLayout.addWidget(self.forceActuatorWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Hardpoint Actuators"), row, col)
+        self.dataLayout.addWidget(self.hardpointActuatorWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Hardpoint Monitors"), row, col)
+        self.dataLayout.addWidget(self.hardpointMonitorWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Inclinometer"), row, col)
+        self.dataLayout.addWidget(self.inclinometerWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Accelerometer"), row, col)
+        self.dataLayout.addWidget(self.accelerometerWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Gyro"), row, col)
+        self.dataLayout.addWidget(self.gyroWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Air Supply"), row, col)
+        self.dataLayout.addWidget(self.airSupplyWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("IMS"), row, col)
+        self.dataLayout.addWidget(self.imsWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Cell Lighting"), row, col) 
+        self.dataLayout.addWidget(self.cellLightingWarningLabel, row, col + 1)
 
-        self.setLayout(self.layout)
+        row = 0
+        col = 2
+        self.dataLayout.addWidget(QLabel("Forces"), row, col)
+        self.dataLayout.addWidget(QLabel("X (N)"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Y (N)"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Z (N)"), row, col + 3)
+        self.dataLayout.addWidget(QLabel("Mx (Nm)"), row, col + 4)
+        self.dataLayout.addWidget(QLabel("My (Nm)"), row, col + 5)
+        self.dataLayout.addWidget(QLabel("Mz (Nm)"), row, col + 6)
+        self.dataLayout.addWidget(QLabel("Mag (N)"), row, col + 7)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Commanded"), row, col)
+        self.dataLayout.addWidget(self.faCommandedXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.faCommandedYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.faCommandedZLabel, row, col + 3)
+        self.dataLayout.addWidget(self.faCommandedMxLabel, row, col + 4)
+        self.dataLayout.addWidget(self.faCommandedMyLabel, row, col + 5)
+        self.dataLayout.addWidget(self.faCommandedMzLabel, row, col + 6)
+        self.dataLayout.addWidget(self.faCommandedMagLabel, row, col + 7)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Measured"), row, col)
+        self.dataLayout.addWidget(self.faMeasuredXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.faMeasuredYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.faMeasuredZLabel, row, col + 3)
+        self.dataLayout.addWidget(self.faMeasuredMxLabel, row, col + 4)
+        self.dataLayout.addWidget(self.faMeasuredMyLabel, row, col + 5)
+        self.dataLayout.addWidget(self.faMeasuredMzLabel, row, col + 6)
+        self.dataLayout.addWidget(self.faMeasuredMagLabel, row, col + 7)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Hardpoints"), row, col)
+        self.dataLayout.addWidget(self.hpMeasuredXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.hpMeasuredYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.hpMeasuredZLabel, row, col + 3)
+        self.dataLayout.addWidget(self.hpMeasuredMxLabel, row, col + 4)
+        self.dataLayout.addWidget(self.hpMeasuredMyLabel, row, col + 5)
+        self.dataLayout.addWidget(self.hpMeasuredMzLabel, row, col + 6)
+        self.dataLayout.addWidget(self.hpMeasuredMagLabel, row, col + 7)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Mirror Position"), row, col)
+        self.dataLayout.addWidget(QLabel("X (mm)"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Y (mm)"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Z (mm)"), row, col + 3)
+        self.dataLayout.addWidget(QLabel("Rx (mrad)"), row, col + 4)
+        self.dataLayout.addWidget(QLabel("Ry (mrad)"), row, col + 5)
+        self.dataLayout.addWidget(QLabel("Rz (mrad)"), row, col + 6)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Hardpoints"), row, col)
+        self.dataLayout.addWidget(self.hpPositionXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.hpPositionYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.hpPositionZLabel, row, col + 3)
+        self.dataLayout.addWidget(self.hpPositionRxLabel, row, col + 4)
+        self.dataLayout.addWidget(self.hpPositionRyLabel, row, col + 5)
+        self.dataLayout.addWidget(self.hpPositionRzLabel, row, col + 6)
+        row += 1
+        self.dataLayout.addWidget(QLabel("IMS"), row, col)
+        self.dataLayout.addWidget(self.imsPositionXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.imsPositionYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.imsPositionZLabel, row, col + 3)
+        self.dataLayout.addWidget(self.imsPositionRxLabel, row, col + 4)
+        self.dataLayout.addWidget(self.imsPositionRyLabel, row, col + 5)
+        self.dataLayout.addWidget(self.imsPositionRzLabel, row, col + 6)
+        row += 1    
+        self.dataLayout.addWidget(QLabel("Angular Acceleration"), row, col)
+        self.dataLayout.addWidget(QLabel("X (?)"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Y (?)"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Z (?)"), row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(self.accelationXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.accelationYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.accelationZLabel, row, col + 3)
+        row += 1    
+        self.dataLayout.addWidget(QLabel("Angular Velocity"), row, col)
+        self.dataLayout.addWidget(QLabel("X (?)"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Y (?)"), row, col + 2)
+        self.dataLayout.addWidget(QLabel("Z (?)"), row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(self.velocityXLabel, row, col + 1)
+        self.dataLayout.addWidget(self.velocityYLabel, row, col + 2)
+        self.dataLayout.addWidget(self.velocityZLabel, row, col + 3)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Air Supply"), row, col)
+        self.dataLayout.addWidget(QLabel("Commanded"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("Valve State"), row, col + 2)
+        row += 1
+        self.dataLayout.addWidget(self.airCommandLabel, row, col + 1)
+        self.dataLayout.addWidget(self.airValveLabel, row, col + 2)       
+        row += 1    
+        self.dataLayout.addWidget(QLabel("M1M3"), row, col + 1)
+        self.dataLayout.addWidget(QLabel("TMA"), row, col + 2)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Azimuth (deg)"), row, col)
+        self.dataLayout.addWidget(QLabel("-"), row, col + 1)
+        self.dataLayout.addWidget(self.tmaAzimuthLabel, row, col + 2)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Elevation (deg)"), row, col)
+        self.dataLayout.addWidget(self.inclinometerLabel, row, col + 1)
+        self.dataLayout.addWidget(self.tmaElevationLabel, row, col + 2)
+
+        self.dataEventAccelerometerWarning = DataCache()
+        self.dataEventAirSupplyWarning = DataCache()
+        self.dataEventAppliedForces = DataCache()
+        self.dataEventCellLightWarning = DataCache()
+        self.dataEventDisplacementSensorWarning = DataCache()
+        self.dataEventDetailedState = DataCache()
+        self.dataEventForceActuatorWarning = DataCache()
+        self.dataEventGyroWarning = DataCache()
+        self.dataEventHardpointActuatorWarning = DataCache()
+        self.dataEventHardpointMonitorWarning = DataCache()
+        self.dataEventInclinometerSensorWarning = DataCache()
+        self.dataEventInterlockWarning = DataCache()
+        self.dataEventPowerWarning = DataCache()
+        self.dataTelemetryAccelerometerData = DataCache()
+        self.dataTelemetryForceActuatorData = DataCache()
+        self.dataTelemetryGyroData = DataCache()
+        self.dataTelemetryHardpointActuatorData = DataCache()
+        self.dataTelemetryIMSData = DataCache()
+        self.dataTelemetryInclinometerData = DataCache()
+        self.dataMTMountTelemetryAzimuthData = DataCache()
+        self.dataMTMountTelemetryElevationData = DataCache()
+
         self.MTM1M3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
         self.MTM1M3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
         self.MTM1M3.subscribeEvent_appliedForces(self.processEventAppliedForces)
@@ -211,6 +248,7 @@ class OverviewPageWidget(QWidget):
         self.MTM1M3.subscribeEvent_hardpointActuatorWarning(self.processEventHardpointActuatorWarning)
         self.MTM1M3.subscribeEvent_hardpointMonitorWarning(self.processEventHardpointMonitorWarning)
         self.MTM1M3.subscribeEvent_inclinometerSensorWarning(self.processEventInclinometerSensorWarning)
+        self.MTM1M3.subscribeEvent_interlockWarning(self.processEventInterlockWarning)
         self.MTM1M3.subscribeEvent_powerWarning(self.processEventPowerWarning)
         self.MTM1M3.subscribeTelemetry_accelerometerData(self.processTelemetryAccelerometerData)
         self.MTM1M3.subscribeTelemetry_forceActuatorData(self.processTelemetryForceActuatorData)
@@ -219,113 +257,197 @@ class OverviewPageWidget(QWidget):
         self.MTM1M3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
         self.MTM1M3.subscribeTelemetry_inclinometerData(self.processTelemetryInclinometerData)
 
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventAccelerometerWarning.hasBeenUpdated():
+            data = self.dataEventAccelerometerWarning.get()
+            QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data.anyWarning)
+        
+        if self.dataEventAirSupplyWarning.hasBeenUpdated():
+            data = self.dataEventAirSupplyWarning.get()
+            QTHelpers.setWarningLabel(self.airSupplyWarningLabel, data.anyWarning)
+
+        if self.dataEventAppliedForces.hasBeenUpdated():
+            data = self.dataEventAppliedForces.get()
+            self.faCommandedXLabel.setText("%0.3f" % (data.fX))
+            self.faCommandedYLabel.setText("%0.3f" % (data.fY))
+            self.faCommandedZLabel.setText("%0.3f" % (data.fZ))
+            self.faCommandedMxLabel.setText("%0.3f" % (data.mX))
+            self.faCommandedMyLabel.setText("%0.3f" % (data.mY))
+            self.faCommandedMzLabel.setText("%0.3f" % (data.mZ))
+            self.faCommandedMagLabel.setText("%0.3f" % (data.forceMagnitude))
+
+        if self.dataEventCellLightWarning.hasBeenUpdated():
+            data = self.dataEventCellLightWarning.get()
+            QTHelpers.setWarningLabel(self.cellLightingWarningLabel, data.anyWarning)
+
+        if self.dataEventDisplacementSensorWarning.hasBeenUpdated():
+            data = self.dataEventDisplacementSensorWarning.get()
+            QTHelpers.setWarningLabel(self.imsWarningLabel, data.anyWarning)
+
+        if self.dataEventDetailedState.hasBeenUpdated():
+            data = self.dataEventDetailedState.get()
+            state = data.detailedState
+            summaryStates = ["Offline", "Disabled", "Enabled", "Fault", "Offline", "Standby", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Fault"]
+            mirrorStates = ["Parked", "Parked", "Parked", "Parked", "Parked", "Parked", "Parked", "Raising", "Active", "Lowering", "Engineering", "Parked", "Raising", "Actve", "Lowering", "Lowering"]
+            modeStates = ["Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Engineering", "Engineering", "Engineering", "Engineering", "Engineering", "Automatic"]
+            self.summaryStateLabel.setText(summaryStates[state])
+            self.mirrorStateLabel.setText(mirrorStates[state])
+            self.modeStateLabel.setText(modeStates[state])
+
+        if self.dataEventForceActuatorWarning.hasBeenUpdated():
+            data = self.dataEventForceActuatorWarning.get()
+            QTHelpers.setWarningLabel(self.forceActuatorWarningLabel, data.anyWarning)
+
+        if self.dataEventGyroWarning.hasBeenUpdated():
+            data = self.dataEventGyroWarning.get()
+            QTHelpers.setWarningLabel(self.gyroWarningLabel, data.anyWarning)
+
+        if self.dataEventHardpointActuatorWarning.hasBeenUpdated():
+            data = self.dataEventHardpointActuatorWarning.get()
+            QTHelpers.setWarningLabel(self.hardpointActuatorWarningLabel, data.anyWarning)
+
+        if self.dataEventHardpointMonitorWarning.hasBeenUpdated():
+            data = self.dataEventHardpointMonitorWarning.get()
+            QTHelpers.setWarningLabel(self.hardpointMonitorWarningLabel, data.anyWarning)
+
+        if self.dataEventInclinometerSensorWarning.hasBeenUpdated():
+            data = self.dataEventInclinometerSensorWarning.get()
+            QTHelpers.setWarningLabel(self.inclinometerWarningLabel, data.anyWarning)
+
+        if self.dataEventInterlockWarning.hasBeenUpdated():
+            data = self.dataEventInterlockWarning.get()
+            QTHelpers.setWarningLabel(self.interlockWarningLabel, data.anyWarning)
+
+        if self.dataEventPowerWarning.hasBeenUpdated():
+            data = self.dataEventPowerWarning.get()
+            QTHelpers.setWarningLabel(self.powerWarningLabel, data.anyWarning)
+
+        if self.dataTelemetryAccelerometerData.hasBeenUpdated():
+            data = self.dataTelemetryAccelerometerData.get()
+            self.accelationXLabel.setText("%0.3f" % (data.angularAccelerationX))
+            self.accelationYLabel.setText("%0.3f" % (data.angularAccelerationY))
+            self.accelationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
+
+        if self.dataTelemetryForceActuatorData.hasBeenUpdated():
+            data = self.dataTelemetryForceActuatorData.get()
+            self.faMeasuredXLabel.setText("%0.3f" % (data.fX))
+            self.faMeasuredYLabel.setText("%0.3f" % (data.fY))
+            self.faMeasuredZLabel.setText("%0.3f" % (data.fZ))
+            self.faMeasuredMxLabel.setText("%0.3f" % (data.mX))
+            self.faMeasuredMyLabel.setText("%0.3f" % (data.mY))
+            self.faMeasuredMzLabel.setText("%0.3f" % (data.mZ))
+            self.faMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
+
+        if self.dataTelemetryGyroData.hasBeenUpdated():
+            data = self.dataTelemetryGyroData.get()
+            self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
+            self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
+            self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
+
+        if self.dataTelemetryHardpointActuatorData.hasBeenUpdated():
+            data = self.dataTelemetryHardpointActuatorData.get()
+            self.hpPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
+            self.hpPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
+            self.hpPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
+            self.hpPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
+            self.hpPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
+            self.hpPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
+            self.hpMeasuredXLabel.setText("%0.3f" % (data.fX))
+            self.hpMeasuredYLabel.setText("%0.3f" % (data.fY))
+            self.hpMeasuredZLabel.setText("%0.3f" % (data.fZ))
+            self.hpMeasuredMxLabel.setText("%0.3f" % (data.mX))
+            self.hpMeasuredMyLabel.setText("%0.3f" % (data.mY))
+            self.hpMeasuredMzLabel.setText("%0.3f" % (data.mZ))
+            self.hpMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
+
+        if self.dataTelemetryIMSData.hasBeenUpdated():
+            data = self.dataTelemetryIMSData.get()
+            self.imsPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
+            self.imsPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
+            self.imsPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
+            self.imsPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
+            self.imsPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
+            self.imsPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
+
+        if self.dataTelemetryInclinometerData.hasBeenUpdated():
+            data = self.dataTelemetryInclinometerData.get()
+            self.inclinometerLabel.setText("%0.3f" % (data.inclinometerAngle))
+
+        if self.dataMTMountTelemetryAzimuthData.hasBeenUpdated():
+            data = self.dataMTMountTelemetryAzimuthData.get()
+            self.tmaAzimuthLabel.setText("%0.3f" % (data.Azimuth_Angle_Actual))
+
+        if self.dataMTMountTelemetryElevationData.hasBeenUpdated():
+            data = self.dataMTMountTelemetryElevationData.get()
+            self.tmaElevationLabel.setText("%0.3f" % (data.Elevation_Angle_Actual))
+
     def processEventAccelerometerWarning(self, data):
-        QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data[-1].anyWarning)
+        self.dataEventAccelerometerWarning.set(data[-1])
 
     def processEventAirSupplyWarning(self, data):
-        QTHelpers.setWarningLabel(self.airSupplyWarningLabel, data[-1].anyWarning)
+        self.dataEventAirSupplyWarning.set(data[-1])
 
     def processEventAppliedForces(self, data):
-        data = data[-1]
-        self.faCommandedXLabel.setText("%0.3f" % (data.fX))
-        self.faCommandedYLabel.setText("%0.3f" % (data.fY))
-        self.faCommandedZLabel.setText("%0.3f" % (data.fZ))
-        self.faCommandedMxLabel.setText("%0.3f" % (data.mX))
-        self.faCommandedMyLabel.setText("%0.3f" % (data.mY))
-        self.faCommandedMzLabel.setText("%0.3f" % (data.mZ))
-        self.faCommandedMagLabel.setText("%0.3f" % (data.forceMagnitude))
-
+        self.dataEventAppliedForces.set(data[-1])
+        
     def processEventCellLightWarning(self, data):
-        QTHelpers.setWarningLabel(self.cellLightingWarningLabel, data[-1].anyWarning)
+        self.dataEventCellLightWarning.set(data[-1])        
 
     def processEventDisplacementSensorWarning(self, data):
-        QTHelpers.setWarningLabel(self.imsWarningLabel, data[-1].anyWarning)
+        self.dataEventDisplacementSensorWarning.set(data[-1])
 
     def processEventDetailedState(self, data):
-        state = data[-1].detailedState
-        summaryStates = ["Offline", "Disabled", "Enabled", "Fault", "Offline", "Standby", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Fault"]
-        mirrorStates = ["Parked", "Parked", "Parked", "Parked", "Parked", "Parked", "Parked", "Raising", "Active", "Lowering", "Engineering", "Parked", "Raising", "Actve", "Lowering", "Lowering"]
-        modeStates = ["Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Engineering", "Engineering", "Engineering", "Engineering", "Engineering", "Automatic"]
-        self.summaryStateLabel.setText(summaryStates[state])
-        self.mirrorStateLabel.setText(mirrorStates[state])
-        self.modeStateLabel.setText(modeStates[state])
+        self.dataEventDetailedState.set(data[-1])
 
     def processEventForceActuatorWarning(self, data):
-        QTHelpers.setWarningLabel(self.forceActuatorWarningLabel, data[-1].anyWarning)
+        self.dataEventForceActuatorWarning.set(data[-1])        
 
     def processEventGyroWarning(self, data):
-        QTHelpers.setWarningLabel(self.gyroWarningLabel, data[-1].anyWarning)
+        self.dataEventGyroWarning.set(data[-1])
 
     def processEventHardpointActuatorWarning(self, data):
-        QTHelpers.setWarningLabel(self.hardpointActuatorWarningLabel, data[-1].anyWarning)
+        self.dataEventHardpointActuatorWarning.set(data[-1])
 
     def processEventHardpointMonitorWarning(self, data):
-        QTHelpers.setWarningLabel(self.hardpointMonitorWarningLabel, data[-1].anyWarning)
+        self.dataEventHardpointMonitorWarning.set(data[-1])
 
     def processEventInclinometerSensorWarning(self, data):
-        QTHelpers.setWarningLabel(self.inclinometerWarningLabel, data[-1].anyWarning)
+        self.dataEventInclinometerSensorWarning.set(data[-1])
     
     def processEventInterlockWarning(self, data):
-        QTHelpers.setWarningLabel(self.interlockWarningLabel, data[-1].anyWarning)
+        self.dataEventInterlockWarning.set(data[-1]) 
 
     def processEventPowerWarning(self, data):
-        QTHelpers.setWarningLabel(self.powerWarningLabel, data[-1].anyWarning)
+        self.dataEventPowerWarning.set(data[-1])
 
     def processTelemetryAccelerometerData(self, data):
-        data = data[-1]
-        self.accelationXLabel.setText("%0.3f" % (data.angularAccelerationX))
-        self.accelationYLabel.setText("%0.3f" % (data.angularAccelerationY))
-        self.accelationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
-
+        self.dataTelemetryAccelerometerData.set(data[-1])
+        
     def processTelemetryForceActuatorData(self, data):
-        data = data[-1]
-        self.faMeasuredXLabel.setText("%0.3f" % (data.fX))
-        self.faMeasuredYLabel.setText("%0.3f" % (data.fY))
-        self.faMeasuredZLabel.setText("%0.3f" % (data.fZ))
-        self.faMeasuredMxLabel.setText("%0.3f" % (data.mX))
-        self.faMeasuredMyLabel.setText("%0.3f" % (data.mY))
-        self.faMeasuredMzLabel.setText("%0.3f" % (data.mZ))
-        self.faMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
+        self.dataTelemetryForceActuatorData.set(data[-1])
 
     def processTelemetryGyroData(self, data):
-        data = data[-1]
-        self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
-        self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
-        self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
-
+        self.dataTelemetryGyroData.set(data[-1])
+        
     def processTelemetryHardpointActuatorData(self, data):
-        data = data[-1]
-        self.hpPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-        self.hpPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-        self.hpPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-        self.hpPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
-        self.hpPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
-        self.hpPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
-        self.hpMeasuredXLabel.setText("%0.3f" % (data.fX))
-        self.hpMeasuredYLabel.setText("%0.3f" % (data.fY))
-        self.hpMeasuredZLabel.setText("%0.3f" % (data.fZ))
-        self.hpMeasuredMxLabel.setText("%0.3f" % (data.mX))
-        self.hpMeasuredMyLabel.setText("%0.3f" % (data.mY))
-        self.hpMeasuredMzLabel.setText("%0.3f" % (data.mZ))
-        self.hpMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
-
+        self.dataTelemetryHardpointActuatorData.set(data[-1])
+        
     def processTelemetryIMSData(self, data):
-        data = data[-1]
-        self.imsPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-        self.imsPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-        self.imsPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-        self.imsPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
-        self.imsPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
-        self.imsPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
-
+        self.dataTelemetryIMSData.set(data[-1])
+        
     def processTelemetryInclinometerData(self, data):
-        data = data[-1]
-        self.inclinometerLabel.setText("%0.3f" % (data.inclinometerAngle))
+        self.dataTelemetryInclinometerData.set(data[-1])
 
     def processMTMountTelemetryAzimuthData(self, data):
-        data = data[-1]
-        self.tmaAzimuthLabel.setText("%0.3f" % (data.Azimuth_Angle_Actual))
+        self.dataMTMountTelemetryAzimuthData.set(data[-1])
 
     def processMTMountTelemetryElevationData(self, data):
-        data = data[-1]
-        self.tmaElevationLabel.setText("%0.3f" % (data.Elevation_Angle_Actual))
+        self.dataMTMountTelemetryElevationData.set(data[-1])

@@ -5,6 +5,7 @@ import sys
 import time
 
 from MTM1M3Remote import MTM1M3Remote
+from UpdateDisplay import UpdateDisplay
 
 from ApplicationControlWidget import ApplicationControlWidget
 from ApplicationStatusWidget import ApplicationStatusWidget
@@ -33,6 +34,7 @@ class EUI(QDialog):
     def __init__(self, MTM1M3, parent=None):
         super(EUI, self).__init__(parent)
         self.MTM1M3 = MTM1M3
+        self.updateDisplay = UpdateDisplay()
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
         
@@ -53,20 +55,20 @@ class EUI(QDialog):
         self.middleLayerLayout = QHBoxLayout()
         self.applicationPagination = ApplicationPaginationWidget(MTM1M3)
         self.applicationPagination.setPageListWidth(238)
-        self.applicationPagination.addPage("Overview", OverviewPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Actuator Overview", ActuatorOverviewPageWidget(MTM1M3))
-        self.applicationPagination.addPage("DC Accelerometers", DCAccelerometerPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Gyro", GyroPageWidget(MTM1M3))
-        self.applicationPagination.addPage("IMS", IMSPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Inclinometer", InclinometerPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Interlock", InterlockPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Lights", CellLightPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Air", AirPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Power", PowerPageWidget(MTM1M3))
-        self.applicationPagination.addPage("PID", PIDPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Force Balance System", ForceBalanceSystemPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(MTM1M3))
-        self.applicationPagination.addPage("Force Actuator Value", ForceActuatorValuePageWidget(MTM1M3))
+        self.addPage("Overview", OverviewPageWidget(MTM1M3))
+        self.addPage("Actuator Overview", ActuatorOverviewPageWidget(MTM1M3))
+        self.addPage("DC Accelerometers", DCAccelerometerPageWidget(MTM1M3))
+        self.addPage("Gyro", GyroPageWidget(MTM1M3))
+        self.addPage("IMS", IMSPageWidget(MTM1M3))
+        self.addPage("Inclinometer", InclinometerPageWidget(MTM1M3))
+        self.addPage("Interlock", InterlockPageWidget(MTM1M3))
+        self.addPage("Lights", CellLightPageWidget(MTM1M3))
+        self.addPage("Air", AirPageWidget(MTM1M3))
+        self.addPage("Power", PowerPageWidget(MTM1M3))
+        self.addPage("PID", PIDPageWidget(MTM1M3))
+        self.addPage("Force Balance System", ForceBalanceSystemPageWidget(MTM1M3))
+        self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(MTM1M3))
+        self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(MTM1M3))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
         self.layout.addLayout(self.topLayerLayout)
@@ -79,6 +81,14 @@ class EUI(QDialog):
         font.setPointSize(13)
         self.setFont(font)
 
+    def addPage(self, name, widget):
+        self.updateDisplay.add(widget.updatePage)
+        self.applicationPagination.addPage(name, widget)
+
+    def updateDisplays(self):
+        self.MTM1M3.runSubscriberChecks()
+        self.updateDisplay.update()
+
 if __name__ == '__main__':
     # Create the Qt Application
     app = QApplication(sys.argv)
@@ -86,9 +96,9 @@ if __name__ == '__main__':
     MTM1M3 = MTM1M3Remote()
     eui = EUI(MTM1M3)
     eui.show()
-    # Create MTM1M3 Telemetry & Event Loop
+    # Create MTM1M3 Telemetry & Event Loop & Display update
     telemetryEventLoopTimer = QTimer()
-    telemetryEventLoopTimer.timeout.connect(MTM1M3.runSubscriberChecks)
+    telemetryEventLoopTimer.timeout.connect(eui.updateDisplays)
     telemetryEventLoopTimer.start(500)
     # Run the main Qt loop
     app.exec_()

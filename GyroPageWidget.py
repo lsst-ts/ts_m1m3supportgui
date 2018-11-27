@@ -1,6 +1,7 @@
 
 import QTHelpers
 from BitHelper import BitHelper
+from DataCache import DataCache
 from MTM1M3Enumerations import GyroSensorFlags
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout)
 import numpy as np
@@ -84,12 +85,9 @@ class GyroPageWidget(QWidget):
         self.plot.plotItem.setTitle("Angular Velocity")
         self.plot.plotItem.setLabel(axis = 'left', text = "Angular Velocity (rad/s)")
         self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")     
-        self.angularVelocityXCurveData = np.array(np.zeros(self.maxPlotSize))
-        self.angularVelocityYCurveData = np.array(np.zeros(self.maxPlotSize))
-        self.angularVelocityZCurveData = np.array(np.zeros(self.maxPlotSize))
-        self.angularVelocityXCurve = self.plot.plot(self.angularVelocityXCurveData, name = 'X', pen = 'r')
-        self.angularVelocityYCurve = self.plot.plot(self.angularVelocityYCurveData, name = 'Y', pen = 'g')
-        self.angularVelocityZCurve = self.plot.plot(self.angularVelocityZCurveData, name = 'Z', pen = 'b')
+        self.angularVelocityXCurve = self.plot.plot(name = 'X', pen = 'r')
+        self.angularVelocityYCurve = self.plot.plot(name = 'Y', pen = 'g')
+        self.angularVelocityZCurve = self.plot.plot(name = 'Z', pen = 'b')
 
         row = 0
         col = 0
@@ -268,71 +266,100 @@ class GyroPageWidget(QWidget):
         
         self.plotLayout.addWidget(self.plot)
 
+        self.dataEventGyroWarning = DataCache()
+        self.angularVelocityXCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.angularVelocityYCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.angularVelocityZCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
+        self.dataTelemetryGyroData = DataCache()
+
         self.MTM1M3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
         self.MTM1M3.subscribeTelemetry_gyroData(self.processTelemetryGyroData)
 
+    def setPageActive(self, active):
+        self.pageActive = active
+        if self.pageActive:
+            self.updatePage()
+
+    def updatePage(self):
+        if not self.pageActive:
+            return 
+
+        if self.dataEventGyroWarning.hasBeenUpdated():
+            data = self.dataEventGyroWarning.get()
+            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+            QTHelpers.setWarningLabel(self.gyroXStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXStatusWarning))
+            QTHelpers.setWarningLabel(self.gyroYStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYStatusWarning))
+            QTHelpers.setWarningLabel(self.gyroZStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZStatusWarning))
+            QTHelpers.setWarningLabel(self.sequenceNumberWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.SequenceNumberWarning))
+            QTHelpers.setWarningLabel(self.crcMismatchWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.CRCMismatchWarning))
+            QTHelpers.setWarningLabel(self.invalidLengthWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.InvalidLengthWarning))
+            QTHelpers.setWarningLabel(self.invalidHeaderWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.InvalidHeaderWarning))
+            QTHelpers.setWarningLabel(self.incompleteFrameWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.IncompleteFrameWarning))
+            QTHelpers.setWarningLabel(self.gyroXSLDWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXSLDWarning))
+            QTHelpers.setWarningLabel(self.gyroXMODDACWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXMODDACWarning))
+            QTHelpers.setWarningLabel(self.gyroXPhaseWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXPhaseWarning))
+            QTHelpers.setWarningLabel(self.gyroXFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXFlashWarning))
+            QTHelpers.setWarningLabel(self.gyroYSLDWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYSLDWarning))
+            QTHelpers.setWarningLabel(self.gyroYMODDACWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYMODDACWarning))
+            QTHelpers.setWarningLabel(self.gyroYPhaseWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYPhaseWarning))
+            QTHelpers.setWarningLabel(self.gyroYFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYFlashWarning))
+            QTHelpers.setWarningLabel(self.gyroZSLDWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZSLDWarning))
+            QTHelpers.setWarningLabel(self.gyroZMODDACWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZMODDACWarning))
+            QTHelpers.setWarningLabel(self.gyroZPhaseWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZPhaseWarning))
+            QTHelpers.setWarningLabel(self.gyroZFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZFlashWarning))
+            QTHelpers.setWarningLabel(self.gyroXSLDTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXSLDTemperatureStatusWarning))
+            QTHelpers.setWarningLabel(self.gyroYSLDTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYSLDTemperatureStatusWarning))
+            QTHelpers.setWarningLabel(self.gyroZSLDTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZSLDTemperatureStatusWarning))
+            QTHelpers.setWarningLabel(self.gcbTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBTemperatureStatusWarning))
+            QTHelpers.setWarningLabel(self.temperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.TemperatureStatusWarning))
+            QTHelpers.setWarningLabel(self.gcbDSPSPIFlashStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBDSPSPIFlashStatusWarning))
+            QTHelpers.setWarningLabel(self.gcbFPGASPIFlashStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBFPGASPIFlashStatusWarning))
+            QTHelpers.setWarningLabel(self.dspSPIFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.DSPSPIFlashStatusWarning))
+            QTHelpers.setWarningLabel(self.fpgaSPIFlashStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.FPGASPIFlashStatusWarning))
+            QTHelpers.setWarningLabel(self.gcb1_2VStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCB1_2VStatusWarning))
+            QTHelpers.setWarningLabel(self.gcb3_3VStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCB3_3VStatusWarning))
+            QTHelpers.setWarningLabel(self.gcb5VStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCB5VStatusWarning))
+            QTHelpers.setWarningLabel(self.v1_2StatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.V1_2StatusWarning))
+            QTHelpers.setWarningLabel(self.v3_3StatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.V3_3StatusWarning))
+            QTHelpers.setWarningLabel(self.v5StatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.V5StatusWarning))
+            QTHelpers.setWarningLabel(self.gcbFPGAStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBFPGAStatusWarning))
+            QTHelpers.setWarningLabel(self.fpgaStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.FPGAStatusWarning))
+            QTHelpers.setWarningLabel(self.hiSpeedSPORTStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.HiSpeedSPORTStatusWarning))
+            QTHelpers.setWarningLabel(self.auxSPORTStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.AuxSPORTStatusWarning))
+            QTHelpers.setWarningLabel(self.sufficientSoftwareResourcesWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.SufficientSoftwareResourcesWarning))
+            QTHelpers.setWarningLabel(self.gyroEOVoltsPositiveWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroEOVoltsPositiveWarning))
+            QTHelpers.setWarningLabel(self.gyroEOVoltsNegativeWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroEOVoltsNegativeWarning))
+            QTHelpers.setWarningLabel(self.gyroXVoltsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXVoltsWarning))
+            QTHelpers.setWarningLabel(self.gyroYVoltsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYVoltsWarning))
+            QTHelpers.setWarningLabel(self.gyroZVoltsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZVoltsWarning))
+            QTHelpers.setWarningLabel(self.gcbADCCommsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBADCCommsWarning))
+            QTHelpers.setWarningLabel(self.mSYNCExternalTimingWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.MSYNCExternalTimingWarning))
+
+        if self.angularVelocityXCurveData.hasBeenUpdated():
+            data = self.angularVelocityXCurveData.get()
+            self.angularVelocityXCurve.setData(data)
+
+        if self.angularVelocityYCurveData.hasBeenUpdated():
+            data = self.angularVelocityYCurveData.get()
+            self.angularVelocityYCurve.setData(data)
+
+        if self.angularVelocityZCurveData.hasBeenUpdated():
+            data = self.angularVelocityZCurveData.get()
+            self.angularVelocityZCurve.setData(data)
+
+        if self.dataTelemetryGyroData.hasBeenUpdated():
+            data = self.dataTelemetryGyroData.get()
+            self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
+            self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
+            self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
+            self.sequenceNumberLabel.setText("%0.3f" % (data.sequenceNumber))
+            self.temperatureLabel.setText("%0.3f" % (data.temperature))
+
     def processEventGyroWarning(self, data):
-        data = data[-1]
-        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        QTHelpers.setWarningLabel(self.gyroXStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXStatusWarning))
-        QTHelpers.setWarningLabel(self.gyroYStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYStatusWarning))
-        QTHelpers.setWarningLabel(self.gyroZStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZStatusWarning))
-        QTHelpers.setWarningLabel(self.sequenceNumberWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.SequenceNumberWarning))
-        QTHelpers.setWarningLabel(self.crcMismatchWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.CRCMismatchWarning))
-        QTHelpers.setWarningLabel(self.invalidLengthWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.InvalidLengthWarning))
-        QTHelpers.setWarningLabel(self.invalidHeaderWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.InvalidHeaderWarning))
-        QTHelpers.setWarningLabel(self.incompleteFrameWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.IncompleteFrameWarning))
-        QTHelpers.setWarningLabel(self.gyroXSLDWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXSLDWarning))
-        QTHelpers.setWarningLabel(self.gyroXMODDACWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXMODDACWarning))
-        QTHelpers.setWarningLabel(self.gyroXPhaseWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXPhaseWarning))
-        QTHelpers.setWarningLabel(self.gyroXFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXFlashWarning))
-        QTHelpers.setWarningLabel(self.gyroYSLDWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYSLDWarning))
-        QTHelpers.setWarningLabel(self.gyroYMODDACWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYMODDACWarning))
-        QTHelpers.setWarningLabel(self.gyroYPhaseWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYPhaseWarning))
-        QTHelpers.setWarningLabel(self.gyroYFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYFlashWarning))
-        QTHelpers.setWarningLabel(self.gyroZSLDWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZSLDWarning))
-        QTHelpers.setWarningLabel(self.gyroZMODDACWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZMODDACWarning))
-        QTHelpers.setWarningLabel(self.gyroZPhaseWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZPhaseWarning))
-        QTHelpers.setWarningLabel(self.gyroZFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZFlashWarning))
-        QTHelpers.setWarningLabel(self.gyroXSLDTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXSLDTemperatureStatusWarning))
-        QTHelpers.setWarningLabel(self.gyroYSLDTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYSLDTemperatureStatusWarning))
-        QTHelpers.setWarningLabel(self.gyroZSLDTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZSLDTemperatureStatusWarning))
-        QTHelpers.setWarningLabel(self.gcbTemperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBTemperatureStatusWarning))
-        QTHelpers.setWarningLabel(self.temperatureStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.TemperatureStatusWarning))
-        QTHelpers.setWarningLabel(self.gcbDSPSPIFlashStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBDSPSPIFlashStatusWarning))
-        QTHelpers.setWarningLabel(self.gcbFPGASPIFlashStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBFPGASPIFlashStatusWarning))
-        QTHelpers.setWarningLabel(self.dspSPIFlashWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.DSPSPIFlashStatusWarning))
-        QTHelpers.setWarningLabel(self.fpgaSPIFlashStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.FPGASPIFlashStatusWarning))
-        QTHelpers.setWarningLabel(self.gcb1_2VStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCB1_2VStatusWarning))
-        QTHelpers.setWarningLabel(self.gcb3_3VStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCB3_3VStatusWarning))
-        QTHelpers.setWarningLabel(self.gcb5VStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCB5VStatusWarning))
-        QTHelpers.setWarningLabel(self.v1_2StatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.V1_2StatusWarning))
-        QTHelpers.setWarningLabel(self.v3_3StatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.V3_3StatusWarning))
-        QTHelpers.setWarningLabel(self.v5StatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.V5StatusWarning))
-        QTHelpers.setWarningLabel(self.gcbFPGAStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBFPGAStatusWarning))
-        QTHelpers.setWarningLabel(self.fpgaStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.FPGAStatusWarning))
-        QTHelpers.setWarningLabel(self.hiSpeedSPORTStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.HiSpeedSPORTStatusWarning))
-        QTHelpers.setWarningLabel(self.auxSPORTStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.AuxSPORTStatusWarning))
-        QTHelpers.setWarningLabel(self.sufficientSoftwareResourcesWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.SufficientSoftwareResourcesWarning))
-        QTHelpers.setWarningLabel(self.gyroEOVoltsPositiveWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroEOVoltsPositiveWarning))
-        QTHelpers.setWarningLabel(self.gyroEOVoltsNegativeWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroEOVoltsNegativeWarning))
-        QTHelpers.setWarningLabel(self.gyroXVoltsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXVoltsWarning))
-        QTHelpers.setWarningLabel(self.gyroYVoltsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYVoltsWarning))
-        QTHelpers.setWarningLabel(self.gyroZVoltsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZVoltsWarning))
-        QTHelpers.setWarningLabel(self.gcbADCCommsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBADCCommsWarning))
-        QTHelpers.setWarningLabel(self.mSYNCExternalTimingWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.MSYNCExternalTimingWarning))
-
+        self.dataEventGyroWarning.set(data[-1])
+        
     def processTelemetryGyroData(self, data):
-        self.angularVelocityXCurveData = QTHelpers.appendAndResizeCurveData(self.angularVelocityXCurveData, [x.angularVelocityX for x in data], self.maxPlotSize)
-        self.angularVelocityYCurveData = QTHelpers.appendAndResizeCurveData(self.angularVelocityYCurveData, [x.angularVelocityY for x in data], self.maxPlotSize)
-        self.angularVelocityZCurveData = QTHelpers.appendAndResizeCurveData(self.angularVelocityZCurveData, [x.angularVelocityZ for x in data], self.maxPlotSize)
-        self.angularVelocityXCurve.setData(self.angularVelocityXCurveData)
-        self.angularVelocityYCurve.setData(self.angularVelocityYCurveData)
-        self.angularVelocityZCurve.setData(self.angularVelocityZCurveData)
-
-        data = data[-1]
-        self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
-        self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
-        self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
-        self.sequenceNumberLabel.setText("%0.3f" % (data.sequenceNumber))
-        self.temperatureLabel.setText("%0.3f" % (data.temperature))
+        self.angularVelocityXCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularVelocityXCurveData.get(), [x.angularVelocityX for x in data], self.maxPlotSize))
+        self.angularVelocityYCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularVelocityYCurveData.get(), [x.angularVelocityY for x in data], self.maxPlotSize))
+        self.angularVelocityZCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularVelocityZCurveData.get(), [x.angularVelocityZ for x in data], self.maxPlotSize))
+        self.dataTelemetryGyroData.set(data[-1])
