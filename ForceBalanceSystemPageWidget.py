@@ -2,7 +2,6 @@
 import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
-from MTM1M3Enumerations import HardpointIndexMap, ForceActuatorFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout
 import numpy as np
 import pyqtgraph as pg
@@ -205,16 +204,16 @@ class ForceBalanceSystemPageWidget(QWidget):
 
         if self.dataEventForceActuatorWarning.hasBeenUpdated():
             data = self.dataEventForceActuatorWarning.get()
-            QTHelpers.setBoolLabelYesNo(self.balanceForcesClippedLabel, BitHelper.get(data.anyForceActuatorFlags, ForceActuatorFlags.ForceSetpointBalanceForceClipped))
+            #TODO QTHelpers.setBoolLabelYesNo(self.balanceForcesClippedLabel, BitHelper.get(data.anyForceActuatorFlags, ForceActuatorFlags.ForceSetpointBalanceForceClipped))
 
         if self.dataTelemetryHardpointData.hasBeenUpdated():
             data = self.dataTelemetryHardpointData.get()
-            self.hardpoint1ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint1])
-            self.hardpoint2ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint2])
-            self.hardpoint3ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint3])
-            self.hardpoint4ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint4])
-            self.hardpoint5ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint5])
-            self.hardpoint6ForceLabel.setText("%0.1f" % data.measuredForce[HardpointIndexMap.Hardpoint6])
+            self.hardpoint1ForceLabel.setText("%0.1f" % data.measuredForce[0])
+            self.hardpoint2ForceLabel.setText("%0.1f" % data.measuredForce[1])
+            self.hardpoint3ForceLabel.setText("%0.1f" % data.measuredForce[2])
+            self.hardpoint4ForceLabel.setText("%0.1f" % data.measuredForce[3])
+            self.hardpoint5ForceLabel.setText("%0.1f" % data.measuredForce[4])
+            self.hardpoint6ForceLabel.setText("%0.1f" % data.measuredForce[5])
             self.hardpointMagForceLabel.setText("%0.1f" % (sum(data.measuredForce)))
             self.hardpointFxLabel.setText("%0.1f" % data.fX)
             self.hardpointFyLabel.setText("%0.1f" % data.fY)

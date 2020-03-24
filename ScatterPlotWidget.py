@@ -1,7 +1,6 @@
 
 import QTHelpers
 from BitHelper import BitHelper
-from MTM1M3Enumerations import HardpointIndexMap, ForceActuatorFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout
 import numpy as np
 import pyqtgraph as pg

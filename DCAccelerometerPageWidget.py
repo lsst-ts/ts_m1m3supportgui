@@ -2,7 +2,6 @@
 import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
-from MTM1M3Enumerations import AccelerometerFlags, AccelerometerIndexMap
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout, QSpacerItem)
 import numpy as np
 import pyqtgraph as pg
@@ -130,7 +129,7 @@ class DCAccelerometerPageWidget(QWidget):
         if self.dataEventAccelerometerWarning.hasBeenUpdated():
             data = self.dataEventAccelerometerWarning.get()
             QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-            QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.accelerometerFlags, AccelerometerFlags.ResponseTimeout))
+            #TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.accelerometerFlags, AccelerometerFlags.ResponseTimeout))
 
         if self.angularAccelerationXCurveData.hasBeenUpdated():
             data = self.angularAccelerationXCurveData.get()
@@ -146,22 +145,22 @@ class DCAccelerometerPageWidget(QWidget):
 
         if self.dataTelemetryAccelerometerData.hasBeenUpdated():
             data = self.dataTelemetryAccelerometerData.get()
-            self.rawAccelerometer1XLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer1X]))
-            self.rawAccelerometer1YLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer1Y]))
-            self.rawAccelerometer2XLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer2X]))
-            self.rawAccelerometer2YLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer2Y]))
-            self.rawAccelerometer3XLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer3X]))
-            self.rawAccelerometer3YLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer3Y]))
-            self.rawAccelerometer4XLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer4X]))
-            self.rawAccelerometer4YLabel.setText("%0.3f" % (data.rawAccelerometers[AccelerometerIndexMap.Accelerometer4Y]))
-            self.accelerometer1XLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer1X]))
-            self.accelerometer1YLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer1Y]))
-            self.accelerometer2XLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer2X]))
-            self.accelerometer2YLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer2Y]))
-            self.accelerometer3XLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer3X]))
-            self.accelerometer3YLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer3Y]))
-            self.accelerometer4XLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer4X]))
-            self.accelerometer4YLabel.setText("%0.3f" % (data.accelerometers[AccelerometerIndexMap.Accelerometer4Y]))
+            self.rawAccelerometer1XLabel.setText("%0.3f" % (data.rawAccelerometers[0]))
+            self.rawAccelerometer1YLabel.setText("%0.3f" % (data.rawAccelerometers[1]))
+            self.rawAccelerometer2XLabel.setText("%0.3f" % (data.rawAccelerometers[2]))
+            self.rawAccelerometer2YLabel.setText("%0.3f" % (data.rawAccelerometers[3]))
+            self.rawAccelerometer3XLabel.setText("%0.3f" % (data.rawAccelerometers[4]))
+            self.rawAccelerometer3YLabel.setText("%0.3f" % (data.rawAccelerometers[5]))
+            self.rawAccelerometer4XLabel.setText("%0.3f" % (data.rawAccelerometers[6]))
+            self.rawAccelerometer4YLabel.setText("%0.3f" % (data.rawAccelerometers[7]))
+            self.accelerometer1XLabel.setText("%0.3f" % (data.accelerometers[0]))
+            self.accelerometer1YLabel.setText("%0.3f" % (data.accelerometers[1]))
+            self.accelerometer2XLabel.setText("%0.3f" % (data.accelerometers[2]))
+            self.accelerometer2YLabel.setText("%0.3f" % (data.accelerometers[3]))
+            self.accelerometer3XLabel.setText("%0.3f" % (data.accelerometers[4]))
+            self.accelerometer3YLabel.setText("%0.3f" % (data.accelerometers[5]))
+            self.accelerometer4XLabel.setText("%0.3f" % (data.accelerometers[6]))
+            self.accelerometer4YLabel.setText("%0.3f" % (data.accelerometers[7]))
             self.angularAccelerationXLabel.setText("%0.3f" % (data.angularAccelerationX))
             self.angularAccelerationYLabel.setText("%0.3f" % (data.angularAccelerationY))
             self.angularAccelerationZLabel.setText("%0.3f" % (data.angularAccelerationZ))

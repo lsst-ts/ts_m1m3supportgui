@@ -2,7 +2,6 @@
 import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
-from MTM1M3Enumerations import ForceActuatorZIndexMap
 from FATABLE import *
 from TopicData import TopicData
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QHBoxLayout, QListWidget
@@ -89,207 +88,111 @@ class ForceActuatorValuePageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("8"), row, col + 9)
         self.dataLayout.addWidget(QLabel("9"), row, col + 10)
         row += 1
+
         self.dataLayout.addWidget(QLabel("100"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA101], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA102], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA103], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA104], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA105], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA106], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA107], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA108], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA109], row, col + 10)
+        for i in range(9):
+            self.dataLayout.addWidget(self.forceActuatorLabels[i], row, col + 2 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("110"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA110], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA111], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA112], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA113], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA114], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA115], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA116], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA117], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA118], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA119], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[9 + i], row, col + 1 + i)
+        
         row += 1
         self.dataLayout.addWidget(QLabel("120"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA120], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA121], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA122], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA123], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA124], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA125], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA126], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA127], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA128], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA129], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[19 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("130"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA130], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA131], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA132], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA133], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA134], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA135], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA136], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA137], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA138], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA139], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[29 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("140"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA140], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA141], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA142], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA143], row, col + 4)
+        for i in range(4):
+            self.dataLayout.addWidget(self.forceActuatorLabels[39 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel(" "), row, col)
         row += 1
         self.dataLayout.addWidget(QLabel("200"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA207], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA208], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA209], row, col + 10)
+        for i in range(3):
+            self.dataLayout.addWidget(self.forceActuatorLabels[43 + i], row, col + 8 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("210"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA210], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA211], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA212], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA214], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA215], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA216], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA217], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA218], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA219], row, col + 10)
+        for i in range(9):
+            self.dataLayout.addWidget(self.forceActuatorLabels[46 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("220"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA220], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA221], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA222], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA223], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA224], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA225], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA227], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA228], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA229], row, col + 10)
+        for i in range(9):
+            self.dataLayout.addWidget(self.forceActuatorLabels[55 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("230"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA230], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA231], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA232], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA233], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA234], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA235], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA236], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA237], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA238], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA239], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[64 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("240"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA240], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA241], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA242], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA243], row, col + 4)
+        for i in range(4):
+            self.dataLayout.addWidget(self.forceActuatorLabels[74 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel(" "), row, col)
         row += 1
         self.dataLayout.addWidget(QLabel("300"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA301], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA302], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA303], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA304], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA305], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA306], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA307], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA308], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA309], row, col + 10)
+        for i in range(9):
+            self.dataLayout.addWidget(self.forceActuatorLabels[78 + i], row, col + 2 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("310"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA310], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA311], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA312], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA313], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA314], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA315], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA316], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA317], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA318], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA319], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[87 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("320"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA320], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA321], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA322], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA323], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA324], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA325], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA326], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA327], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA328], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA329], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[97 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("330"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA330], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA331], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA332], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA333], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA334], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA335], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA336], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA337], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA338], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA339], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[107 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("340"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA340], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA341], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA342], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA343], row, col + 4)
+        for i in range(4):
+            self.dataLayout.addWidget(self.forceActuatorLabels[117 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel(" "), row, col)
         row += 1
         self.dataLayout.addWidget(QLabel("400"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA407], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA408], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA409], row, col + 10)
+        for i in range(3):
+            self.dataLayout.addWidget(self.forceActuatorLabels[121 + i], row, col + 8 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("410"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA410], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA411], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA412], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA414], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA415], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA416], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA417], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA418], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA419], row, col + 10)
+        for i in range(9):
+            self.dataLayout.addWidget(self.forceActuatorLabels[124 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("420"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA420], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA421], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA422], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA423], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA424], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA425], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA427], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA428], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA429], row, col + 10)
+        for i in range(9):
+            self.dataLayout.addWidget(self.forceActuatorLabels[133 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("430"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA430], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA431], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA432], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA433], row, col + 4)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA434], row, col + 5)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA435], row, col + 6)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA436], row, col + 7)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA437], row, col + 8)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA438], row, col + 9)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA439], row, col + 10)
+        for i in range(10):
+            self.dataLayout.addWidget(self.forceActuatorLabels[142 + i], row, col + 1 + i)
+
         row += 1
         self.dataLayout.addWidget(QLabel("440"), row, col)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA440], row, col + 1)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA441], row, col + 2)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA442], row, col + 3)
-        self.dataLayout.addWidget(self.forceActuatorLabels[ForceActuatorZIndexMap.FA443], row, col + 4)
+        for i in range(4):
+            self.dataLayout.addWidget(self.forceActuatorLabels[152 + i], row, col + 1 + i)
 
         row = 0
         col = 0
