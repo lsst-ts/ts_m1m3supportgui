@@ -98,6 +98,7 @@ class MTM1M3Remote:
         self.sal.salEventSub("MTM1M3_logevent_rejectedStaticForces")
         self.sal.salEventSub("MTM1M3_logevent_rejectedThermalForces")
         self.sal.salEventSub("MTM1M3_logevent_rejectedVelocityForces")
+        self.sal.salEventSub("MTM1M3_logevent_summaryState")
 
         self.sal.salTelemetrySub("MTM1M3_accelerometerData")
         self.sal.salTelemetrySub("MTM1M3_forceActuatorData")
