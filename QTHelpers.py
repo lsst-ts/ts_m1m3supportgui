@@ -1,5 +1,3 @@
-import numpy as np
-
 def updateButton(button, text, action):
     button.setVisible(True)
     button.setText(text)
@@ -52,7 +50,3 @@ def getGradientColor(lowest, highest, value):
     if range != 0:
         percentage = (-(value - lowest) / range) + 1
     return pg.intColor(int(percentage * 179.0), 255)
-
-def getInverseGradientColor(lowest, highest, value):
-    color = getGradientColor(lowest, highest, value)
-    return pg.QtGui.QColor.fromRgb(255 - color.red(), 255 - color.green(), 255 - color.blue())
