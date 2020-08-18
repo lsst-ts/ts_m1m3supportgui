@@ -135,12 +135,7 @@ class MTM1M3Remote:
         self.eventSubscribers_cellLightWarning = []
         self.eventSubscribers_detailedState = []
         self.eventSubscribers_displacementSensorWarning = []
-        self.eventSubscribers_forceActuatorBackupCalibrationInfo = []
-        self.eventSubscribers_forceActuatorILCInfo = []
-        self.eventSubscribers_forceActuatorIdInfo = []
-        self.eventSubscribers_forceActuatorMainCalibrationInfo = []
-        self.eventSubscribers_forceActuatorMezzanineCalibrationInfo = []
-        self.eventSubscribers_forceActuatorPositionInfo = []
+        self.eventSubscribers_forceActuatorInfo = []
         self.eventSubscribers_forceActuatorState = []
         self.eventSubscribers_forceActuatorWarning = []
         self.eventSubscribers_gyroWarning = []
@@ -181,7 +176,7 @@ class MTM1M3Remote:
         self.telemetrySubscribers_inclinometerData = []
         self.telemetrySubscribers_outerLoopData = []
         self.telemetrySubscribers_pidData = []
-        self.telemetrySubscribers_powerData = []
+        self.telemetrySubscribers_powerSupplyData = []
 
         self.topicsSubscribedToo = {}
 
@@ -1511,83 +1506,18 @@ class MTM1M3Remote:
         if "event_displacementSensorWarning" not in self.topicsSubscribedToo:
             self.topicsSubscribedToo["event_displacementSensorWarning"] = [self.getNextEvent_displacementSensorWarning, self.eventSubscribers_displacementSensorWarning]
 
-    def getNextEvent_forceActuatorBackupCalibrationInfo(self):
-        data = MTM1M3_logevent_forceActuatorBackupCalibrationInfoC()
-        result = self.sal.getEvent_forceActuatorBackupCalibrationInfo(data)
+    def getNextEvent_forceActuatorInfo(self):
+        data = MTM1M3_logevent_forceActuatorInfoC()
+        result = self.sal.getEvent_forceActuatorInfo(data)
         return result, data
         
-    def getEvent_forceActuatorBackupCalibrationInfo(self):
-        return self.getEvent(self.getNextEvent_forceActuatorBackupCalibrationInfo)
+    def getEvent_forceActuatorInfo(self):
+        return self.getEvent(self.getNextEvent_forceActuatorInfo)
         
-    def subscribeEvent_forceActuatorBackupCalibrationInfo(self, action):
-        self.eventSubscribers_forceActuatorBackupCalibrationInfo.append(action)
-        if "event_forceActuatorBackupCalibrationInfo" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_forceActuatorBackupCalibrationInfo"] = [self.getNextEvent_forceActuatorBackupCalibrationInfo, self.eventSubscribers_forceActuatorBackupCalibrationInfo]
-
-    def getNextEvent_forceActuatorILCInfo(self):
-        data = MTM1M3_logevent_forceActuatorILCInfoC()
-        result = self.sal.getEvent_forceActuatorILCInfo(data)
-        return result, data
-        
-    def getEvent_forceActuatorILCInfo(self):
-        return self.getEvent(self.getNextEvent_forceActuatorILCInfo)
-        
-    def subscribeEvent_forceActuatorILCInfo(self, action):
-        self.eventSubscribers_forceActuatorILCInfo.append(action)
-        if "event_forceActuatorILCInfo" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_forceActuatorILCInfo"] = [self.getNextEvent_forceActuatorILCInfo, self.eventSubscribers_forceActuatorILCInfo]
-
-    def getNextEvent_forceActuatorIdInfo(self):
-        data = MTM1M3_logevent_forceActuatorIdInfoC()
-        result = self.sal.getEvent_forceActuatorIdInfo(data)
-        return result, data
-        
-    def getEvent_forceActuatorIdInfo(self):
-        return self.getEvent(self.getNextEvent_forceActuatorIdInfo)
-        
-    def subscribeEvent_forceActuatorIdInfo(self, action):
-        self.eventSubscribers_forceActuatorIdInfo.append(action)
-        if "event_forceActuatorIdInfo" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_forceActuatorIdInfo"] = [self.getNextEvent_forceActuatorIdInfo, self.eventSubscribers_forceActuatorIdInfo]
-
-    def getNextEvent_forceActuatorMainCalibrationInfo(self):
-        data = MTM1M3_logevent_forceActuatorMainCalibrationInfoC()
-        result = self.sal.getEvent_forceActuatorMainCalibrationInfo(data)
-        return result, data
-        
-    def getEvent_forceActuatorMainCalibrationInfo(self):
-        return self.getEvent(self.getNextEvent_forceActuatorMainCalibrationInfo)
-        
-    def subscribeEvent_forceActuatorMainCalibrationInfo(self, action):
-        self.eventSubscribers_forceActuatorMainCalibrationInfo.append(action)
-        if "event_forceActuatorMainCalibrationInfo" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_forceActuatorMainCalibrationInfo"] = [self.getNextEvent_forceActuatorMainCalibrationInfo, self.eventSubscribers_forceActuatorMainCalibrationInfo]
-
-    def getNextEvent_forceActuatorMezzanineCalibrationInfo(self):
-        data = MTM1M3_logevent_forceActuatorMezzanineCalibrationInfoC()
-        result = self.sal.getEvent_forceActuatorMezzanineCalibrationInfo(data)
-        return result, data
-        
-    def getEvent_forceActuatorMezzanineCalibrationInfo(self):
-        return self.getEvent(self.getNextEvent_forceActuatorMezzanineCalibrationInfo)
-        
-    def subscribeEvent_forceActuatorMezzanineCalibrationInfo(self, action):
-        self.eventSubscribers_forceActuatorMezzanineCalibrationInfo.append(action)
-        if "event_forceActuatorMezzanineCalibrationInfo" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_forceActuatorMezzanineCalibrationInfo"] = [self.getNextEvent_forceActuatorMezzanineCalibrationInfo, self.eventSubscribers_forceActuatorMezzanineCalibrationInfo]
-
-    def getNextEvent_forceActuatorPositionInfo(self):
-        data = MTM1M3_logevent_forceActuatorPositionInfoC()
-        result = self.sal.getEvent_forceActuatorPositionInfo(data)
-        return result, data
-        
-    def getEvent_forceActuatorPositionInfo(self):
-        return self.getEvent(self.getNextEvent_forceActuatorPositionInfo)
-        
-    def subscribeEvent_forceActuatorPositionInfo(self, action):
-        self.eventSubscribers_forceActuatorPositionInfo.append(action)
-        if "event_forceActuatorPositionInfo" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_forceActuatorPositionInfo"] = [self.getNextEvent_forceActuatorPositionInfo, self.eventSubscribers_forceActuatorPositionInfo]
+    def subscribeEvent_forceActuatorInfo(self, action):
+        self.eventSubscribers_forceActuatorInfo.append(action)
+        if "event_forceActuatorInfo" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_forceActuatorInfo"] = [self.getNextEvent_forceActuatorInfo, self.eventSubscribers_forceActuatorInfo]
 
     def getNextEvent_forceActuatorState(self):
         data = MTM1M3_logevent_forceActuatorStateC()
@@ -2118,18 +2048,19 @@ class MTM1M3Remote:
         if "telemetry_pidData" not in self.topicsSubscribedToo:
             self.topicsSubscribedToo["telemetry_pidData"] = [self.getNextSample_pidData, self.telemetrySubscribers_pidData]
 
-    def getNextSample_powerData(self):
-        data = MTM1M3_powerDataC()
-        result = self.sal.getNextSample_powerData(data)
+    def getNextSample_powerSupplyData(self):
+        data = MTM1M3_powerSupplyDataC()
+        result = self.sal.getNextSample_powerSupplyData(data)
         return result, data
 
-    def getSample_powerData(self):
-        data = MTM1M3_powerDataC()
-        result = self.sal.getSample_powerData(data)
+    def getSample_powerSupplyData(self):
+        data = MTM1M3_powerSupplyDataC()
+        result = self.sal.getSample_powerSupplyData(data)
         return result, data
         
-    def subscribeTelemetry_powerData(self, action):
-        self.telemetrySubscribers_powerData.append(action)
-        if "telemetry_powerData" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["telemetry_powerData"] = [self.getNextSample_powerData, self.telemetrySubscribers_powerData]
+    def subscribeTelemetry_powerSupplyData(self, action):
+        self.telemetrySubscribers_powerSupplyData.append(action)
+        if "telemetry_powerSupplyData" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["telemetry_powerSupplyData"] = [self.getNextSample_powerSupplyData, self.telemetrySubscribers_powerSupplyData]
+
 

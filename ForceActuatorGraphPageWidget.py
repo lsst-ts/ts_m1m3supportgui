@@ -1,14 +1,11 @@
 
 import QTHelpers
+import TimeChart
 from DataCache import DataCache
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import TopicData
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 from ScatterPlotWidget import ScatterPlotWidget
 
 class ForceActuatorGraphPageWidget(QWidget):
@@ -118,12 +115,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.dataEventAppliedStaticForces = DataCache()
         self.dataEventAppliedThermalForces = DataCache()
         self.dataEventAppliedVelocityForces = DataCache()
-        self.dataEventForceActuatorBackupCalibrationInfo = DataCache()
-        self.dataEventForceActuatorIdInfo = DataCache()
-        self.dataEventForceActuatorILCInfo = DataCache()
-        self.dataEventForceActuatorMainCalibrationInfo = DataCache()
-        self.dataEventForceActuatorMezzanineCalibrationInfo = DataCache()
-        self.dataEventForceActuatorPositionInfo = DataCache()
+        self.dataEventForceActuatorInfo = DataCache()
         self.dataEventForceActuatorState = DataCache()
         self.dataEventForceActuatorWarning = DataCache()
         self.dataEventRejectedAberrationForces = DataCache()
@@ -151,12 +143,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.setTopicData("Applied Static Forces", self.dataEventAppliedStaticForces)
         self.setTopicData("Applied Thermal Forces", self.dataEventAppliedThermalForces)
         self.setTopicData("Applied Velocity Forces", self.dataEventAppliedVelocityForces)
-        self.setTopicData("Force Actuator Backup Calibration Info", self.dataEventForceActuatorBackupCalibrationInfo)
-        self.setTopicData("Force Actuator Id Info", self.dataEventForceActuatorIdInfo)
-        self.setTopicData("Force Actuator ILC Info", self.dataEventForceActuatorILCInfo)
-        self.setTopicData("Force Actuator Main Calibration Info", self.dataEventForceActuatorMainCalibrationInfo)
-        self.setTopicData("Force Actuator Mezzanine Calibration Info", self.dataEventForceActuatorMezzanineCalibrationInfo)
-        self.setTopicData("Force Actuator Position Info", self.dataEventForceActuatorPositionInfo)
+        self.setTopicData("Force Actuator Info", self.dataEventForceActuatorInfo)
         self.setTopicData("Force Actuator State", self.dataEventForceActuatorState)
         self.setTopicData("Force Actuator Warning", self.dataEventForceActuatorWarning)
         self.setTopicData("Rejected Aberration Forces", self.dataEventRejectedAberrationForces)
@@ -185,12 +172,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.MTM1M3.subscribeEvent_appliedThermalForces(self.processEventAppliedThermalForces)
         self.MTM1M3.subscribeEvent_appliedVelocityForces(self.processEventAppliedVelocityForces)
 
-        self.MTM1M3.subscribeEvent_forceActuatorBackupCalibrationInfo(self.processEventForceActuatorBackupCalibrationInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorIdInfo(self.processEventForceActuatorIdInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorILCInfo(self.processEventForceActuatorILCInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorMainCalibrationInfo(self.processEventForceActuatorMainCalibrationInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorMezzanineCalibrationInfo(self.processEventForceActuatorMezzanineCalibrationInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorPositionInfo(self.processEventForceActuatorPositionInfo)
+        self.MTM1M3.subscribeEvent_forceActuatorInfo(self.processEventForceActuatorInfo)
         self.MTM1M3.subscribeEvent_forceActuatorState(self.processEventForceActuatorState)
         self.MTM1M3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
 
@@ -259,23 +241,8 @@ class ForceActuatorGraphPageWidget(QWidget):
     def processEventAppliedVelocityForces(self, data):
         self.dataEventAppliedVelocityForces.set(data[-1])
 
-    def processEventForceActuatorBackupCalibrationInfo(self, data):
-        self.dataEventForceActuatorBackupCalibrationInfo.set(data[-1])
-
-    def processEventForceActuatorILCInfo(self, data):
-        self.dataEventForceActuatorILCInfo.set(data[-1])
-
-    def processEventForceActuatorIdInfo(self, data):
-        self.dataEventForceActuatorIdInfo.set(data[-1])
-
-    def processEventForceActuatorMainCalibrationInfo(self, data):
-        self.dataEventForceActuatorMainCalibrationInfo.set(data[-1])
-    
-    def processEventForceActuatorMezzanineCalibrationInfo(self, data):
-        self.dataEventForceActuatorMezzanineCalibrationInfo.set(data[-1])
-
-    def processEventForceActuatorPositionInfo(self, data):
-        self.dataEventForceActuatorPositionInfo.set(data[-1])
+    def processEventForceActuatorInfo(self, data):
+        self.dataEventForceActuatorInfo.set(data[-1])
 
     def processEventForceActuatorState(self, data):
         self.dataEventForceActuatorState.set(data[-1])

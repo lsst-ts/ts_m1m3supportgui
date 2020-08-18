@@ -1,6 +1,4 @@
-
 import numpy as np
-import pyqtgraph as pg
 
 def updateButton(button, text, action):
     button.setVisible(True)
@@ -41,12 +39,6 @@ def setBoolLabelOpenClosed(label, value):
 
 def setBoolLabelYesNo(label, value):
     setBoolLabel(label, "YES", "NO", value)
-
-def appendAndResizeCurveData(data, newData, limit):
-    data = np.insert(data, 0, newData)
-    if len(data) > limit:
-        data = np.delete(data, np.arange(limit, len(data)))
-    return data
 
 def getGradientColor(lowest, highest, value):
     # Lowest = Blue

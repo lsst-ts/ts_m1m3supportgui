@@ -1,12 +1,9 @@
 
 import QTHelpers
+import TimeChart
 from BitHelper import BitHelper
 from DataCache import DataCache
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout)
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class GyroPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -79,14 +76,8 @@ class GyroPageWidget(QWidget):
         self.gcbADCCommsWarningLabel = QLabel("UNKNOWN")
         self.mSYNCExternalTimingWarningLabel = QLabel("UNKNOWN")
 
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Angular Velocity")
-        self.plot.plotItem.setLabel(axis = 'left', text = "Angular Velocity (rad/s)")
-        self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")     
-        self.angularVelocityXCurve = self.plot.plot(name = 'X', pen = 'r')
-        self.angularVelocityYCurve = self.plot.plot(name = 'Y', pen = 'g')
-        self.angularVelocityZCurve = self.plot.plot(name = 'Z', pen = 'b')
+        self.chart = TimeChart.TimeChart(50 * 30) # 50Hz * 30slot = pg.PlotWidget()
+        self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
         col = 0
@@ -263,12 +254,9 @@ class GyroPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Temperature"), row, col)
         self.warningLayout.addWidget(self.temperatureStatusWarningLabel, row, col + 1)  
         
-        self.plotLayout.addWidget(self.plot)
+        self.plotLayout.addWidget(self.chart_view)
 
         self.dataEventGyroWarning = DataCache()
-        self.angularVelocityXCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.angularVelocityYCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.angularVelocityZCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
         self.dataTelemetryGyroData = DataCache()
 
         self.MTM1M3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
@@ -334,18 +322,6 @@ class GyroPageWidget(QWidget):
             #TODO QTHelpers.setWarningLabel(self.gcbADCCommsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBADCCommsWarning))
             #TODO QTHelpers.setWarningLabel(self.mSYNCExternalTimingWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.MSYNCExternalTimingWarning))
 
-        if self.angularVelocityXCurveData.hasBeenUpdated():
-            data = self.angularVelocityXCurveData.get()
-            self.angularVelocityXCurve.setData(data)
-
-        if self.angularVelocityYCurveData.hasBeenUpdated():
-            data = self.angularVelocityYCurveData.get()
-            self.angularVelocityYCurve.setData(data)
-
-        if self.angularVelocityZCurveData.hasBeenUpdated():
-            data = self.angularVelocityZCurveData.get()
-            self.angularVelocityZCurve.setData(data)
-
         if self.dataTelemetryGyroData.hasBeenUpdated():
             data = self.dataTelemetryGyroData.get()
             self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
@@ -358,7 +334,7 @@ class GyroPageWidget(QWidget):
         self.dataEventGyroWarning.set(data[-1])
         
     def processTelemetryGyroData(self, data):
-        self.angularVelocityXCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularVelocityXCurveData.get(), [x.angularVelocityX for x in data], self.maxPlotSize))
-        self.angularVelocityYCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularVelocityYCurveData.get(), [x.angularVelocityY for x in data], self.maxPlotSize))
-        self.angularVelocityZCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularVelocityZCurveData.get(), [x.angularVelocityZ for x in data], self.maxPlotSize))
+        self.chart.append('Angular Velocity (rad/s)', 'X', [(x.timestamp, x.angularVelocityX) for x in data])
+        self.chart.append('Angular Velocity (rad/s)', 'Y', [(x.timestamp, x.angularVelocityY) for x in data])
+        self.chart.append('Angular Velocity (rad/s)', 'Z', [(x.timestamp, x.angularVelocityZ) for x in data])
         self.dataTelemetryGyroData.set(data[-1])

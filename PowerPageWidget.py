@@ -1,12 +1,9 @@
 
 import QTHelpers
+import TimeChart
 from DataCache import DataCache
 from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class PowerPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -23,8 +20,6 @@ class PowerPageWidget(QWidget):
         self.layout.addLayout(self.warningLayout)
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
-
-        self.maxPlotSize = 50 * 30 # 50Hz * 30s
 
         self.turnMainAOnButton = QPushButton("Turn Main A On")
         self.turnMainAOnButton.setFixedWidth(256)
@@ -115,17 +110,8 @@ class PowerPageWidget(QWidget):
         self.auxPowerNetworkCCommandedOnLabel = QLabel("UNKNOWN")
         self.auxPowerNetworkDCommandedOnLabel = QLabel("UNKNOWN")
 
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Current")
-        self.plot.plotItem.setLabel(axis = 'left', text = 'Current (A)')
-        self.plot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
-        self.powerNetworkACurrentCurve = self.plot.plot(name = 'A', pen = 'r') 
-        self.powerNetworkBCurrentCurve = self.plot.plot(name = 'B', pen = 'g')
-        self.powerNetworkCCurrentCurve = self.plot.plot(name = 'C', pen = 'b')
-        self.powerNetworkDCurrentCurve = self.plot.plot(name = 'D', pen = 'w')
-        self.lightPowerNetworkCurrentCurve = self.plot.plot(name = 'Lights', pen = 'y')
-        self.controlsPowerNetworkCurrentCurve = self.plot.plot(name = 'Controls', pen = 'c')
+        self.chart = TimeChart.TimeChart()
+        self.chartView = TimeChart.TimeChartView(self.chart)
 
         row = 0
         col = 0
@@ -264,21 +250,15 @@ class PowerPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Laser Tracker Status"), row, col)
         self.warningLayout.addWidget(self.laserTrackerPowerNetworkStatusLabel, row, col + 1)
 
-        self.plotLayout.addWidget(self.plot)
+        self.plotLayout.addWidget(self.chartView)
 
         self.dataEventPowerWarning = DataCache()
         self.dataEventPowerStatus = DataCache()
-        self.powerNetworkACurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.powerNetworkBCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.powerNetworkCCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.powerNetworkDCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.lightPowerNetworkCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.controlsPowerNetworkCurrentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.dataTelemetryPowerData = DataCache()
+        self.dataTelemetryPowerSupplyData = DataCache()
         
         self.MTM1M3.subscribeEvent_powerWarning(self.processEventPowerWarning)
         self.MTM1M3.subscribeEvent_powerStatus(self.processEventPowerStatus)
-        self.MTM1M3.subscribeTelemetry_powerData(self.processTelemetryPowerData)
+        self.MTM1M3.subscribeTelemetry_powerSupplyData(self.processTelemetryPowerSupplyData)
 
     def setPageActive(self, active):
         self.pageActive = active
@@ -327,32 +307,8 @@ class PowerPageWidget(QWidget):
             QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkCCommandedOnLabel, data.auxPowerNetworkCCommandedOn)
             QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkDCommandedOnLabel, data.auxPowerNetworkDCommandedOn)
 
-        if self.powerNetworkACurrentCurveData.hasBeenUpdated():
-            data = self.powerNetworkACurrentCurveData.get()
-            self.powerNetworkACurrentCurve.setData(data)
-
-        if self.powerNetworkBCurrentCurveData.hasBeenUpdated():
-            data = self.powerNetworkBCurrentCurveData.get()
-            self.powerNetworkBCurrentCurve.setData(data)
-
-        if self.powerNetworkCCurrentCurveData.hasBeenUpdated():
-            data = self.powerNetworkCCurrentCurveData.get()
-            self.powerNetworkCCurrentCurve.setData(data)
-
-        if self.powerNetworkDCurrentCurveData.hasBeenUpdated():
-            data = self.powerNetworkDCurrentCurveData.get()
-            self.powerNetworkDCurrentCurve.setData(data)
-        
-        if self.lightPowerNetworkCurrentCurveData.hasBeenUpdated():
-            data = self.lightPowerNetworkCurrentCurveData.get()
-            self.lightPowerNetworkCurrentCurve.setData(data)
-
-        if self.controlsPowerNetworkCurrentCurveData.hasBeenUpdated():
-            data = self.controlsPowerNetworkCurrentCurveData.get()
-            self.controlsPowerNetworkCurrentCurve.setData(data)
-
-        if self.dataTelemetryPowerData.hasBeenUpdated():
-            data = self.dataTelemetryPowerData.get()
+        if self.dataTelemetryPowerSupplyData.hasBeenUpdated():
+            data = self.dataTelemetryPowerSupplyData.get()
             self.powerNetworkACurrentLabel.setText("%0.3f" % data.powerNetworkACurrent)
             self.powerNetworkBCurrentLabel.setText("%0.3f" % data.powerNetworkBCurrent)
             self.powerNetworkCCurrentLabel.setText("%0.3f" % data.powerNetworkCCurrent)
@@ -414,11 +370,11 @@ class PowerPageWidget(QWidget):
     def processEventPowerStatus(self, data):
         self.dataEventPowerStatus.set(data[-1])
 
-    def processTelemetryPowerData(self, data):
-        self.powerNetworkACurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkACurrentCurveData.get(), [x.powerNetworkACurrent for x in data], self.maxPlotSize))
-        self.powerNetworkBCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkBCurrentCurveData.get(), [x.powerNetworkBCurrent for x in data], self.maxPlotSize))
-        self.powerNetworkCCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkCCurrentCurveData.get(), [x.powerNetworkCCurrent for x in data], self.maxPlotSize))
-        self.powerNetworkDCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.powerNetworkDCurrentCurveData.get(), [x.powerNetworkDCurrent for x in data], self.maxPlotSize))
-        self.lightPowerNetworkCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.lightPowerNetworkCurrentCurveData.get(), [x.lightPowerNetworkCurrent for x in data], self.maxPlotSize))
-        self.controlsPowerNetworkCurrentCurveData.set(QTHelpers.appendAndResizeCurveData(self.controlsPowerNetworkCurrentCurveData.get(), [x.controlsPowerNetworkCurrent for x in data], self.maxPlotSize))
-        self.dataTelemetryPowerData.set(data[-1])
+    def processTelemetryPowerSupplyData(self, data):
+        self.chart.append('Current (A)', 'A', [(x.timestamp, x.powerNetworkACurrent) for x in data])
+        self.chart.append('Current (A)', 'B', [(x.timestamp, x.powerNetworkBCurrent) for x in data])
+        self.chart.append('Current (A)', 'C', [(x.timestamp, x.powerNetworkCCurrent) for x in data])
+        self.chart.append('Current (A)', 'D', [(x.timestamp, x.powerNetworkDCurrent) for x in data])
+        self.chart.append('Current (A)', 'Lights', [(x.timestamp, x.lightPowerNetworkCurrent) for x in data])
+        self.chart.append('Current (A)', 'Controls', [(x.timestamp, x.controlsPowerNetworkCurrent) for x in data])
+        self.dataTelemetryPowerSupplyData.set(data[-1])

@@ -38,7 +38,8 @@ class ApplicationControlWidget(QWidget):
         self.MTM1M3.subscribeEvent_detailedState(self.processEventDetailedState)
 
     def issueCommandStart(self):
-        self.MTM1M3.issueCommandThenWait_start("Simulator")
+        #self.MTM1M3.issueCommandThenWait_start("Simulator")
+        self.MTM1M3.issueCommandThenWait_start("Default")
 
     def issueCommandEnable(self):
         self.MTM1M3.issueCommandThenWait_enable(False)

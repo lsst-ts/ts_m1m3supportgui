@@ -1,12 +1,7 @@
-
 import QTHelpers
+import TimeChart
 from DataCache import DataCache
-from BitHelper import BitHelper
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout)
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class InclinometerPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -15,14 +10,9 @@ class InclinometerPageWidget(QWidget):
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
-        self.plotLayout = QHBoxLayout()
         self.layout.addLayout(self.dataLayout)
         self.layout.addWidget(QLabel(" "))
         self.layout.addLayout(self.warningLayout)
-        self.layout.addLayout(self.plotLayout)
-        self.setLayout(self.layout)
-        
-        self.maxPlotSize = 50 * 30 # 50Hz * 30s
         
         self.angleLabel = QLabel("UNKNOWN")
         
@@ -36,12 +26,8 @@ class InclinometerPageWidget(QWidget):
         self.unknownFunctionLabel = QLabel("UNKNOWN")
         self.unknownProblemLabel = QLabel("UNKNOWN")
         
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Inclination")
-        self.plot.plotItem.setLabel(axis = 'left', text = 'Inclinometer Angle (deg)')
-        self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")
-        self.inclinometerAngleCurve = self.plot.plot(name = 'Angle', pen = 'r') 
+        self.chart = TimeChart.TimeChart(50 * 30)
+        self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
         col = 0
@@ -79,10 +65,11 @@ class InclinometerPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Unknown Problem"), row, col)
         self.warningLayout.addWidget(self.unknownProblemLabel, row, col + 1)
         
-        self.plotLayout.addWidget(self.plot)
+        self.layout.addWidget(self.chart_view)
+
+        self.setLayout(self.layout)
 
         self.dataEventInclinometerSensorWarning = DataCache()
-        self.inclinometerAngleCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
         self.dataTelemetryInclinometerData = DataCache()
         
         self.MTM1M3.subscribeEvent_inclinometerSensorWarning(self.processEventInclinometerSensorWarning)
@@ -109,10 +96,6 @@ class InclinometerPageWidget(QWidget):
             #TODO QTHelpers.setWarningLabel(self.unknownFunctionLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownFunction))
             #TODO QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownProblem))
 
-        if self.inclinometerAngleCurveData.hasBeenUpdated():
-            data = self.inclinometerAngleCurveData.get()
-            self.inclinometerAngleCurve.setData(data)
-
         if self.dataTelemetryInclinometerData.hasBeenUpdated():
             data = self.dataTelemetryInclinometerData.get()
             self.angleLabel.setText("%0.3f" % (data.inclinometerAngle))
@@ -121,5 +104,5 @@ class InclinometerPageWidget(QWidget):
         self.dataEventInclinometerSensorWarning.set(data[-1])
 
     def processTelemetryInclinometerData(self, data):
-        self.inclinometerAngleCurveData.set(QTHelpers.appendAndResizeCurveData(self.inclinometerAngleCurveData.get(), [x.inclinometerAngle for x in data], self.maxPlotSize))
+        self.chart.append('Angle (deg)', 'Inclinometer Angle', [(x.timestamp,x.inclinometerAngle) for x in data])
         self.dataTelemetryInclinometerData.set(data[-1])

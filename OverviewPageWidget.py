@@ -276,12 +276,12 @@ class OverviewPageWidget(QWidget):
 
         if self.dataEventAppliedForces.hasBeenUpdated():
             data = self.dataEventAppliedForces.get()
-            self.faCommandedXLabel.setText("%0.3f" % (data.fX))
-            self.faCommandedYLabel.setText("%0.3f" % (data.fY))
-            self.faCommandedZLabel.setText("%0.3f" % (data.fZ))
-            self.faCommandedMxLabel.setText("%0.3f" % (data.mX))
-            self.faCommandedMyLabel.setText("%0.3f" % (data.mY))
-            self.faCommandedMzLabel.setText("%0.3f" % (data.mZ))
+            self.faCommandedXLabel.setText("%0.3f" % (data.fx))
+            self.faCommandedYLabel.setText("%0.3f" % (data.fy))
+            self.faCommandedZLabel.setText("%0.3f" % (data.fz))
+            self.faCommandedMxLabel.setText("%0.3f" % (data.mx))
+            self.faCommandedMyLabel.setText("%0.3f" % (data.my))
+            self.faCommandedMzLabel.setText("%0.3f" % (data.mz))
             self.faCommandedMagLabel.setText("%0.3f" % (data.forceMagnitude))
 
         if self.dataEventCellLightWarning.hasBeenUpdated():
@@ -338,12 +338,12 @@ class OverviewPageWidget(QWidget):
 
         if self.dataTelemetryForceActuatorData.hasBeenUpdated():
             data = self.dataTelemetryForceActuatorData.get()
-            self.faMeasuredXLabel.setText("%0.3f" % (data.fX))
-            self.faMeasuredYLabel.setText("%0.3f" % (data.fY))
-            self.faMeasuredZLabel.setText("%0.3f" % (data.fZ))
-            self.faMeasuredMxLabel.setText("%0.3f" % (data.mX))
-            self.faMeasuredMyLabel.setText("%0.3f" % (data.mY))
-            self.faMeasuredMzLabel.setText("%0.3f" % (data.mZ))
+            self.faMeasuredXLabel.setText("%0.3f" % (data.fx))
+            self.faMeasuredYLabel.setText("%0.3f" % (data.fy))
+            self.faMeasuredZLabel.setText("%0.3f" % (data.fz))
+            self.faMeasuredMxLabel.setText("%0.3f" % (data.mx))
+            self.faMeasuredMyLabel.setText("%0.3f" % (data.my))
+            self.faMeasuredMzLabel.setText("%0.3f" % (data.mz))
             self.faMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
 
         if self.dataTelemetryGyroData.hasBeenUpdated():
@@ -360,12 +360,12 @@ class OverviewPageWidget(QWidget):
             self.hpPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
             self.hpPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
             self.hpPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
-            self.hpMeasuredXLabel.setText("%0.3f" % (data.fX))
-            self.hpMeasuredYLabel.setText("%0.3f" % (data.fY))
-            self.hpMeasuredZLabel.setText("%0.3f" % (data.fZ))
-            self.hpMeasuredMxLabel.setText("%0.3f" % (data.mX))
-            self.hpMeasuredMyLabel.setText("%0.3f" % (data.mY))
-            self.hpMeasuredMzLabel.setText("%0.3f" % (data.mZ))
+            self.hpMeasuredXLabel.setText("%0.3f" % (data.fx))
+            self.hpMeasuredYLabel.setText("%0.3f" % (data.fy))
+            self.hpMeasuredZLabel.setText("%0.3f" % (data.fz))
+            self.hpMeasuredMxLabel.setText("%0.3f" % (data.mx))
+            self.hpMeasuredMyLabel.setText("%0.3f" % (data.my))
+            self.hpMeasuredMzLabel.setText("%0.3f" % (data.mz))
             self.hpMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
 
         if self.dataTelemetryIMSData.hasBeenUpdated():

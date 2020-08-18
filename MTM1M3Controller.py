@@ -74,12 +74,7 @@ class MTM1M3Controller:
         self.sal.salEventPub("MTM1M3_logevent_cellLightWarning")
         self.sal.salEventPub("MTM1M3_logevent_detailedState")
         self.sal.salEventPub("MTM1M3_logevent_displacementSensorWarning")
-        self.sal.salEventPub("MTM1M3_logevent_forceActuatorBackupCalibrationInfo")
-        self.sal.salEventPub("MTM1M3_logevent_forceActuatorILCInfo")
-        self.sal.salEventPub("MTM1M3_logevent_forceActuatorIdInfo")
-        self.sal.salEventPub("MTM1M3_logevent_forceActuatorMainCalibrationInfo")
-        self.sal.salEventPub("MTM1M3_logevent_forceActuatorMezzanineCalibrationInfo")
-        self.sal.salEventPub("MTM1M3_logevent_forceActuatorPositionInfo")
+        self.sal.salEventPub("MTM1M3_logevent_forceActuatorInfo")
         self.sal.salEventPub("MTM1M3_logevent_forceActuatorState")
         self.sal.salEventPub("MTM1M3_logevent_forceActuatorWarning")
         self.sal.salEventPub("MTM1M3_logevent_gyroWarning")
@@ -1045,25 +1040,8 @@ class MTM1M3Controller:
 
         return self.sal.logEvent_displacementSensorWarning(data, priority)
 
-    def logEvent_forceActuatorBackupCalibrationInfo(self, primaryCoefficient, primaryOffset, primarySensitivity, secondaryCoefficient, secondaryOffset, secondarySensitivity, priority = 0):
-        data = MTM1M3_logevent_forceActuatorBackupCalibrationInfoC()
-        for i in range(156):
-            data.primaryCoefficient[i] = primaryCoefficient[i]
-        for i in range(156):
-            data.primaryOffset[i] = primaryOffset[i]
-        for i in range(156):
-            data.primarySensitivity[i] = primarySensitivity[i]
-        for i in range(112):
-            data.secondaryCoefficient[i] = secondaryCoefficient[i]
-        for i in range(112):
-            data.secondaryOffset[i] = secondaryOffset[i]
-        for i in range(112):
-            data.secondarySensitivity[i] = secondarySensitivity[i]
-
-        return self.sal.logEvent_forceActuatorBackupCalibrationInfo(data, priority)
-
-    def logEvent_forceActuatorILCInfo(self, modbusSubnet, modbusAddress, ilcStatus, mezzanineStatus, priority = 0):
-        data = MTM1M3_logevent_forceActuatorILCInfoC()
+    def logEvent_forceActuatorInfo(self, modbusSubnet, modbusAddress, ilcStatus, mezzanineStatus, priority = 0):
+        data = MTM1M3_logevent_forceActuatorInfoC()
         for i in range(156):
             data.modbusSubnet[i] = modbusSubnet[i]
         for i in range(156):
@@ -1072,54 +1050,6 @@ class MTM1M3Controller:
             data.ilcStatus[i] = ilcStatus[i]
         for i in range(156):
             data.mezzanineStatus[i] = mezzanineStatus[i]
-
-        return self.sal.logEvent_forceActuatorILCInfo(data, priority)
-
-    def logEvent_forceActuatorIdInfo(self, xDataReferenceId, yDataReferenceId, zDataReferenceId, sDataReferenceId, ilcUniqueId, mezzanineUniqueId, priority = 0):
-        data = MTM1M3_logevent_forceActuatorIdInfoC()
-        for i in range(12):
-            data.xDataReferenceId[i] = xDataReferenceId[i]
-        for i in range(100):
-            data.yDataReferenceId[i] = yDataReferenceId[i]
-        for i in range(156):
-            data.zDataReferenceId[i] = zDataReferenceId[i]
-        for i in range(112):
-            data.sDataReferenceId[i] = sDataReferenceId[i]
-        for i in range(156):
-            data.ilcUniqueId[i] = ilcUniqueId[i]
-        for i in range(156):
-            data.mezzanineUniqueId[i] = mezzanineUniqueId[i]
-
-        return self.sal.logEvent_forceActuatorIdInfo(data, priority)
-
-    def logEvent_forceActuatorMainCalibrationInfo(self, primaryCoefficient, primaryOffset, primarySensitivity, secondaryCoefficient, secondaryOffset, secondarySensitivity, priority = 0):
-        data = MTM1M3_logevent_forceActuatorMainCalibrationInfoC()
-        for i in range(156):
-            data.primaryCoefficient[i] = primaryCoefficient[i]
-        for i in range(156):
-            data.primaryOffset[i] = primaryOffset[i]
-        for i in range(156):
-            data.primarySensitivity[i] = primarySensitivity[i]
-        for i in range(112):
-            data.secondaryCoefficient[i] = secondaryCoefficient[i]
-        for i in range(112):
-            data.secondaryOffset[i] = secondaryOffset[i]
-        for i in range(112):
-            data.secondarySensitivity[i] = secondarySensitivity[i]
-
-        return self.sal.logEvent_forceActuatorMainCalibrationInfo(data, priority)
-
-    def logEvent_forceActuatorMezzanineCalibrationInfo(self, primaryCylinderGain, secondaryCylinderGain, priority = 0):
-        data = MTM1M3_logevent_forceActuatorMezzanineCalibrationInfoC()
-        for i in range(156):
-            data.primaryCylinderGain[i] = primaryCylinderGain[i]
-        for i in range(112):
-            data.secondaryCylinderGain[i] = secondaryCylinderGain[i]
-
-        return self.sal.logEvent_forceActuatorMezzanineCalibrationInfo(data, priority)
-
-    def logEvent_forceActuatorPositionInfo(self, actuatorType, actuatorOrientation, xPosition, yPosition, zPosition, priority = 0):
-        data = MTM1M3_logevent_forceActuatorPositionInfoC()
         for i in range(156):
             data.actuatorType[i] = actuatorType[i]
         for i in range(156):
@@ -1131,7 +1061,7 @@ class MTM1M3Controller:
         for i in range(156):
             data.zPosition[i] = zPosition[i]
 
-        return self.sal.logEvent_forceActuatorPositionInfo(data, priority)
+        return self.sal.logEvent_forceActuatorInfo(data, priority)
 
     def logEvent_forceActuatorState(self, ilcState, slewFlag, staticForcesApplied, elevationForcesApplied, azimuthForcesApplied, thermalForcesApplied, offsetForcesApplied, accelerationForcesApplied, velocityForcesApplied, activeOpticForcesApplied, aberrationForcesApplied, balanceForcesApplied, supportPercentage, priority = 0):
         data = MTM1M3_logevent_forceActuatorStateC()

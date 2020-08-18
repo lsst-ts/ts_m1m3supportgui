@@ -1,12 +1,9 @@
 
 import QTHelpers
+import TimeChart
 from DataCache import DataCache
 from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class PIDPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -21,8 +18,6 @@ class PIDPageWidget(QWidget):
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
 
-        self.maxPlotSize = 50 * 30 # 50Hz * 30s
-        
         self.fxSetpointLabel = QLabel("UNKNOWN")
         self.fxMeasurementLabel = QLabel("UNKNOWN")
         self.fxErrorLabel = QLabel("UNKNOWN")
@@ -132,17 +127,8 @@ class PIDPageWidget(QWidget):
         self.mzCalculatedDLabel = QLabel("UNKNOWN")
         self.mzCalculatedELabel = QLabel("UNKNOWN")
 
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Control")
-        self.plot.plotItem.setLabel(axis = 'left', text = 'Control')
-        self.plot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')        
-        self.fxControlCurve = self.plot.plot(name = 'Fx', pen = 'r') 
-        self.fyControlCurve = self.plot.plot(name = 'Fy', pen = 'g')
-        self.fzControlCurve = self.plot.plot(name = 'Fz', pen = 'b')
-        self.mxControlCurve = self.plot.plot(name = 'Mx', pen = 'w')
-        self.myControlCurve = self.plot.plot(name = 'My', pen = 'y')
-        self.mzControlCurve = self.plot.plot(name = 'Mz', pen = 'c')
+        self.chart = TimeChart.TimeChart()
+        self.chartView = TimeChart.TimeChartView(self.chart)
         
         row = 0
         col = 0
@@ -300,15 +286,9 @@ class PIDPageWidget(QWidget):
         self.dataLayout.addWidget(self.mzCalculatedDLabel, row, col + 9)
         self.dataLayout.addWidget(self.mzCalculatedELabel, row, col + 10)
 
-        self.plotLayout.addWidget(self.plot)
+        self.plotLayout.addWidget(self.chartView)
 
         self.dataEventPIDInfo = DataCache()
-        self.fxControlCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.fyControlCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.fzControlCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.mxControlCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.myControlCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.mzControlCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
         self.dataTelemetryPIDData = DataCache()
         
         self.MTM1M3.subscribeEvent_pidInfo(self.processEventPIDInfo)
@@ -392,30 +372,6 @@ class PIDPageWidget(QWidget):
             self.mzCalculatedDLabel.setText("%0.3f" % data.calculatedD[5])
             self.mzCalculatedELabel.setText("%0.3f" % data.calculatedE[5])
 
-        if self.fxControlCurveData.hasBeenUpdated():
-            data = self.fxControlCurveData.get()
-            self.fxControlCurve.setData(data)
-
-        if self.fyControlCurveData.hasBeenUpdated():
-            data = self.fyControlCurveData.get()
-            self.fyControlCurve.setData(data)
-
-        if self.fzControlCurveData.hasBeenUpdated():
-            data = self.fzControlCurveData.get()
-            self.fzControlCurve.setData(data)
-
-        if self.mxControlCurveData.hasBeenUpdated():
-            data = self.mxControlCurveData.get()
-            self.mxControlCurve.setData(data)
-        
-        if self.myControlCurveData.hasBeenUpdated():
-            data = self.myControlCurveData.get()
-            self.myControlCurve.setData(data)
-
-        if self.mzControlCurveData.hasBeenUpdated():
-            data = self.mzControlCurveData.get()
-            self.mzControlCurve.setData(data)
-
         if self.dataTelemetryPIDData.hasBeenUpdated():
             data = self.dataTelemetryPIDData.get()
             self.fxSetpointLabel.setText("%0.3f" % data.setpoint[0])
@@ -471,10 +427,10 @@ class PIDPageWidget(QWidget):
         self.dataEventPIDInfo.set(data[-1])
 
     def processTelemetryPIDData(self, data):
-        self.fxControlCurveData.set(QTHelpers.appendAndResizeCurveData(self.fxControlCurveData.get(), [x.control[0] for x in data], self.maxPlotSize))
-        self.fyControlCurveData.set(QTHelpers.appendAndResizeCurveData(self.fyControlCurveData.get(), [x.control[1] for x in data], self.maxPlotSize))
-        self.fzControlCurveData.set(QTHelpers.appendAndResizeCurveData(self.fzControlCurveData.get(), [x.control[2] for x in data], self.maxPlotSize))
-        self.mxControlCurveData.set(QTHelpers.appendAndResizeCurveData(self.mxControlCurveData.get(), [x.control[3] for x in data], self.maxPlotSize))
-        self.myControlCurveData.set(QTHelpers.appendAndResizeCurveData(self.myControlCurveData.get(), [x.control[4] for x in data], self.maxPlotSize))
-        self.mzControlCurveData.set(QTHelpers.appendAndResizeCurveData(self.mzControlCurveData.get(), [x.control[5] for x in data], self.maxPlotSize))
+        self.chart.append('Command', 'Fx', [(x.timestamp, x.control[0]) for x in data])
+        self.chart.append('Command', 'Fy', [(x.timestamp, x.control[1]) for x in data])
+        self.chart.append('Command', 'Fz', [(x.timestamp, x.control[2]) for x in data])
+        self.chart.append('Command', 'Mx', [(x.timestamp, x.control[3]) for x in data])
+        self.chart.append('Command', 'My', [(x.timestamp, x.control[4]) for x in data])
+        self.chart.append('Command', 'Mz', [(x.timestamp, x.control[5]) for x in data])
         self.dataTelemetryPIDData.set(data[-1])
