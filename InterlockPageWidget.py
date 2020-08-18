@@ -2,7 +2,6 @@
 import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
-from MTM1M3Enumerations import InterlockSystemFlags
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
 
 class InterlockPageWidget(QWidget):
@@ -76,12 +75,12 @@ class InterlockPageWidget(QWidget):
         if self.dataEventInterlockWarning.hasBeenUpdated():
             data = self.dataEventInterlockWarning.get()
             QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-            QTHelpers.setWarningLabel(self.auxPowerNetworksOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AuxPowerNetworksOff))
-            QTHelpers.setWarningLabel(self.thermalEquipmentOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.ThermalEquipmentOff))
-            QTHelpers.setWarningLabel(self.airSupplyOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AirSupplyOff))
-            QTHelpers.setWarningLabel(self.tmaMotionStopLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.TMAMotionStop))
-            QTHelpers.setWarningLabel(self.gisHeartbeatLostLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.GISHeartbeatLost))
-            QTHelpers.setWarningLabel(self.cabinetDoorOpenLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.CabinetDoorOpen))
+            #TODO QTHelpers.setWarningLabel(self.auxPowerNetworksOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AuxPowerNetworksOff))
+            #TODO QTHelpers.setWarningLabel(self.thermalEquipmentOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.ThermalEquipmentOff))
+            #TODO QTHelpers.setWarningLabel(self.airSupplyOffLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.AirSupplyOff))
+            #TODO QTHelpers.setWarningLabel(self.tmaMotionStopLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.TMAMotionStop))
+            #TODO QTHelpers.setWarningLabel(self.gisHeartbeatLostLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.GISHeartbeatLost))
+            #TODO QTHelpers.setWarningLabel(self.cabinetDoorOpenLabel, BitHelper.get(data.interlockSystemFlags, InterlockSystemFlags.CabinetDoorOpen))
 
         if self.dataEventInterlockStatus.hasBeenUpdated():
             data = self.dataEventInterlockStatus.get()

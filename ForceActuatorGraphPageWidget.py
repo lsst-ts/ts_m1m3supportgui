@@ -2,7 +2,6 @@
 import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
-from MTM1M3Enumerations import HardpointIndexMap, ForceActuatorFlags
 from FATABLE import *
 from TopicData import TopicData
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget

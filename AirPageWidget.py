@@ -2,7 +2,6 @@
 import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
-from MTM1M3Enumerations import AirSupplyFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
 
 class AirPageWidget(QWidget):
@@ -75,7 +74,7 @@ class AirPageWidget(QWidget):
         if self.dataEventAirSupplyWarning.hasBeenUpdated():
             data = self.dataEventAirSupplyWarning.get()
             QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-            QTHelpers.setWarningLabel(self.airValveSensorMismatch, BitHelper.get(data.airSupplyFlags, AirSupplyFlags.AirValveSensorMismatch))
+            # TODO QTHelpers.setWarningLabel(self.airValveSensorMismatch, BitHelper.get(data.airSupplyFlags, AirSupplyFlags.AirValveSensorMismatch))
 
         if self.dataEventAirSupplyStatus.hasBeenUpdated():
             data = self.dataEventAirSupplyStatus.get()

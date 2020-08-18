@@ -2,7 +2,6 @@
 import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
-from MTM1M3Enumerations import CellLightFlags
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
 
 class CellLightPageWidget(QWidget):
@@ -71,7 +70,7 @@ class CellLightPageWidget(QWidget):
         if self.dataEventCellLightWarning.hasBeenUpdated():
             data = self.dataEventCellLightWarning.get()
             QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-            QTHelpers.setWarningLabel(self.cellLightSensorMismatchLabel, BitHelper.get(data.cellLightFlags, CellLightFlags.CellLightSensorMismatch))
+            # TODO QTHelpers.setWarningLabel(self.cellLightSensorMismatchLabel, BitHelper.get(data.cellLightFlags, CellLightFlags.CellLightSensorMismatch))
 
         if self.dataEventCellLightStatus.hasBeenUpdated():
             data = self.dataEventCellLightStatus.get()
