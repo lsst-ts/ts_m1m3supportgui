@@ -1,12 +1,8 @@
-
 import QTHelpers
+import TimeChart
 from DataCache import DataCache
 from BitHelper import BitHelper
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout, QSpacerItem)
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class DCAccelerometerPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -22,8 +18,6 @@ class DCAccelerometerPageWidget(QWidget):
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
         
-        self.maxPlotSize = 50 * 30 # 50Hz * 30s
-
         self.rawAccelerometer1XLabel = QLabel("UNKNOWN")
         self.rawAccelerometer1YLabel = QLabel("UNKNOWN")
         self.rawAccelerometer2XLabel = QLabel("UNKNOWN")
@@ -47,14 +41,8 @@ class DCAccelerometerPageWidget(QWidget):
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.responseTimeoutLabel = QLabel("UNKNOWN")
 
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Angular Acceleration")
-        self.plot.plotItem.setLabel(axis = 'left', text = "Angular Acceleration (rad/s^2)")
-        self.plot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")      
-        self.angularAccelerationXCurve = self.plot.plot(name = 'X', pen = 'r')
-        self.angularAccelerationYCurve = self.plot.plot(name = 'Y', pen = 'g')
-        self.angularAccelerationZCurve = self.plot.plot(name = 'Z', pen = 'b')
+        self.chart = TimeChart.TimeChart(50 * 30) # 50Hz * 30s
+        self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
         col = 0
@@ -62,7 +50,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
         self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
         row += 1
-        self.dataLayout.addWidget(QLabel("Angular Acceleration (rad/s^2)"), row, col)
+        self.dataLayout.addWidget(QLabel("Angular Acceleration (rad/s<sup>2</sup>)"), row, col)
         self.dataLayout.addWidget(self.angularAccelerationXLabel, row, col + 1)
         self.dataLayout.addWidget(self.angularAccelerationYLabel, row, col + 2)
         self.dataLayout.addWidget(self.angularAccelerationZLabel, row, col + 3)
@@ -88,7 +76,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.dataLayout.addWidget(self.rawAccelerometer4XLabel, row, col + 7)
         self.dataLayout.addWidget(self.rawAccelerometer4YLabel, row, col + 8)
         row += 1
-        self.dataLayout.addWidget(QLabel("Acceleration (m/s^2)"), row, col)
+        self.dataLayout.addWidget(QLabel("Acceleration (m/s<sup>2</sup>)"), row, col)
         self.dataLayout.addWidget(self.accelerometer1XLabel, row, col + 1)
         self.dataLayout.addWidget(self.accelerometer1YLabel, row, col + 2)
         self.dataLayout.addWidget(self.accelerometer2XLabel, row, col + 3)
@@ -106,12 +94,9 @@ class DCAccelerometerPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Response Timeout"), row, col)
         self.warningLayout.addWidget(self.responseTimeoutLabel, row, col + 1)
 
-        self.plotLayout.addWidget(self.plot)
+        self.plotLayout.addWidget(self.chart_view)
 
         self.dataEventAccelerometerWarning = DataCache()
-        self.angularAccelerationXCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.angularAccelerationYCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.angularAccelerationZCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
         self.dataTelemetryAccelerometerData = DataCache()
 
         self.MTM1M3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
@@ -131,36 +116,24 @@ class DCAccelerometerPageWidget(QWidget):
             QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
             #TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.accelerometerFlags, AccelerometerFlags.ResponseTimeout))
 
-        if self.angularAccelerationXCurveData.hasBeenUpdated():
-            data = self.angularAccelerationXCurveData.get()
-            self.angularAccelerationXCurve.setData(data)
-
-        if self.angularAccelerationYCurveData.hasBeenUpdated():
-            data = self.angularAccelerationYCurveData.get()
-            self.angularAccelerationYCurve.setData(data)
-
-        if self.angularAccelerationZCurveData.hasBeenUpdated():
-            data = self.angularAccelerationZCurveData.get()
-            self.angularAccelerationZCurve.setData(data)
-
         if self.dataTelemetryAccelerometerData.hasBeenUpdated():
             data = self.dataTelemetryAccelerometerData.get()
-            self.rawAccelerometer1XLabel.setText("%0.3f" % (data.rawAccelerometers[0]))
-            self.rawAccelerometer1YLabel.setText("%0.3f" % (data.rawAccelerometers[1]))
-            self.rawAccelerometer2XLabel.setText("%0.3f" % (data.rawAccelerometers[2]))
-            self.rawAccelerometer2YLabel.setText("%0.3f" % (data.rawAccelerometers[3]))
-            self.rawAccelerometer3XLabel.setText("%0.3f" % (data.rawAccelerometers[4]))
-            self.rawAccelerometer3YLabel.setText("%0.3f" % (data.rawAccelerometers[5]))
-            self.rawAccelerometer4XLabel.setText("%0.3f" % (data.rawAccelerometers[6]))
-            self.rawAccelerometer4YLabel.setText("%0.3f" % (data.rawAccelerometers[7]))
-            self.accelerometer1XLabel.setText("%0.3f" % (data.accelerometers[0]))
-            self.accelerometer1YLabel.setText("%0.3f" % (data.accelerometers[1]))
-            self.accelerometer2XLabel.setText("%0.3f" % (data.accelerometers[2]))
-            self.accelerometer2YLabel.setText("%0.3f" % (data.accelerometers[3]))
-            self.accelerometer3XLabel.setText("%0.3f" % (data.accelerometers[4]))
-            self.accelerometer3YLabel.setText("%0.3f" % (data.accelerometers[5]))
-            self.accelerometer4XLabel.setText("%0.3f" % (data.accelerometers[6]))
-            self.accelerometer4YLabel.setText("%0.3f" % (data.accelerometers[7]))
+            self.rawAccelerometer1XLabel.setText("%0.3f" % (data.rawAccelerometer[0]))
+            self.rawAccelerometer1YLabel.setText("%0.3f" % (data.rawAccelerometer[1]))
+            self.rawAccelerometer2XLabel.setText("%0.3f" % (data.rawAccelerometer[2]))
+            self.rawAccelerometer2YLabel.setText("%0.3f" % (data.rawAccelerometer[3]))
+            self.rawAccelerometer3XLabel.setText("%0.3f" % (data.rawAccelerometer[4]))
+            self.rawAccelerometer3YLabel.setText("%0.3f" % (data.rawAccelerometer[5]))
+            self.rawAccelerometer4XLabel.setText("%0.3f" % (data.rawAccelerometer[6]))
+            self.rawAccelerometer4YLabel.setText("%0.3f" % (data.rawAccelerometer[7]))
+            self.accelerometer1XLabel.setText("%0.3f" % (data.accelerometer[0]))
+            self.accelerometer1YLabel.setText("%0.3f" % (data.accelerometer[1]))
+            self.accelerometer2XLabel.setText("%0.3f" % (data.accelerometer[2]))
+            self.accelerometer2YLabel.setText("%0.3f" % (data.accelerometer[3]))
+            self.accelerometer3XLabel.setText("%0.3f" % (data.accelerometer[4]))
+            self.accelerometer3YLabel.setText("%0.3f" % (data.accelerometer[5]))
+            self.accelerometer4XLabel.setText("%0.3f" % (data.accelerometer[6]))
+            self.accelerometer4YLabel.setText("%0.3f" % (data.accelerometer[7]))
             self.angularAccelerationXLabel.setText("%0.3f" % (data.angularAccelerationX))
             self.angularAccelerationYLabel.setText("%0.3f" % (data.angularAccelerationY))
             self.angularAccelerationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
@@ -169,7 +142,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.dataEventAccelerometerWarning.set(data[-1])
         
     def processTelemetryAccelerometerData(self, data):
-        self.angularAccelerationXCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularAccelerationXCurveData.get(), [x.angularAccelerationX for x in data], self.maxPlotSize))
-        self.angularAccelerationYCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularAccelerationYCurveData.get(), [x.angularAccelerationY for x in data], self.maxPlotSize))
-        self.angularAccelerationZCurveData.set(QTHelpers.appendAndResizeCurveData(self.angularAccelerationZCurveData.get(), [x.angularAccelerationZ for x in data], self.maxPlotSize))
+        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','X', [(x.timestamp, x.angularAccelerationX) for x in data])
+        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','Y', [(x.timestamp, x.angularAccelerationY) for x in data])
+        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','Z', [(x.timestamp, x.angularAccelerationZ) for x in data])
         self.dataTelemetryAccelerometerData.set(data[-1])

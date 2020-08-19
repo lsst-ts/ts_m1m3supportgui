@@ -1,11 +1,6 @@
-
-import QTHelpers
+import TimeChart
 from DataCache import DataCache
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout)
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class ActuatorOverviewPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -17,8 +12,6 @@ class ActuatorOverviewPageWidget(QWidget):
         self.layout.addLayout(self.dataLayout)
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
-
-        self.maxPlotSize = 50 * 30 # 50Hz * 30s
 
         self.totalCommandedXLabel = QLabel("UNKNOWN")
         self.totalCommandedYLabel = QLabel("UNKNOWN")
@@ -62,7 +55,6 @@ class ActuatorOverviewPageWidget(QWidget):
         self.activeOpticZLabel = QLabel("UNKNOWN")
         self.activeOpticMxLabel = QLabel("UNKNOWN")
         self.activeOpticMyLabel = QLabel("UNKNOWN")
-        self.activeOpticMagLabel = QLabel("UNKNOWN")
         self.azimuthXLabel = QLabel("UNKNOWN")
         self.azimuthYLabel = QLabel("UNKNOWN")
         self.azimuthZLabel = QLabel("UNKNOWN")
@@ -113,12 +105,8 @@ class ActuatorOverviewPageWidget(QWidget):
         self.velocityMzLabel = QLabel("UNKNOWN")
         self.velocityMagLabel = QLabel("UNKNOWN")
 
-        self.plot = pg.PlotWidget()
-        self.plot.plotItem.addLegend()
-        self.plot.plotItem.setTitle("Total Force")
-        self.plot.plotItem.setLabel(axis = 'left', text = 'Force (N)')
-        self.plot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
-        self.appliedForcesMagnitudeCurve = self.plot.plot(name = 'Total Mag', pen = 'r')
+        self.chart = TimeChart.TimeChart(50 * 30) # 50Hz * 30s
+        self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
         col = 0
@@ -192,7 +180,6 @@ class ActuatorOverviewPageWidget(QWidget):
         self.dataLayout.addWidget(self.activeOpticMxLabel, row, col + 4)
         self.dataLayout.addWidget(self.activeOpticMyLabel, row, col + 5)
         self.dataLayout.addWidget(QLabel("-"), row, col + 6)
-        self.dataLayout.addWidget(self.activeOpticMagLabel, row, col + 7)
         row += 1
         self.dataLayout.addWidget(QLabel("Azimuth"), row, col)
         self.dataLayout.addWidget(self.azimuthXLabel, row, col + 1)
@@ -257,7 +244,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.dataLayout.addWidget(self.velocityMzLabel, row, col + 6)
         self.dataLayout.addWidget(self.velocityMagLabel, row, col + 7)
 
-        self.plotLayout.addWidget(self.plot)
+        self.plotLayout.addWidget(self.chart_view)
 
         self.dataEventAppliedAberrationForces = DataCache()
         self.dataEventAppliedAccelerationForces = DataCache()
@@ -266,7 +253,6 @@ class ActuatorOverviewPageWidget(QWidget):
         self.dataEventAppliedBalanceForces = DataCache()
         self.dataEventAppliedCylinderForces = DataCache()
         self.dataEventAppliedElevationForces = DataCache()
-        self.appliedForcesMagnitudeCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
         self.dataEventAppliedForces = DataCache()
         self.dataEventAppliedOffsetForces = DataCache()
         self.dataEventAppliedStaticForces = DataCache()
@@ -297,46 +283,44 @@ class ActuatorOverviewPageWidget(QWidget):
         
         if self.dataEventAppliedAberrationForces.hasBeenUpdated():
             data = self.dataEventAppliedAberrationForces.get()
-            self.aberrationZLabel.setText("%0.1f" % data.fZ)
-            self.aberrationMxLabel.setText("%0.1f" % data.mX)
-            self.aberrationMyLabel.setText("%0.1f" % data.mY)
-            self.aberrationMagLabel.setText("%0.1f" % data.forceMagnitude)
+            self.aberrationZLabel.setText("%0.1f" % data.fz)
+            self.aberrationMxLabel.setText("%0.1f" % data.mx)
+            self.aberrationMyLabel.setText("%0.1f" % data.my)
 
         if self.dataEventAppliedAccelerationForces.hasBeenUpdated():
             data = self.dataEventAppliedAccelerationForces.get()
-            self.accelerationXLabel.setText("%0.1f" % data.fX)
-            self.accelerationYLabel.setText("%0.1f" % data.fY)
-            self.accelerationZLabel.setText("%0.1f" % data.fZ)
-            self.accelerationMxLabel.setText("%0.1f" % data.mX)
-            self.accelerationMyLabel.setText("%0.1f" % data.mY)
-            self.accelerationMzLabel.setText("%0.1f" % data.mZ)
+            self.accelerationXLabel.setText("%0.1f" % data.fx)
+            self.accelerationYLabel.setText("%0.1f" % data.fy)
+            self.accelerationZLabel.setText("%0.1f" % data.fz)
+            self.accelerationMxLabel.setText("%0.1f" % data.mx)
+            self.accelerationMyLabel.setText("%0.1f" % data.my)
+            self.accelerationMzLabel.setText("%0.1f" % data.mz)
             self.accelerationMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         if self.dataEventAppliedActiveOpticForces.hasBeenUpdated():
             data = self.dataEventAppliedActiveOpticForces.get()
-            self.activeOpticZLabel.setText("%0.1f" % data.fZ)
-            self.activeOpticMxLabel.setText("%0.1f" % data.mX)
-            self.activeOpticMyLabel.setText("%0.1f" % data.mY)
-            self.activeOpticMagLabel.setText("%0.1f" % data.forceMagnitude)
+            self.activeOpticZLabel.setText("%0.1f" % data.fz)
+            self.activeOpticMxLabel.setText("%0.1f" % data.mx)
+            self.activeOpticMyLabel.setText("%0.1f" % data.my)
 
         if self.dataEventAppliedAzimuthForces.hasBeenUpdated():
             data = self.dataEventAppliedAzimuthForces.get()
-            self.azimuthXLabel.setText("%0.1f" % data.fX)
-            self.azimuthYLabel.setText("%0.1f" % data.fY)
-            self.azimuthZLabel.setText("%0.1f" % data.fZ)
-            self.azimuthMxLabel.setText("%0.1f" % data.mX)
-            self.azimuthMyLabel.setText("%0.1f" % data.mY)
-            self.azimuthMzLabel.setText("%0.1f" % data.mZ)
+            self.azimuthXLabel.setText("%0.1f" % data.fx)
+            self.azimuthYLabel.setText("%0.1f" % data.fy)
+            self.azimuthZLabel.setText("%0.1f" % data.fz)
+            self.azimuthMxLabel.setText("%0.1f" % data.mx)
+            self.azimuthMyLabel.setText("%0.1f" % data.my)
+            self.azimuthMzLabel.setText("%0.1f" % data.mz)
             self.azimuthMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         if self.dataEventAppliedBalanceForces.hasBeenUpdated():
             data = self.dataEventAppliedBalanceForces.get()
-            self.balanceXLabel.setText("%0.1f" % data.fX)
-            self.balanceYLabel.setText("%0.1f" % data.fY)
-            self.balanceZLabel.setText("%0.1f" % data.fZ)
-            self.balanceMxLabel.setText("%0.1f" % data.mX)
-            self.balanceMyLabel.setText("%0.1f" % data.mY)
-            self.balanceMzLabel.setText("%0.1f" % data.mZ)
+            self.balanceXLabel.setText("%0.1f" % data.fx)
+            self.balanceYLabel.setText("%0.1f" % data.fy)
+            self.balanceZLabel.setText("%0.1f" % data.fz)
+            self.balanceMxLabel.setText("%0.1f" % data.mx)
+            self.balanceMyLabel.setText("%0.1f" % data.my)
+            self.balanceMzLabel.setText("%0.1f" % data.mz)
             self.balanceMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         if self.dataEventAppliedCylinderForces.hasBeenUpdated():
@@ -344,66 +328,62 @@ class ActuatorOverviewPageWidget(QWidget):
 
         if self.dataEventAppliedElevationForces.hasBeenUpdated():
             data = self.dataEventAppliedElevationForces.get()
-            self.elevationXLabel.setText("%0.1f" % data.fX)
-            self.elevationYLabel.setText("%0.1f" % data.fY)
-            self.elevationZLabel.setText("%0.1f" % data.fZ)
-            self.elevationMxLabel.setText("%0.1f" % data.mX)
-            self.elevationMyLabel.setText("%0.1f" % data.mY)
-            self.elevationMzLabel.setText("%0.1f" % data.mZ)
+            self.elevationXLabel.setText("%0.1f" % data.fx)
+            self.elevationYLabel.setText("%0.1f" % data.fy)
+            self.elevationZLabel.setText("%0.1f" % data.fz)
+            self.elevationMxLabel.setText("%0.1f" % data.mx)
+            self.elevationMyLabel.setText("%0.1f" % data.my)
+            self.elevationMzLabel.setText("%0.1f" % data.mz)
             self.elevationMagLabel.setText("%0.1f" % data.forceMagnitude)
-
-        if self.appliedForcesMagnitudeCurveData.hasBeenUpdated():
-            data = self.appliedForcesMagnitudeCurveData.get()
-            self.appliedForcesMagnitudeCurve.setData(data)
 
         if self.dataEventAppliedForces.hasBeenUpdated():
             data = self.dataEventAppliedForces.get()
-            self.totalCommandedXLabel.setText("%0.1f" % data.fX)
-            self.totalCommandedYLabel.setText("%0.1f" % data.fY)
-            self.totalCommandedZLabel.setText("%0.1f" % data.fZ)
-            self.totalCommandedMxLabel.setText("%0.1f" % data.mX)
-            self.totalCommandedMyLabel.setText("%0.1f" % data.mY)
-            self.totalCommandedMzLabel.setText("%0.1f" % data.mZ)
+            self.totalCommandedXLabel.setText("%0.1f" % data.fx)
+            self.totalCommandedYLabel.setText("%0.1f" % data.fy)
+            self.totalCommandedZLabel.setText("%0.1f" % data.fz)
+            self.totalCommandedMxLabel.setText("%0.1f" % data.mx)
+            self.totalCommandedMyLabel.setText("%0.1f" % data.my)
+            self.totalCommandedMzLabel.setText("%0.1f" % data.mz)
             self.totalCommandedMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         if self.dataEventAppliedOffsetForces.hasBeenUpdated():
             data = self.dataEventAppliedOffsetForces.get()
-            self.offsetXLabel.setText("%0.1f" % data.fX)
-            self.offsetYLabel.setText("%0.1f" % data.fY)
-            self.offsetZLabel.setText("%0.1f" % data.fZ)
-            self.offsetMxLabel.setText("%0.1f" % data.mX)
-            self.offsetMyLabel.setText("%0.1f" % data.mY)
-            self.offsetMzLabel.setText("%0.1f" % data.mZ)
+            self.offsetXLabel.setText("%0.1f" % data.fx)
+            self.offsetYLabel.setText("%0.1f" % data.fy)
+            self.offsetZLabel.setText("%0.1f" % data.fz)
+            self.offsetMxLabel.setText("%0.1f" % data.mx)
+            self.offsetMyLabel.setText("%0.1f" % data.my)
+            self.offsetMzLabel.setText("%0.1f" % data.mz)
             self.offsetMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         if self.dataEventAppliedStaticForces.hasBeenUpdated():
             data = self.dataEventAppliedStaticForces.get()
-            self.staticXLabel.setText("%0.1f" % data.fX)
-            self.staticYLabel.setText("%0.1f" % data.fY)
-            self.staticZLabel.setText("%0.1f" % data.fZ)
-            self.staticMxLabel.setText("%0.1f" % data.mX)
-            self.staticMyLabel.setText("%0.1f" % data.mY)
-            self.staticMzLabel.setText("%0.1f" % data.mZ)
+            self.staticXLabel.setText("%0.1f" % data.fx)
+            self.staticYLabel.setText("%0.1f" % data.fy)
+            self.staticZLabel.setText("%0.1f" % data.fz)
+            self.staticMxLabel.setText("%0.1f" % data.mx)
+            self.staticMyLabel.setText("%0.1f" % data.my)
+            self.staticMzLabel.setText("%0.1f" % data.mz)
             self.staticMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         if self.dataEventAppliedThermalForces.hasBeenUpdated():
             data = self.dataEventAppliedThermalForces.get()
-            self.thermalXLabel.setText("%0.1f" % data.fX)
-            self.thermalYLabel.setText("%0.1f" % data.fY)
-            self.thermalZLabel.setText("%0.1f" % data.fZ)
-            self.thermalMxLabel.setText("%0.1f" % data.mX)
-            self.thermalMyLabel.setText("%0.1f" % data.mY)
-            self.thermalMzLabel.setText("%0.1f" % data.mZ)
+            self.thermalXLabel.setText("%0.1f" % data.fx)
+            self.thermalYLabel.setText("%0.1f" % data.fy)
+            self.thermalZLabel.setText("%0.1f" % data.fz)
+            self.thermalMxLabel.setText("%0.1f" % data.mx)
+            self.thermalMyLabel.setText("%0.1f" % data.my)
+            self.thermalMzLabel.setText("%0.1f" % data.mz)
             self.thermalMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         if self.dataEventAppliedVelocityForces.hasBeenUpdated():
             data = self.dataEventAppliedVelocityForces.get()
-            self.velocityXLabel.setText("%0.1f" % data.fX)
-            self.velocityYLabel.setText("%0.1f" % data.fY)
-            self.velocityZLabel.setText("%0.1f" % data.fZ)
-            self.velocityMxLabel.setText("%0.1f" % data.mX)
-            self.velocityMyLabel.setText("%0.1f" % data.mY)
-            self.velocityMzLabel.setText("%0.1f" % data.mZ)
+            self.velocityXLabel.setText("%0.1f" % data.fx)
+            self.velocityYLabel.setText("%0.1f" % data.fy)
+            self.velocityZLabel.setText("%0.1f" % data.fz)
+            self.velocityMxLabel.setText("%0.1f" % data.mx)
+            self.velocityMyLabel.setText("%0.1f" % data.my)
+            self.velocityMzLabel.setText("%0.1f" % data.mz)
             self.velocityMagLabel.setText("%0.1f" % data.forceMagnitude)
 
     def processEventAppliedAberrationForces(self, data):
@@ -428,7 +408,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.dataEventAppliedElevationForces.set(data[-1])
         
     def processEventAppliedForces(self, data):
-        self.appliedForcesMagnitudeCurveData.set(QTHelpers.appendAndResizeCurveData(self.appliedForcesMagnitudeCurveData.get(), [x.forceMagnitude for x in data], self.maxPlotSize))
+        self.chart.append('Force (N)', 'Total Mag', [(x.timestamp,x.forceMagnitude) for x in data])
         self.dataEventAppliedForces.set(data[-1])
         
     def processEventAppliedOffsetForces(self, data):

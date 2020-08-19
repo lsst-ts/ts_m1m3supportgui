@@ -1,14 +1,9 @@
 
-import QTHelpers
 from DataCache import DataCache
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import TopicData
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QHBoxLayout, QListWidget
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
 
 class ForceActuatorValuePageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -61,11 +56,11 @@ class ForceActuatorValuePageWidget(QWidget):
             TopicData("Rejected Thermal Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
             TopicData("Rejected Velocity Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
             TopicData("Force Actuator Backup Calibration Info", [["Primary Coefficient", lambda x: x.primaryCoefficient, lambda: FATABLE_ZINDEX], ["Primary Offset", lambda x: x.primaryOffset, lambda: FATABLE_ZINDEX], ["Primary Sensitivity", lambda x: x.primarySensitivity, lambda: FATABLE_ZINDEX], ["Secondary Coefficient", lambda x: x.secondaryCoefficient, lambda: FATABLE_SINDEX], ["Secondary Offset", lambda x: x.secondaryOffset, lambda: FATABLE_SINDEX], ["Secondary Sensitivity", lambda x: x.secondarySensitivity, lambda: FATABLE_SINDEX]]),
-            TopicData("Force Actuator ILC Info", [["Subnet", lambda x: x.modbusSubnet, lambda: FATABLE_ZINDEX], ["Address", lambda x: x.modbusAddress, lambda: FATABLE_ZINDEX], ["ILC Status", lambda x: x.ilcStatus, lambda: FATABLE_ZINDEX], ["Mezzanine Status", lambda x: x.mezzanineStatus, lambda: FATABLE_ZINDEX]]),
+            TopicData("Force Actuator Info", [["Subnet", lambda x: x.modbusSubnet, lambda: FATABLE_ZINDEX], ["Address", lambda x: x.modbusAddress, lambda: FATABLE_ZINDEX], ["ILC Status", lambda x: x.ilcStatus, lambda: FATABLE_ZINDEX], ["Mezzanine Status", lambda x: x.mezzanineStatus, lambda: FATABLE_ZINDEX],["Actuator Type", lambda x: x.actuatorType, lambda: FATABLE_ZINDEX], ["Actuator Orientation", lambda x: x.actuatorOrientation, lambda: FATABLE_ZINDEX], ["X Position", lambda x: x.xPosition, lambda: FATABLE_ZINDEX], ["Y Position", lambda x: x.yPosition, lambda: FATABLE_ZINDEX], ["Z Position", lambda x: x.zPosition, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator Id Info", [["X Data Reference Id", lambda x: x.xDataReferenceId, lambda: FATABLE_XINDEX], ["Y Data Reference Id", lambda x: x.yDataReferenceId, lambda: FATABLE_YINDEX], ["Z Data Reference Id", lambda x: x.zDataReferenceId, lambda: FATABLE_ZINDEX], ["S Data Reference Id", lambda x: x.sDataReferenceId, lambda: FATABLE_SINDEX], ["ILC Unique Id", lambda x: x.ilcUniqueId, lambda: FATABLE_ZINDEX], ["Mezzanine Unique Id", lambda x: x.xDataReferenceId, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator Main Calibration Info", [["Primary Coefficient", lambda x: x.primaryCoefficient, lambda: FATABLE_ZINDEX], ["Primary Offset", lambda x: x.primaryOffset, lambda: FATABLE_ZINDEX], ["Primary Sensitivity", lambda x: x.primarySensitivity, lambda: FATABLE_ZINDEX], ["Secondary Coefficient", lambda x: x.secondaryCoefficient, lambda: FATABLE_SINDEX], ["Secondary Offset", lambda x: x.secondaryOffset, lambda: FATABLE_SINDEX], ["Secondary Sensitivity", lambda x: x.secondarySensitivity, lambda: FATABLE_SINDEX]]),
             TopicData("Force Actuator Mezzanine Calibration Info", [["Primary Cylinder Gain", lambda x: x.primaryCylinderFain, lambda: FATABLE_ZINDEX], ["Secondary Cylinder Gain", lambda x: x.secondaryCylinderGain, lambda: FATABLE_SINDEX]]),
-            TopicData("Force Actuator Position Info", [["Actuator Type", lambda x: x.actuatorType, lambda: FATABLE_ZINDEX], ["Actuator Orientation", lambda x: x.actuatorOrientation, lambda: FATABLE_ZINDEX], ["X Position", lambda x: x.xPosition, lambda: FATABLE_ZINDEX], ["Y Position", lambda x: x.yPosition, lambda: FATABLE_ZINDEX], ["Z Position", lambda x: x.zPosition, lambda: FATABLE_ZINDEX]]),
+            TopicData("Force Actuator Position Info", []),
             TopicData("Force Actuator State", [["ILC State", lambda x: x.ilcState, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator Warning", [["Force Actuator Flags", lambda x: x.forceActuatorFlags, lambda: FATABLE_ZINDEX]]),
         ]
@@ -215,12 +210,7 @@ class ForceActuatorValuePageWidget(QWidget):
         self.dataEventAppliedStaticForces = DataCache()
         self.dataEventAppliedThermalForces = DataCache()
         self.dataEventAppliedVelocityForces = DataCache()
-        self.dataEventForceActuatorBackupCalibrationInfo = DataCache()
-        self.dataEventForceActuatorIdInfo = DataCache()
-        self.dataEventForceActuatorILCInfo = DataCache()
-        self.dataEventForceActuatorMainCalibrationInfo = DataCache()
-        self.dataEventForceActuatorMezzanineCalibrationInfo = DataCache()
-        self.dataEventForceActuatorPositionInfo = DataCache()
+        self.dataEventForceActuatorInfo = DataCache()
         self.dataEventForceActuatorState = DataCache()
         self.dataEventForceActuatorWarning = DataCache()
         self.dataEventRejectedAberrationForces = DataCache()
@@ -248,12 +238,7 @@ class ForceActuatorValuePageWidget(QWidget):
         self.setTopicData("Applied Static Forces", self.dataEventAppliedStaticForces)
         self.setTopicData("Applied Thermal Forces", self.dataEventAppliedThermalForces)
         self.setTopicData("Applied Velocity Forces", self.dataEventAppliedVelocityForces)
-        self.setTopicData("Force Actuator Backup Calibration Info", self.dataEventForceActuatorBackupCalibrationInfo)
-        self.setTopicData("Force Actuator Id Info", self.dataEventForceActuatorIdInfo)
-        self.setTopicData("Force Actuator ILC Info", self.dataEventForceActuatorILCInfo)
-        self.setTopicData("Force Actuator Main Calibration Info", self.dataEventForceActuatorMainCalibrationInfo)
-        self.setTopicData("Force Actuator Mezzanine Calibration Info", self.dataEventForceActuatorMezzanineCalibrationInfo)
-        self.setTopicData("Force Actuator Position Info", self.dataEventForceActuatorPositionInfo)
+        self.setTopicData("Force Actuator Info", self.dataEventForceActuatorInfo)
         self.setTopicData("Force Actuator State", self.dataEventForceActuatorState)
         self.setTopicData("Force Actuator Warning", self.dataEventForceActuatorWarning)
         self.setTopicData("Rejected Aberration Forces", self.dataEventRejectedAberrationForces)
@@ -282,12 +267,7 @@ class ForceActuatorValuePageWidget(QWidget):
         self.MTM1M3.subscribeEvent_appliedThermalForces(self.processEventAppliedThermalForces)
         self.MTM1M3.subscribeEvent_appliedVelocityForces(self.processEventAppliedVelocityForces)
 
-        self.MTM1M3.subscribeEvent_forceActuatorBackupCalibrationInfo(self.processEventForceActuatorBackupCalibrationInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorIdInfo(self.processEventForceActuatorIdInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorILCInfo(self.processEventForceActuatorILCInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorMainCalibrationInfo(self.processEventForceActuatorMainCalibrationInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorMezzanineCalibrationInfo(self.processEventForceActuatorMezzanineCalibrationInfo)
-        self.MTM1M3.subscribeEvent_forceActuatorPositionInfo(self.processEventForceActuatorPositionInfo)
+        self.MTM1M3.subscribeEvent_forceActuatorInfo(self.processEventForceActuatorInfo)
         self.MTM1M3.subscribeEvent_forceActuatorState(self.processEventForceActuatorState)
         self.MTM1M3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
 
@@ -356,23 +336,8 @@ class ForceActuatorValuePageWidget(QWidget):
     def processEventAppliedVelocityForces(self, data):
         self.dataEventAppliedVelocityForces.set(data[-1])
 
-    def processEventForceActuatorBackupCalibrationInfo(self, data):
-        self.dataEventForceActuatorBackupCalibrationInfo.set(data[-1])
-
-    def processEventForceActuatorILCInfo(self, data):
-        self.dataEventForceActuatorILCInfo.set(data[-1])
-
-    def processEventForceActuatorIdInfo(self, data):
-        self.dataEventForceActuatorIdInfo.set(data[-1])
-
-    def processEventForceActuatorMainCalibrationInfo(self, data):
-        self.dataEventForceActuatorMainCalibrationInfo.set(data[-1])
-    
-    def processEventForceActuatorMezzanineCalibrationInfo(self, data):
-        self.dataEventForceActuatorMezzanineCalibrationInfo.set(data[-1])
-
-    def processEventForceActuatorPositionInfo(self, data):
-        self.dataEventForceActuatorPositionInfo.set(data[-1])
+    def processEventForceActuatorInfo(self, data):
+        self.dataEventForceActuatorInfo.set(data[-1])
 
     def processEventForceActuatorState(self, data):
         self.dataEventForceActuatorState.set(data[-1])

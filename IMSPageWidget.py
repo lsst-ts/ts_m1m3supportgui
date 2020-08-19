@@ -1,13 +1,9 @@
 
 import QTHelpers
+import TimeChart
 from DataCache import DataCache
 from BitHelper import BitHelper
 from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout)
-import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.ptime import time
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
-from pyqtgraph import mkPen
 
 class IMSPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -56,32 +52,12 @@ class IMSPageWidget(QWidget):
         self.unknownCommandLabel = QLabel("UNKNOWN")
         self.unknownProblemLabel = QLabel("UNKNOWN")
 
-        self.rawPlot = pg.PlotWidget()
-        self.rawPlot.plotItem.addLegend()
-        self.rawPlot.plotItem.setTitle("Displacement")
-        self.rawPlot.plotItem.setLabel(axis = 'left', text = "Displacement (m)")
-        self.rawPlot.plotItem.setLabel(axis = 'bottom', text = "Age (s)")
-        self.rawPositiveXAxialCurve = self.rawPlot.plot(name = '+X Axial', pen = 'r') 
-        self.rawPositiveXTangentCurve = self.rawPlot.plot(name = '+X Tangent', pen = 'g')
-        self.rawNegativeYAxialCurve = self.rawPlot.plot(name = '-Y Axial', pen = 'b')
-        self.rawNegativeYTangentCurve = self.rawPlot.plot(name = '-Y Tangent', pen = 'w')
-        self.rawNegativeXAxialCurve = self.rawPlot.plot(name = '-X Axial', pen = 'y')
-        self.rawNegativeXTangentCurve = self.rawPlot.plot(name = '-X Tangent', pen = 'c')
-        self.rawPositiveYAxialCurve = self.rawPlot.plot(name = '+Y Axial', pen = 'm')
-        self.rawPositiveYTangentCurve = self.rawPlot.plot(name = '+Y Tangent', pen = mkPen("FFA500"))
-        self.posPlot = pg.PlotWidget()
-        self.posPlot.plotItem.addLegend()
-        self.posPlot.plotItem.setTitle("Position / Rotation")
-        self.posPlot.plotItem.setLabel(axis = 'left', text = 'Displacement (m)')
-        self.posPlot.plotItem.setLabel(axis = 'bottom', text = 'Age (s)')
-        self.posPlot.plotItem.setLabel(axis = 'right', text = 'Rotation (rad)')
-        self.xPositionCurve = self.posPlot.plot(name = 'X Position', pen = 'r')
-        self.yPositionCurve = self.posPlot.plot(name = 'Y Position', pen = 'g')
-        self.zPositionCurve = self.posPlot.plot(name = 'Z Position', pen = 'b')
-        self.xRotationCurve = self.posPlot.plot(name = 'X Rotation', pen = 'w')
-        self.yRotationCurve = self.posPlot.plot(name = 'Y Rotation', pen = 'y')
-        self.zRotationCurve = self.posPlot.plot(name = 'Z Rotation', pen = 'c')
+        self.rawChart = TimeChart.TimeChart()
+        self.rawChartView = TimeChart.TimeChartView(self.rawChart)
 
+        self.posChart = TimeChart.TimeChart()
+        self.posChartView = TimeChart.TimeChartView(self.posChart)
+        
         row = 0
         col = 0
         self.dataLayout.addWidget(QLabel("X"), row, col + 1)
@@ -168,24 +144,10 @@ class IMSPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Unknown Problem"), row, col)
         self.warningLayout.addWidget(self.unknownProblemLabel, row, col + 1)
 
-        self.plotLayout.addWidget(self.posPlot)        
-        self.plotLayout.addWidget(self.rawPlot)
+        self.plotLayout.addWidget(self.posChartView)
+        self.plotLayout.addWidget(self.rawChartView)
 
         self.dataEventDisplacementSensorWarning = DataCache()
-        self.rawPositiveXAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.rawPositiveXTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.rawNegativeYAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.rawNegativeYTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.rawNegativeXAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.rawNegativeXTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.rawPositiveYAxialCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.rawPositiveYTangentCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.xPositionCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.yPositionCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.zPositionCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.xRotationCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.yRotationCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
-        self.zRotationCurveData = DataCache(np.array(np.zeros(self.maxPlotSize)))
         self.dataTelemetryIMSData = DataCache()
 
         self.MTM1M3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
@@ -218,62 +180,6 @@ class IMSPageWidget(QWidget):
             #TODO QTHelpers.setWarningLabel(self.unknownCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownCommand))
             #TODO QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownProblem))
 
-        if self.rawPositiveXAxialCurveData.hasBeenUpdated():
-            data = self.rawPositiveXAxialCurveData.get()
-            self.rawPositiveXAxialCurve.setData(data)
-
-        if self.rawPositiveXTangentCurveData.hasBeenUpdated():
-            data = self.rawPositiveXTangentCurveData.get()
-            self.rawPositiveXTangentCurve.setData(data)
-
-        if self.rawNegativeYAxialCurveData.hasBeenUpdated():
-            data = self.rawNegativeYAxialCurveData.get()
-            self.rawNegativeYAxialCurve.setData(data)
-
-        if self.rawNegativeYTangentCurveData.hasBeenUpdated():
-            data = self.rawNegativeYTangentCurveData.get()
-            self.rawNegativeYTangentCurve.setData(data)
-
-        if self.rawNegativeXAxialCurveData.hasBeenUpdated():
-            data = self.rawNegativeXAxialCurveData.get()
-            self.rawNegativeXAxialCurve.setData(data)
-
-        if self.rawNegativeXTangentCurveData.hasBeenUpdated():
-            data = self.rawNegativeXTangentCurveData.get()
-            self.rawNegativeXTangentCurve.setData(data)
-
-        if self.rawPositiveYAxialCurveData.hasBeenUpdated():
-            data = self.rawPositiveYAxialCurveData.get()
-            self.rawPositiveYAxialCurve.setData(data)
-
-        if self.rawPositiveYTangentCurveData.hasBeenUpdated():
-            data = self.rawPositiveYTangentCurveData.get()
-            self.rawPositiveYTangentCurve.setData(data)
-
-        if self.xPositionCurveData.hasBeenUpdated():
-            data = self.xPositionCurveData.get()
-            self.xPositionCurve.setData(data)
-
-        if self.yPositionCurveData.hasBeenUpdated():
-            data = self.yPositionCurveData.get()
-            self.yPositionCurve.setData(data)
-
-        if self.zPositionCurveData.hasBeenUpdated():
-            data = self.zPositionCurveData.get()
-            self.zPositionCurve.setData(data)
-
-        if self.xRotationCurveData.hasBeenUpdated():
-            data = self.xRotationCurveData.get()
-            self.xRotationCurve.setData(data)
-
-        if self.yRotationCurveData.hasBeenUpdated():
-            data = self.yRotationCurveData.get()
-            self.yRotationCurve.setData(data)
-
-        if self.zRotationCurveData.hasBeenUpdated():
-            data = self.zRotationCurveData.get()
-            self.zRotationCurve.setData(data)
-
         if self.dataTelemetryIMSData.hasBeenUpdated():
             data = self.dataTelemetryIMSData.get()
             self.rawPositiveXAxialLabel.setText("%0.3f" % (data.rawSensorData[0]))
@@ -295,18 +201,20 @@ class IMSPageWidget(QWidget):
         self.dataEventDisplacementSensorWarning.set(data[-1])        
 
     def processTelemetryIMSData(self, data):
-        self.rawPositiveXAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveXAxialCurveData.get(), [x.rawSensorData[0] for x in data], self.maxPlotSize))
-        self.rawPositiveXTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveXTangentCurveData.get(), [x.rawSensorData[1] for x in data], self.maxPlotSize))
-        self.rawNegativeYAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeYAxialCurveData.get(), [x.rawSensorData[2] for x in data], self.maxPlotSize))
-        self.rawNegativeYTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeYTangentCurveData.get(), [x.rawSensorData[3] for x in data], self.maxPlotSize))
-        self.rawNegativeXAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeXAxialCurveData.get(), [x.rawSensorData[4] for x in data], self.maxPlotSize))
-        self.rawNegativeXTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawNegativeXTangentCurveData.get(), [x.rawSensorData[5] for x in data], self.maxPlotSize))
-        self.rawPositiveYAxialCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveYAxialCurveData.get(), [x.rawSensorData[6] for x in data], self.maxPlotSize))
-        self.rawPositiveYTangentCurveData.set(QTHelpers.appendAndResizeCurveData(self.rawPositiveYTangentCurveData.get(), [x.rawSensorData[7] for x in data], self.maxPlotSize))
-        self.xPositionCurveData.set(QTHelpers.appendAndResizeCurveData(self.xPositionCurveData.get(), [x.xPosition for x in data], self.maxPlotSize))
-        self.yPositionCurveData.set(QTHelpers.appendAndResizeCurveData(self.yPositionCurveData.get(), [x.yPosition for x in data], self.maxPlotSize))
-        self.zPositionCurveData.set(QTHelpers.appendAndResizeCurveData(self.zPositionCurveData.get(), [x.zPosition for x in data], self.maxPlotSize))
-        self.xRotationCurveData.set(QTHelpers.appendAndResizeCurveData(self.xRotationCurveData.get(), [x.xRotation for x in data], self.maxPlotSize))
-        self.yRotationCurveData.set(QTHelpers.appendAndResizeCurveData(self.yRotationCurveData.get(), [x.yRotation for x in data], self.maxPlotSize))
-        self.zRotationCurveData.set(QTHelpers.appendAndResizeCurveData(self.zRotationCurveData.get(), [x.zRotation for x in data], self.maxPlotSize))
+        self.rawChart.append('Displacement (mm)', '+X Axial', [(x.timestamp, x.rawSensorData[0] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '+X Tangent', [(x.timestamp, x.rawSensorData[1] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '-Y Axial', [(x.timestamp, x.rawSensorData[2] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(x.timestamp, x.rawSensorData[3] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '-X Axial', [(x.timestamp, x.rawSensorData[4] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '-X Tangent', [(x.timestamp, x.rawSensorData[5] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '-Y Axial', [(x.timestamp, x.rawSensorData[6] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(x.timestamp, x.rawSensorData[7] / 1000) for x in data])
+ 
+        self.posChart.append('Position (m)', 'X', [(x.timestamp, x.xPosition) for x in data])
+
+        self.posChart.append('Position (m)', 'Y', [(x.timestamp, x.yPosition) for x in data])
+        self.posChart.append('Position (m)', 'Z', [(x.timestamp, x.zPosition) for x in data])
+        self.posChart.append('Rotation (rad)', 'X', [(x.timestamp, x.xRotation) for x in data])
+        self.posChart.append('Rotation (rad)', 'Y', [(x.timestamp, x.yRotation) for x in data])
+        self.posChart.append('Rotation (rad)', 'Z', [(x.timestamp, x.zRotation) for x in data])
         self.dataTelemetryIMSData.set(data[-1])
