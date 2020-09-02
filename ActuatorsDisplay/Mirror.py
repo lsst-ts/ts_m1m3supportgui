@@ -34,14 +34,9 @@ class Mirror(QGraphicsScene):
 
     def __init__(self):
         super().__init__()
-        self.selected = None
 
     def setRange(self, min, max):
         map(lambda item: item.setRange(min, max), self.items())
-
-    def scaleHints(self, width, height):
-        s = min(width / 8400, height / 8400)
-        return (s, s)
 
     def addActuator(self, id, x, y, data, warning):
         self.addItem(Actuator(id, x, y, data, warning))

@@ -49,6 +49,10 @@ class Actuator(QGraphicsItem):
         self._data = data
         self.update()
 
+    @property
+    def warning(self):
+        return self._warning
+
     def setRange(self, min, max):
         self._min = min
         self._max = max
@@ -64,14 +68,18 @@ class Actuator(QGraphicsItem):
 
     def paint(self, painter, option, widget):
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        # draw actuators without valid ID as gray circle
         if self.id < 0:
-            painter.setPen(QPen(Qt.gray, 2 * self._scale, Qt.DashDotLine))
+            painter.setPen(QPen(Qt.gray, 2 * self._scale, Qt.DotLine))
             painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
             return
-        painter.setPen(QPen(Qt.red, 2 * self._scale))
         if self._selected:
-            painter.setBrush(qt.white)
-        elif self._warning:
+            painter.setPen(QPen(Qt.black, 2 * self._scale))
+            painter.drawRect(self.boundingRect())
+        else:
+            painter.setPen(QPen(Qt.red, 2 * self._scale))
+
+        if self._warning:
             painter.setBrush(Qt.red)
         elif self._min is None or self._max is None:
             painter.setBrush(Qt.yellow)
