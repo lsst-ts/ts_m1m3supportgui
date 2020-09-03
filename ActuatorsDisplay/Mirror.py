@@ -40,3 +40,9 @@ class Mirror(QGraphicsScene):
 
     def addActuator(self, id, x, y, data, warning):
         self.addItem(Actuator(id, x, y, data, warning))
+
+    def getActuator(self, id):
+        return next(filter(lambda a: a.id == id, self.items()))
+
+    def updateActuator(self, id, x, y, data, warning):
+        self.getActuator(id).updateData(x, y, data, warning)

@@ -75,7 +75,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.fieldList.itemSelectionChanged.connect(self.selectedFieldChanged)
 
         self.mirrorView = MirrorView()
-        self.mirrorView.selectChanged.connect(self.updateSelectedActuator)
+        self.mirrorView.selectionChanged.connect(self.updateSelectedActuator)
         self.plotLayout.addWidget(self.mirrorView)
 
         row = 0
@@ -186,8 +186,8 @@ class ForceActuatorGraphPageWidget(QWidget):
 
     def setPageActive(self, active):
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
+        if active:
+            self.redrawPlot()
 
     def updatePage(self):
         if not self.pageActive:
@@ -300,9 +300,9 @@ class ForceActuatorGraphPageWidget(QWidget):
         if topicIndex < 0 or fieldIndex < 0:
             return
         self.topics[topicIndex].SelectedField = fieldIndex
-        self.updatePlot()
+        self.redrawPlot()
 
-    def updatePlot(self):
+    def redrawPlot(self):
         if not self.pageActive:
             return
         self.mirrorView.clear()
@@ -329,10 +329,39 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.mirrorView.setRange(min(data), max(data))
         self.mirrorView.resetTransform()
         self.mirrorView.scale(*self.mirrorView.scaleHints())
-        self.updateSelectedActuator(None)
+
+    def updatePlot(self):
+        if not self.pageActive:
+            return
+        topicIndex = self.topicList.currentRow()
+        fieldIndex = self.fieldList.currentRow()
+        if topicIndex < 0 or fieldIndex < 0:
+            self.lastUpdatedLabel.setText("UNKNOWN")
+            return
+        topic = self.topics[topicIndex]
+        field = topic.Fields[fieldIndex]
+        fieldGetter = field[1]
+        fieldDataIndex = field[2]()
+        topicData = topic.Data.get()
+        if topicData == None:
+            self.lastUpdatedLabel.setText("UNKNOWN")
+            return
+        data = fieldGetter(topicData)
+        warningData = self.dataEventForceActuatorWarning.get()
+        points = []
+        for row in FATABLE:
+            index = row[fieldDataIndex]
+            warning = warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0 if warningData is not None else False
+            self.mirrorView.updateActuator(index, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], warning)
+        self.mirrorView.setRange(min(data), max(data))
+        self.mirrorView.resetTransform()
+        self.mirrorView.scale(*self.mirrorView.scaleHints())
 
     def updateSelectedActuator(self, s):
         if s is None:
+            self.selectedActuatorIdLabel.setText('not selected')
+            self.selectedActuatorValueLabel.setText('')
+            self.selectedActuatorWarningLabel.setText('')
             return
 
         self.selectedActuatorIdLabel.setText(str(s.id))

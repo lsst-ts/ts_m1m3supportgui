@@ -26,13 +26,12 @@ from . import Mirror
 
 class MirrorView(QGraphicsView):
 
-    selectChanged = Signal(object)
+    selectionChanged = Signal(object)
 
     def __init__(self):
         self._mirror = Mirror()
         super().__init__(self._mirror)
         self._selected = None
-        self._selectedPos = None
 
     @property
     def selected(self):
@@ -45,7 +44,7 @@ class MirrorView(QGraphicsView):
         self._selected = s
         if self._selected is not None:
             self._selected.setSelected(True)
-        self.selectChanged.emit(self._selected)
+        self.selectionChanged.emit(self._selected)
 
     def setRange(self, min, max):
         self._mirror.setRange(min, max)
@@ -55,12 +54,16 @@ class MirrorView(QGraphicsView):
         self._mirror.clear()
 
     def scaleHints(self):
-        s = min(self.width() / 8400, self.height() / 8400)
+        s = min(self.width() / 8600, self.height() / 8600)
         return (s, s)
 
     def addActuator(self, id, x, y, data, warning):
         self._mirror.addActuator(id, x, y, data, warning)
 
+    def updateActuator(self, id, x, y, data, warning):
+        self._mirror.updateActuator(id, x, y, data, warning)
+        if self._selected is not None and self._selected.id == id:
+            self.selectionChanged.emit(self._selected)
+
     def mousePressEvent(self, event):
-        self._selectedPos = event.pos()
-        self.selected = self.itemAt(self._selectedPos)
+        self.selected = self.itemAt(event.pos())

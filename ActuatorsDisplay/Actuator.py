@@ -36,6 +36,12 @@ class Actuator(QGraphicsItem):
         self._max = None
         self._scale = 25
 
+    def updateData(self, x, y, data, warning):
+        self._center = QPointF(x, y)
+        self._data = data
+        self._warning = warning
+        self.update()
+
     def setSelected(self, selected):
         self._selected = selected
         self.update()
