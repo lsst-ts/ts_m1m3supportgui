@@ -26,17 +26,28 @@ import numpy as np
 
 
 class Mirror(QGraphicsScene):
-    """Plot mirror surface with actuators.
+    """Graphics scene containing plot of the mirror surface with actuators.
 
     Actuators list is cleared with clear() method (inherited from
     QGraphicsScene). Actuators are added with addActuator() method.
+    Actuators data should be updated with updateActuator() call.
     """
 
     def __init__(self):
         super().__init__()
 
     def setRange(self, min, max):
-        map(lambda item: item.setRange(min, max), self.items())
+        """Set display range. Display range is used for colors displayed by the actuator.
+
+        Parameters
+        ----------
+        min : `float`
+               Minimal data range.
+        max : `float`
+               Maximal data range.
+        """
+        for a in self.items():
+            a.setRange(min, max)
 
     def addActuator(self, id, x, y, data, warning):
         self.addItem(Actuator(id, x, y, data, warning))
@@ -45,4 +56,4 @@ class Mirror(QGraphicsScene):
         return next(filter(lambda a: a.id == id, self.items()))
 
     def updateActuator(self, id, x, y, data, warning):
-        self.getActuator(id).updateData(x, y, data, warning)
+        self.getActuator(id).updateData(data, warning)

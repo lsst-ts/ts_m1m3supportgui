@@ -6,7 +6,7 @@ from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import TopicData
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget
-from ActuatorsDisplay import MirrorView
+from ActuatorsDisplay import MirrorWidget
 
 class ForceActuatorGraphPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -74,9 +74,9 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.fieldList.setFixedWidth(256)
         self.fieldList.itemSelectionChanged.connect(self.selectedFieldChanged)
 
-        self.mirrorView = MirrorView()
-        self.mirrorView.selectionChanged.connect(self.updateSelectedActuator)
-        self.plotLayout.addWidget(self.mirrorView)
+        self.mirrorWidget = MirrorWidget()
+        self.mirrorWidget.mirrorView.selectionChanged.connect(self.updateSelectedActuator)
+        self.plotLayout.addWidget(self.mirrorWidget)
 
         row = 0
         col = 0
@@ -305,7 +305,7 @@ class ForceActuatorGraphPageWidget(QWidget):
     def redrawPlot(self):
         if not self.pageActive:
             return
-        self.mirrorView.clear()
+        self.mirrorWidget.mirrorView.clear()
         topicIndex = self.topicList.currentRow()
         fieldIndex = self.fieldList.currentRow()
         if topicIndex < 0 or fieldIndex < 0:
@@ -325,10 +325,10 @@ class ForceActuatorGraphPageWidget(QWidget):
         for row in FATABLE:
             index = row[fieldDataIndex]
             warning = warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0 if warningData is not None else False
-            self.mirrorView.addActuator(index, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], warning)
-        self.mirrorView.setRange(min(data), max(data))
-        self.mirrorView.resetTransform()
-        self.mirrorView.scale(*self.mirrorView.scaleHints())
+            self.mirrorWidget.mirrorView.addActuator(index, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], warning)
+        self.mirrorWidget.setRange(min(data), max(data))
+        self.mirrorWidget.mirrorView.resetTransform()
+        self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
     def updatePlot(self):
         if not self.pageActive:
@@ -352,10 +352,8 @@ class ForceActuatorGraphPageWidget(QWidget):
         for row in FATABLE:
             index = row[fieldDataIndex]
             warning = warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0 if warningData is not None else False
-            self.mirrorView.updateActuator(index, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], warning)
-        self.mirrorView.setRange(min(data), max(data))
-        self.mirrorView.resetTransform()
-        self.mirrorView.scale(*self.mirrorView.scaleHints())
+            self.mirrorWidget.mirrorView.updateActuator(index, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], warning)
+        self.mirrorWidget.setRange(min(data), max(data))
 
     def updateSelectedActuator(self, s):
         if s is None:

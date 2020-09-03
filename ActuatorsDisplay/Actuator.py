@@ -20,11 +20,29 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from PySide2.QtCore import QRect, Qt, QPointF
-from PySide2.QtGui import QPen, QPainter
+from PySide2.QtGui import QPen, QPainter, QColor, QBrush
 from PySide2.QtWidgets import QGraphicsItem
 
 
 class Actuator(QGraphicsItem):
+    """Combines graphical display of an actuator with its data. Record if an
+    actuator is selected by a mouse click.
+
+    Parameters
+    ----------
+
+    id : `int`
+         Actuator identification number.
+    x : `float`
+         Actuator X coordinate (in mm).
+    y : `float`
+         Actuator Y coordinate (in mm).
+    data : `float`
+         Data associated with the actuator (actual force, calculated force, ..).
+    warning : `boolean`
+         True if warning is set.
+    """
+
     def __init__(self, id, x, y, data, warning):
         super().__init__()
         self.id = id
@@ -36,11 +54,22 @@ class Actuator(QGraphicsItem):
         self._max = None
         self._scale = 25
 
-    def updateData(self, x, y, data, warning):
-        self._center = QPointF(x, y)
-        self._data = data
-        self._warning = warning
-        self.update()
+    def updateData(self, data, warning):
+        """Updates actuator data.
+
+        If new data differs from the current data, calls update() to force actuator redraw.
+
+        Parameters
+        ----------
+        data : `float`
+             New data associated with the actuator (actual force, calculated force, ..).
+        warning : `boolean`
+             New warning value. True if warning is set.
+        """
+        if self._data != data or self._warning != warning:
+            self._data = data
+            self._warning = warning
+            self.update()
 
     def setSelected(self, selected):
         self._selected = selected
@@ -89,6 +118,8 @@ class Actuator(QGraphicsItem):
             painter.setBrush(Qt.red)
         elif self._min is None or self._max is None:
             painter.setBrush(Qt.yellow)
+        elif self._min == self._max:
+            painter.setBrush(QBrush(Qt.red, Qt.DiagCrossPattern))
         else:
             painter.setBrush(
                 QColor.fromHsvF(
@@ -100,6 +131,7 @@ class Actuator(QGraphicsItem):
         painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
         font = painter.font()
         font.setPixelSize(8 * self._scale)
+        painter.setPen(Qt.black)
         painter.setFont(font)
         painter.drawText(
             self._center.x() - 10 * self._scale,
