@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from PySide2.QtCore import Qt, QSize
-from PySide2.QtGui import QPen, QPainter, QColor
+from PySide2.QtGui import QPen, QPainter, QColor, QBrush
 from PySide2.QtWidgets import QWidget
 
 
@@ -45,6 +45,13 @@ class Gauge(QWidget):
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         swidth = max(self.width() - 100, 20)
+        if self._range[0] == self._range[1]:
+            painter.setBrush(QBrush(Qt.red, Qt.DiagCrossPattern))
+            painter.drawRect(0, 0, swidth, self.height())
+            painter.setPen(Qt.black)
+            painter.drawText(0, 0, self.width() - swidth, self.height(), Qt.AlignCenter, '{0:.2f}'.format(self._range[0]))
+            return
+
         for x in range(0, self.height()):
             painter.setPen(QColor.fromHsvF(x / self.height() * 179 / 255, 1, 1))
             painter.drawLine(0, x, swidth, x)

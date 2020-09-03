@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from PySide2.QtCore import QRect, Qt, QPointF
-from PySide2.QtGui import QPen, QPainter, QColor, QBrush
+from PySide2.QtGui import QPen, QPainter, QColor, QBrush, QTransform
 from PySide2.QtWidgets import QGraphicsItem
 
 
@@ -119,7 +119,9 @@ class Actuator(QGraphicsItem):
         elif self._min is None or self._max is None:
             painter.setBrush(Qt.yellow)
         elif self._min == self._max:
-            painter.setBrush(QBrush(Qt.red, Qt.DiagCrossPattern))
+            brush = QBrush(Qt.red, Qt.DiagCrossPattern)
+            brush.setTransform(QTransform().scale(self._scale / 3, self._scale / 3))
+            painter.setBrush(brush)
         else:
             painter.setBrush(
                 QColor.fromHsvF(
