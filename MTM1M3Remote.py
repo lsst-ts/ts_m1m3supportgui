@@ -79,6 +79,7 @@ class MTM1M3Remote:
         self.sal.salEventSub("MTM1M3_logevent_hardpointMonitorInfo")
         self.sal.salEventSub("MTM1M3_logevent_hardpointMonitorState")
         self.sal.salEventSub("MTM1M3_logevent_hardpointMonitorWarning")
+        self.sal.salEventSub("MTM1M3_logevent_heartbeat")
         self.sal.salEventSub("MTM1M3_logevent_inclinometerSensorWarning")
         self.sal.salEventSub("MTM1M3_logevent_interlockStatus")
         self.sal.salEventSub("MTM1M3_logevent_interlockWarning")
@@ -145,6 +146,7 @@ class MTM1M3Remote:
         self.eventSubscribers_hardpointMonitorInfo = []
         self.eventSubscribers_hardpointMonitorState = []
         self.eventSubscribers_hardpointMonitorWarning = []
+        self.eventSubscribers_heartbeat = []
         self.eventSubscribers_inclinometerSensorWarning = []
         self.eventSubscribers_interlockStatus = []
         self.eventSubscribers_interlockWarning = []
@@ -1635,6 +1637,19 @@ class MTM1M3Remote:
         self.eventSubscribers_hardpointMonitorWarning.append(action)
         if "event_hardpointMonitorWarning" not in self.topicsSubscribedToo:
             self.topicsSubscribedToo["event_hardpointMonitorWarning"] = [self.getNextEvent_hardpointMonitorWarning, self.eventSubscribers_hardpointMonitorWarning]
+
+    def getNextEvent_heartbeat(self):
+        data = MTM1M3_logevent_heartbeatC()
+        result = self.sal.getEvent_heartbeat(data)
+        return result, data
+
+    def getEvent_heartbeat(self):
+        return self.getEvent(self.getNextEvent_heartbeat)
+
+    def subscribeEvent_heartbeat(self, action):
+        self.eventSubscribers_heartbeat.append(action)
+        if "event_heartbeat" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_heartbeat"] = [self.getNextEvent_heartbeat, self.eventSubscribers_heartbeat]
 
     def getNextEvent_inclinometerSensorWarning(self):
         data = MTM1M3_logevent_inclinometerSensorWarningC()
