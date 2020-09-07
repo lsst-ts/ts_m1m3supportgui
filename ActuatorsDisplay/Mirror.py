@@ -50,10 +50,62 @@ class Mirror(QGraphicsScene):
             a.setRange(min, max)
 
     def addActuator(self, id, x, y, data, state):
+        """Adds actuator to the list.
+
+        Parameters
+        ----------
+        id : `int`
+            Actuator ID. Actuators are matched by ID.
+        x : `float`
+            Actuator X position (in mm).
+        y :  `float`
+            Actuator y position (in mm).
+        data : `float`
+            Actuator value.
+        state : `int`
+            Actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID or
+            Actuator.STATE_WARNING.
+        """
         self.addItem(Actuator(id, x, y, data, state))
 
     def getActuator(self, id):
-        return next(filter(lambda a: a.id == id, self.items()))
+        """Returns actuator with given ID.
 
-    def updateActuator(self, id, x, y, data, state):
+        Parameters
+        ----------
+        id : `int`
+            Actuator ID.
+
+        Returns
+        -------
+        `Actuator`
+            Actuator with matched ID.
+
+        Raises
+        ------
+        KeyError
+            When actuator with given ID is not found.
+        """
+        try:
+            return next(filter(lambda a: a.id == id, self.items()))
+        except StopIteration:
+            raise KeyError(f"Cannot find actuator with ID {id}")
+
+    def updateActuator(self, id, data, state):
+        """Updates actuator value and state.
+
+        Parameters
+        ----------
+        id : `int`
+            Actuator ID number.
+        data : `float`
+            Update actuator value.
+        state : `int`
+            Updated actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID, Actuator.STATE_WARNING.
+
+        Raises
+        ------
+        KeyError
+            If actuator with the given ID cannot be found.
+        """
         self.getActuator(id).updateData(data, state)

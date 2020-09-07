@@ -25,8 +25,17 @@ from . import Mirror
 
 
 class MirrorView(QGraphicsView):
+    """View on mirror populated by actuators.
+    """
 
     selectionChanged = Signal(object)
+    """Signal raised when another actuator is selected by a mouse click.
+
+    Parameters
+    ----------
+    object
+        Selected actuator.
+    """
 
     def __init__(self):
         self._mirror = Mirror()
@@ -35,6 +44,8 @@ class MirrorView(QGraphicsView):
 
     @property
     def selected(self):
+        """Selected actuator (Actuator).
+        """
         return self._selected
 
     @selected.setter
@@ -47,21 +58,66 @@ class MirrorView(QGraphicsView):
         self.selectionChanged.emit(self._selected)
 
     def setRange(self, min, max):
+        """Sets range used for color scaling.
+
+        Parameters
+        ----------
+        min : `float`
+           Minimal value.
+        max : `float`
+           Maximal value.
+        """
         self._mirror.setRange(min, max)
 
     def clear(self):
+        """Removes all actuators from the view.
+        """
         self.selected = None
         self._mirror.clear()
 
     def scaleHints(self):
+        """Returns preferred scaling. Overloaded method.
+        """
         s = min(self.width() / 8600, self.height() / 8600)
         return (s, s)
 
     def addActuator(self, id, x, y, data, state):
+        """Adds actuator.
+
+        Parameters
+        ----------
+        id : `int`
+            Actuator ID. Actuators are matched by ID.
+        x : `float`
+            Actuator X position (in mm).
+        y :  `float`
+            Actuator y position (in mm).
+        data : `float`
+            Actuator value.
+        state : `int`
+            Actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID or
+            Actuator.STATE_WARNING.
+        """
         self._mirror.addActuator(id, x, y, data, state)
 
-    def updateActuator(self, id, x, y, data, state):
-        self._mirror.updateActuator(id, x, y, data, state)
+    def updateActuator(self, id, data, state):
+        """Update actuator value and state.
+
+        Parameters
+        ----------
+        id : `int`
+            Actuator ID number.
+        data : `float`
+            Update actuator value.
+        state : `int`
+            Updated actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID, Actuator.STATE_WARNING.
+
+        Raises
+        ------
+        KeyError
+            If actuator with the given ID cannot be found.
+        """
+        self._mirror.updateActuator(id, data, state)
         if self._selected is not None and self._selected.id == id:
             self.selectionChanged.emit(self._selected)
 

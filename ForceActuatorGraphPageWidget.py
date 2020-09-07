@@ -303,6 +303,14 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.updatePlot(True)
 
     def updatePlot(self, redraw = False):
+        """Update plot. Redraw plot if new set is selected.
+
+        Paramaters
+        ----------
+
+        redraw : `boolean`
+             If true, actuator list is cleared and then constructed from available data. Forces plot redraw.
+        """
         if not self.pageActive:
             return
         if redraw:
@@ -335,7 +343,7 @@ class ForceActuatorGraphPageWidget(QWidget):
             if redraw:
                 self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
             else:
-                self.mirrorWidget.mirrorView.updateActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
+                self.mirrorWidget.mirrorView.updateActuator(id, data[index], state)
         self.mirrorWidget.setRange(min(data), max(data))
         if redraw:
             self.mirrorWidget.mirrorView.resetTransform()

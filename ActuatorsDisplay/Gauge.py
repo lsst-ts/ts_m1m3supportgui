@@ -30,26 +30,48 @@ class Gauge(QWidget):
 
     def __init__(self):
         super().__init__()
-        self._range = (0, 100)
+        self._min = None
+        self._max = None
         self.setMinimumSize(100, 100)
         self.setMaximumWidth(200)
 
     def setRange(self, min, max):
-        self._range = (min, max)
+        """Set value range. Color is mapped between min and max values, using change in hue.
+
+        Parameters
+        ----------
+        min : `float`
+               Minimal data range.
+        max : `float`
+               Maximal data range.
+        """
+        self._min = min
+        self._max = max
         self.update()
 
     def sizeHint(self):
+        """Overloaded method.
+        """
         return QSize(100, 100)
 
     def paintEvent(self, event):
+        """Overloaded method. Paint gauge as serie of lines, and adds text labels.
+        """
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         swidth = max(self.width() - 100, 20)
-        if self._range[0] == self._range[1]:
+        if self._min == self._max:
             painter.setBrush(QBrush(Qt.red, Qt.DiagCrossPattern))
             painter.drawRect(0, 0, swidth, self.height())
             painter.setPen(Qt.black)
-            painter.drawText(0, 0, self.width() - swidth, self.height(), Qt.AlignCenter, '{0:.2f}'.format(self._range[0]))
+            painter.drawText(
+                0,
+                0,
+                self.width() - swidth,
+                self.height(),
+                Qt.AlignCenter,
+                "{0:.2f}".format(self._min),
+            )
             return
 
         for x in range(0, self.height()):
@@ -63,7 +85,7 @@ class Gauge(QWidget):
             self.width() - swidth,
             30,
             Qt.AlignCenter,
-            "{0:.2f}".format(self._range[0]),
+            "{0:.2f}".format(self._min),
         )
         painter.drawText(
             0,
@@ -71,5 +93,5 @@ class Gauge(QWidget):
             self.width() - swidth,
             30,
             Qt.AlignCenter,
-            "{0:.2f}".format(self._range[1]),
+            "{0:.2f}".format(self._max),
         )

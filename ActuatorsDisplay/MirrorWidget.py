@@ -4,6 +4,17 @@ from . import MirrorView, Gauge
 
 
 class MirrorWidget(QWidget):
+    """Widget displaying mirror with actuators and gauge showing color scale.
+    """
+
+    mirrorView = None
+    """View of mirror with actuators.
+    """
+
+    gauge = None
+    """Gauge showing color scale used in actuators.
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -17,5 +28,14 @@ class MirrorWidget(QWidget):
         self.setLayout(layout)
 
     def setRange(self, min, max):
+        """Sets range used for color scaling.
+
+        Parameters
+        ----------
+        min : `float`
+           Minimal value.
+        max : `float`
+           Maximal value.
+        """
         self.mirrorView.setRange(min, max)
         self.gauge.setRange(min, max)

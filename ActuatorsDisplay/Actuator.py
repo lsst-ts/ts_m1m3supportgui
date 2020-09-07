@@ -28,12 +28,14 @@ class Actuator(QGraphicsItem):
     """Combines graphical display of an actuator with its data. Record if an
     actuator is selected by a mouse click.
 
+    Value sets (measured, rejected, calculated..) is managed by upper level
+    classes.
+
     Actuator can be selected - then it is drawn with highlighting, showing it
     is the selected actuator. 
 
     Parameters
     ----------
-
     id : `int`
          Actuator identification number. Starting with 101, the first number
          identified segment (1-4). The value ranges up to 443.
@@ -49,8 +51,16 @@ class Actuator(QGraphicsItem):
     """
 
     STATE_INACTIVE = 0
+    """Actuator value is not relevant for the current display (`int`).
+    """
+
     STATE_ACTIVE = 1
+    """Actuator is active and healthy (`int`).
+    """
+
     STATE_WARNING = 2
+    """Actuator is active, but the value / actuator has some warning attached (`int`).
+    """
 
     def __init__(self, id, x, y, data, state):
         super().__init__()
@@ -94,6 +104,8 @@ class Actuator(QGraphicsItem):
 
     @property
     def data(self):
+        """Value associated with the actuator (`float`).
+        """
         return self._data
 
     @data.setter
@@ -103,14 +115,20 @@ class Actuator(QGraphicsItem):
 
     @property
     def warning(self):
+        """If actuator is in warning state (`boolean`).
+        """
         return self._state == self.STATE_WARNING
 
     def setRange(self, min, max):
+        """Set actuator range. This is used for setting display color.
+        """
         self._min = min
         self._max = max
         self.update()
 
     def boundingRect(self):
+        """Returns rectangle occupied by drawing. Overloaded method.
+        """
         return QRect(
             self._center.x() - 10 * self._scale,
             self._center.y() - 10 * self._scale,
@@ -119,25 +137,33 @@ class Actuator(QGraphicsItem):
         )
 
     def paint(self, painter, option, widget):
+        """Paint actuator. Overloaded method.
+        """
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        # paint grayed circle for actuators not providing the selected value
         if self._state == self.STATE_INACTIVE:
             painter.setPen(QPen(Qt.gray, 2 * self._scale, Qt.DotLine))
             painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
             return
+        # draw recatnagle around selected actuator
         if self._selected:
             painter.setPen(QPen(Qt.black, 2 * self._scale))
             painter.drawRect(self.boundingRect())
         else:
             painter.setPen(QPen(Qt.red, 2 * self._scale))
 
+        # draw selected actuator in red color
         if self._state == self.STATE_WARNING:
             painter.setBrush(Qt.red)
+        # if range isn't set, draw in yellow
         elif self._min is None or self._max is None:
             painter.setBrush(Qt.yellow)
+        # if range span is 0, fill with dotted pattern
         elif self._min == self._max:
             brush = QBrush(Qt.red, Qt.DiagCrossPattern)
             brush.setTransform(QTransform().scale(self._scale / 3, self._scale / 3))
             painter.setBrush(brush)
+        # draw using value as index into possible colors in HSV model
         else:
             painter.setBrush(
                 QColor.fromHsvF(
@@ -146,16 +172,30 @@ class Actuator(QGraphicsItem):
                     1,
                 )
             )
+        # draw actuator, write value
         painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
+
         font = painter.font()
-        font.setPixelSize(8 * self._scale)
+        font.setPixelSize(6.5 * self._scale)
+        font.setBold(True)
+
         painter.setPen(Qt.black)
         painter.setFont(font)
         painter.drawText(
             self._center.x() - 10 * self._scale,
             self._center.y() - 10 * self._scale,
             20 * self._scale,
-            20 * self._scale,
-            Qt.AlignCenter,
+            10 * self._scale,
+            Qt.AlignBottom | Qt.AlignHCenter,
             str(self.id),
+        )
+
+        # draw value
+        painter.drawText(
+            self._center.x() - 10 * self._scale,
+            self._center.y(),
+            20 * self._scale,
+            10 * self._scale,
+            Qt.AlignTop | Qt.AlignHCenter,
+            str(self.data),
         )
