@@ -6,7 +6,7 @@ from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import TopicData
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget
-from ActuatorsDisplay import MirrorWidget
+from ActuatorsDisplay import MirrorWidget, Actuator
 
 class ForceActuatorGraphPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -324,12 +324,18 @@ class ForceActuatorGraphPageWidget(QWidget):
         warningData = self.dataEventForceActuatorWarning.get()
         points = []
         for row in FATABLE:
+            id = row[FATABLE_ID]
             index = row[fieldDataIndex]
-            warning = warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0 if warningData is not None else False
-            if redraw:
-                self.mirrorWidget.mirrorView.addActuator(index, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], warning)
+            if index < 0:
+                state = Actuator.STATE_INACTIVE
+            elif warningData is not None:
+                state = Actuator.STATE_WARNING if warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0 else Actuator.STATE_ACTIVE
             else:
-                self.mirrorWidget.mirrorView.updateActuator(index, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], warning)
+                state = Actuator.STATE_ACTIVE
+            if redraw:
+                self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
+            else:
+                self.mirrorWidget.mirrorView.updateActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
         self.mirrorWidget.setRange(min(data), max(data))
         if redraw:
             self.mirrorWidget.mirrorView.resetTransform()

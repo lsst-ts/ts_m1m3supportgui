@@ -57,11 +57,11 @@ class MirrorView(QGraphicsView):
         s = min(self.width() / 8600, self.height() / 8600)
         return (s, s)
 
-    def addActuator(self, id, x, y, data, warning):
-        self._mirror.addActuator(id, x, y, data, warning)
+    def addActuator(self, id, x, y, data, state):
+        self._mirror.addActuator(id, x, y, data, state)
 
-    def updateActuator(self, id, x, y, data, warning):
-        self._mirror.updateActuator(id, x, y, data, warning)
+    def updateActuator(self, id, x, y, data, state):
+        self._mirror.updateActuator(id, x, y, data, state)
         if self._selected is not None and self._selected.id == id:
             self.selectionChanged.emit(self._selected)
 

@@ -28,33 +28,49 @@ class Actuator(QGraphicsItem):
     """Combines graphical display of an actuator with its data. Record if an
     actuator is selected by a mouse click.
 
+    Actuator can be selected - then it is drawn with highlighting, showing it
+    is the selected actuator. 
+
     Parameters
     ----------
 
     id : `int`
-         Actuator identification number.
+         Actuator identification number. Starting with 101, the first number
+         identified segment (1-4). The value ranges up to 443.
     x : `float`
          Actuator X coordinate (in mm).
     y : `float`
          Actuator Y coordinate (in mm).
     data : `float`
          Data associated with the actuator (actual force, calculated force, ..).
-    warning : `boolean`
-         True if warning is set.
+    state : `int`
+         Actuator state. 0 for inactive/unused, 1 for active OK, 2 for active
+         warning.
     """
 
-    def __init__(self, id, x, y, data, warning):
+    STATE_INACTIVE = 0
+    STATE_ACTIVE = 1
+    STATE_WARNING = 2
+
+    def __init__(self, id, x, y, data, state):
         super().__init__()
         self.id = id
+        # actuator position
         self._center = QPointF(x, y)
+        # actuator data
         self._data = data
         self._selected = False
-        self._warning = warning
+        self._state = state
+        # minimum and maximum values. Used for translating value into color code
         self._min = None
         self._max = None
+        # scalign factor. The actuator default size is 20x20 units. As
+        # actuators are placed on mirror, the size needs to be adjusted to show
+        # properly actuator on display in e.g. mm (where X and Y ranges are
+        # ~-4400 .. +4400).
         self._scale = 25
 
-    def updateData(self, data, warning):
+    def updateData(self, data, state):
         """Updates actuator data.
 
         If new data differs from the current data, calls update() to force actuator redraw.
@@ -63,15 +79,16 @@ class Actuator(QGraphicsItem):
         ----------
         data : `float`
              New data associated with the actuator (actual force, calculated force, ..).
-        warning : `boolean`
-             New warning value. True if warning is set.
+        state : `state`
+             New actuator state value.
         """
-        if self._data != data or self._warning != warning:
+        if self._data != data or self._state != state:
             self._data = data
-            self._warning = warning
+            self._state = state
             self.update()
 
     def setSelected(self, selected):
+        """Set actuator selection status."""
         self._selected = selected
         self.update()
 
@@ -86,7 +103,7 @@ class Actuator(QGraphicsItem):
 
     @property
     def warning(self):
-        return self._warning
+        return self._state == self.STATE_WARNING
 
     def setRange(self, min, max):
         self._min = min
@@ -103,8 +120,7 @@ class Actuator(QGraphicsItem):
 
     def paint(self, painter, option, widget):
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-        # draw actuators without valid ID as gray circle
-        if self.id < 0:
+        if self._state == self.STATE_INACTIVE:
             painter.setPen(QPen(Qt.gray, 2 * self._scale, Qt.DotLine))
             painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
             return
@@ -114,7 +130,7 @@ class Actuator(QGraphicsItem):
         else:
             painter.setPen(QPen(Qt.red, 2 * self._scale))
 
-        if self._warning:
+        if self._state == self.STATE_WARNING:
             painter.setBrush(Qt.red)
         elif self._min is None or self._max is None:
             painter.setBrush(Qt.yellow)

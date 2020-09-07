@@ -28,7 +28,7 @@ import numpy as np
 class Mirror(QGraphicsScene):
     """Graphics scene containing plot of the mirror surface with actuators.
 
-    Actuators list is cleared with clear() method (inherited from
+    Actuator list is cleared with clear() method (inherited from
     QGraphicsScene). Actuators are added with addActuator() method.
     Actuators data should be updated with updateActuator() call.
     """
@@ -49,11 +49,11 @@ class Mirror(QGraphicsScene):
         for a in self.items():
             a.setRange(min, max)
 
-    def addActuator(self, id, x, y, data, warning):
-        self.addItem(Actuator(id, x, y, data, warning))
+    def addActuator(self, id, x, y, data, state):
+        self.addItem(Actuator(id, x, y, data, state))
 
     def getActuator(self, id):
         return next(filter(lambda a: a.id == id, self.items()))
 
-    def updateActuator(self, id, x, y, data, warning):
-        self.getActuator(id).updateData(data, warning)
+    def updateActuator(self, id, x, y, data, state):
+        self.getActuator(id).updateData(data, state)
