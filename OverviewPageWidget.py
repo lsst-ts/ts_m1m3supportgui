@@ -1,5 +1,6 @@
 
 import QTHelpers
+from datetime import datetime
 from DataCache import DataCache
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QGridLayout
 
@@ -26,6 +27,7 @@ class OverviewPageWidget(QWidget):
         self.airSupplyWarningLabel = QLabel("UNKNOWN")
         self.imsWarningLabel = QLabel("UNKNOWN")
         self.cellLightingWarningLabel = QLabel("UNKNOWN")
+        self.heartbeatLabel = QLabel("UNKNOWN")
         self.faCommandedXLabel = QLabel("UNKNOWN")
         self.faCommandedYLabel = QLabel("UNKNOWN")
         self.faCommandedZLabel = QLabel("UNKNOWN")
@@ -116,6 +118,9 @@ class OverviewPageWidget(QWidget):
         row += 1
         self.dataLayout.addWidget(QLabel("Cell Lighting"), row, col) 
         self.dataLayout.addWidget(self.cellLightingWarningLabel, row, col + 1)
+        row += 1
+        self.dataLayout.addWidget(QLabel("Heartbeat"), row, col)
+        self.dataLayout.addWidget(self.heartbeatLabel, row, col + 1)
 
         row = 0
         col = 2
@@ -241,6 +246,7 @@ class OverviewPageWidget(QWidget):
         self.MTM1M3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
         self.MTM1M3.subscribeEvent_appliedForces(self.processEventAppliedForces)
         self.MTM1M3.subscribeEvent_cellLightWarning(self.processEventCellLightWarning)
+        self.MTM1M3.subscribeEvent_heartbeat(self.processEventHeartbeat)
         self.MTM1M3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
         self.MTM1M3.subscribeEvent_detailedState(self.processEventDetailedState)
         self.MTM1M3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
@@ -400,6 +406,9 @@ class OverviewPageWidget(QWidget):
         
     def processEventCellLightWarning(self, data):
         self.dataEventCellLightWarning.set(data[-1])        
+
+    def processEventHeartbeat(self, data):
+        self.heartbeatLabel.setText(datetime.now().strftime("%H:%M:%S.%f"))
 
     def processEventDisplacementSensorWarning(self, data):
         self.dataEventDisplacementSensorWarning.set(data[-1])
