@@ -343,7 +343,12 @@ class ForceActuatorGraphPageWidget(QWidget):
             if redraw:
                 self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
             else:
-                self.mirrorWidget.mirrorView.updateActuator(id, data[index], state)
+                try:
+                    self.mirrorWidget.mirrorView.updateActuator(id, data[index], state)
+                except KeyError:
+                    # for the case when list is empty..we need to scale then..
+                    self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
+                    redraw = True
         self.mirrorWidget.setRange(min(data), max(data))
         if redraw:
             self.mirrorWidget.mirrorView.resetTransform()
