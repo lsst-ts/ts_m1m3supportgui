@@ -48,6 +48,8 @@ class Actuator(QGraphicsItem):
     state : `int`
          Actuator state. 0 for inactive/unused, 1 for active OK, 2 for active
          warning.
+    selected : `bool`
+         If the actuator shall be selected.
     """
 
     STATE_INACTIVE = 0
@@ -62,14 +64,14 @@ class Actuator(QGraphicsItem):
     """Actuator is active, but the value / actuator has some warning attached (`int`).
     """
 
-    def __init__(self, id, x, y, data, state):
+    def __init__(self, id, x, y, data, state, selected):
         super().__init__()
         self.id = id
         # actuator position
         self._center = QPointF(x, y)
         # actuator data
         self._data = data
-        self._selected = False
+        self._selected = selected
         self._state = state
         # minimum and maximum values. Used for translating value into color code
         self._min = None

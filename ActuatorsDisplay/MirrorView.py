@@ -40,22 +40,27 @@ class MirrorView(QGraphicsView):
     def __init__(self):
         self._mirror = Mirror()
         super().__init__(self._mirror)
-        self._selected = None
+        self._selectedId = None
 
     @property
     def selected(self):
-        """Selected actuator (Actuator).
+        """Selected actuator or None if no actuator selected (Actuator).
         """
-        return self._selected
+        try:
+            return self._mirror.getActuator(self._selectedId)
+        except KeyError:
+            return None
 
     @selected.setter
     def selected(self, s):
-        if self._selected is not None:
-            self._selected.setSelected(False)
-        self._selected = s
-        if self._selected is not None:
-            self._selected.setSelected(True)
-        self.selectionChanged.emit(self._selected)
+        if self.selected is not None:
+            self.selected.setSelected(False)
+        if s is None:
+            self._selectedId = None
+            return None
+        self._selectedId = s.id
+        s.setSelected(True)
+        self.selectionChanged.emit(s)
 
     def setRange(self, min, max):
         """Sets range used for color scaling.
@@ -72,7 +77,6 @@ class MirrorView(QGraphicsView):
     def clear(self):
         """Removes all actuators from the view.
         """
-        self.selected = None
         self._mirror.clear()
 
     def scaleHints(self):
@@ -98,7 +102,7 @@ class MirrorView(QGraphicsView):
             Actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID or
             Actuator.STATE_WARNING.
         """
-        self._mirror.addActuator(id, x, y, data, state)
+        self._mirror.addActuator(id, x, y, data, state, id == self._selectedId)
 
     def updateActuator(self, id, data, state):
         """Update actuator value and state.
@@ -118,8 +122,8 @@ class MirrorView(QGraphicsView):
             If actuator with the given ID cannot be found.
         """
         self._mirror.updateActuator(id, data, state)
-        if self._selected is not None and self._selected.id == id:
-            self.selectionChanged.emit(self._selected)
+        if self._selectedId == id:
+            self.selectionChanged.emit(self.selected)
 
     def mousePressEvent(self, event):
         self.selected = self.itemAt(event.pos())

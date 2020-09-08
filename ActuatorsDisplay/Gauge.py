@@ -64,14 +64,15 @@ class Gauge(QWidget):
             painter.setBrush(QBrush(Qt.red, Qt.DiagCrossPattern))
             painter.drawRect(0, 0, swidth, self.height())
             painter.setPen(Qt.black)
-            painter.drawText(
-                0,
-                0,
-                self.width() - swidth,
-                self.height(),
-                Qt.AlignCenter,
-                "{0:.2f}".format(self._min),
-            )
+            if self._min is not None:
+                painter.drawText(
+                    0,
+                    0,
+                    self.width() - swidth,
+                    self.height(),
+                    Qt.AlignCenter,
+                    "{0:.2f}".format(self._min),
+                )
             return
 
         for x in range(0, self.height()):
