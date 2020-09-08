@@ -6,7 +6,7 @@ from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import TopicData
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget
-from ScatterPlotWidget import ScatterPlotWidget
+from ActuatorsDisplay import MirrorWidget, Actuator
 
 class ForceActuatorGraphPageWidget(QWidget):
     def __init__(self, MTM1M3):
@@ -24,14 +24,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.selectionLayout.addLayout(self.filterLayout)
         self.setLayout(self.layout)
 
-        self.selectedActuatorZIndex = -1
         self.ignoreFieldChange = False
-
-        self.plot = ScatterPlotWidget(0.4, 0, 1800)
-        self.plot.setFixedSize(750, 750)
-        self.plot.setXScale(-4.5, 4.5)
-        self.plot.setYScale(-4.5, 4.5)
-        self.plot.setClicked(self.plotPointClicked)
 
         self.selectedActuatorIdLabel = QLabel("")
         self.selectedActuatorValueLabel = QLabel("")
@@ -81,7 +74,9 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.fieldList.setFixedWidth(256)
         self.fieldList.itemSelectionChanged.connect(self.selectedFieldChanged)
 
-        self.plotLayout.addWidget(self.plot)
+        self.mirrorWidget = MirrorWidget()
+        self.mirrorWidget.mirrorView.selectionChanged.connect(self.updateSelectedActuator)
+        self.plotLayout.addWidget(self.mirrorWidget)
 
         row = 0
         col = 0
@@ -191,8 +186,8 @@ class ForceActuatorGraphPageWidget(QWidget):
 
     def setPageActive(self, active):
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
+        if active:
+            self.updatePlot(True)
 
     def updatePage(self):
         if not self.pageActive:
@@ -305,81 +300,70 @@ class ForceActuatorGraphPageWidget(QWidget):
         if topicIndex < 0 or fieldIndex < 0:
             return
         self.topics[topicIndex].SelectedField = fieldIndex
-        self.updatePlot()
+        self.updatePlot(True)
 
-    def plotPointClicked(self, plot, points):
-        for p in points:
-            x = p.pos().x()
-            y = p.pos().y()
-            for row in FATABLE:
-                actX = row[FATABLE_XPOSITION]
-                actY = row[FATABLE_YPOSITION]
-                if x == actX and y == actY:
-                    self.selectedActuatorZIndex = row[FATABLE_INDEX]
-                    self.updatePlot()
-                    break
+    def updatePlot(self, redraw = False):
+        """Update plot. Redraw plot if new set is selected.
 
-    def updatePlot(self):
+        Paramaters
+        ----------
+
+        redraw : `boolean`
+             If true, actuator list is cleared and then constructed from available data. Forces plot redraw.
+        """
         if not self.pageActive:
             return
+        if redraw:
+            self.mirrorWidget.mirrorView.clear()
         topicIndex = self.topicList.currentRow()
         fieldIndex = self.fieldList.currentRow()
         if topicIndex < 0 or fieldIndex < 0:
             self.lastUpdatedLabel.setText("UNKNOWN")
-            self.plot.setPoints([])
-            self.plot.refreshPlot()
             return
         topic = self.topics[topicIndex]
         field = topic.Fields[fieldIndex]
         fieldGetter = field[1]
         fieldDataIndex = field[2]()
         topicData = topic.Data.get()
-        if topicData == None:
+        if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
-            self.plot.setPoints([])
-            self.plot.refreshPlot()
             return
         data = fieldGetter(topicData)
         warningData = self.dataEventForceActuatorWarning.get()
         points = []
-        self.plot.setZScale(min(data), max(data))
         for row in FATABLE:
+            id = row[FATABLE_ID]
             index = row[fieldDataIndex]
-            warning = False
-            if warningData is not None:
-                warning = warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
-            if index != -1:
-                points.append([row[FATABLE_XPOSITION], row[FATABLE_YPOSITION], data[index], row[FATABLE_INDEX] == self.selectedActuatorZIndex, True, warning])
-            elif row[FATABLE_INDEX] == self.selectedActuatorZIndex:
-                points.append([row[FATABLE_XPOSITION], row[FATABLE_YPOSITION], 0, row[FATABLE_INDEX] == self.selectedActuatorZIndex, False, warning])
-        self.plot.setPoints(points)
-        self.plot.refreshPlot()
-        self.updateSelectedActuator()
+            if index < 0:
+                state = Actuator.STATE_INACTIVE
+            elif warningData is not None:
+                state = Actuator.STATE_WARNING if warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0 else Actuator.STATE_ACTIVE
+            else:
+                state = Actuator.STATE_ACTIVE
+            if redraw:
+                self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
+            else:
+                try:
+                    self.mirrorWidget.mirrorView.updateActuator(id, data[index], state)
+                except KeyError:
+                    # for the case when list is empty..we need to scale then..
+                    self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
+                    redraw = True
+        self.mirrorWidget.setRange(min(data), max(data))
+        if redraw:
+            self.mirrorWidget.mirrorView.resetTransform()
+            self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
-    def updateSelectedActuator(self):
-        if self.selectedActuatorZIndex == -1:
+    def updateSelectedActuator(self, s):
+        if s is None:
+            self.selectedActuatorIdLabel.setText('not selected')
+            self.selectedActuatorValueLabel.setText('')
+            self.selectedActuatorWarningLabel.setText('')
             return
-        topicIndex = self.topicList.currentRow()
-        fieldIndex = self.fieldList.currentRow()
-        topic = self.topics[topicIndex]
-        field = topic.Fields[fieldIndex]
-        fieldGetter = field[1]
-        fieldDataIndex = field[2]()
-        topicData = topic.Data.get()
-        if topicData == None:
-            return
-        data = fieldGetter(topicData)
-        warningData = self.dataEventForceActuatorWarning.get()
-        self.selectedActuatorIdLabel.setText("%d" % FATABLE[self.selectedActuatorZIndex][FATABLE_ID])
-        dataIndex = FATABLE[self.selectedActuatorZIndex][fieldDataIndex]
-        if dataIndex == -1:
-            self.selectedActuatorValueLabel.setText("NA")
-        else:
-            self.selectedActuatorValueLabel.setText("%0.1f" % data[dataIndex])
-        warning = False
-        if warningData is not None:
-            warning = warningData.forceActuatorFlags[self.selectedActuatorZIndex] != 0
-        QTHelpers.setWarningLabel(self.selectedActuatorWarningLabel, warning)
+
+        self.selectedActuatorIdLabel.setText(str(s.id))
+        self.selectedActuatorValueLabel.setText(str(s.data))
+        QTHelpers.setWarningLabel(self.selectedActuatorWarningLabel, s.warning)
 
     def updateLastUpdated(self):
         topicIndex = self.topicList.currentRow()
@@ -389,7 +373,7 @@ class ForceActuatorGraphPageWidget(QWidget):
             return
         topic = self.topics[topicIndex]
         topicData = topic.Data.get()
-        if topicData == None:
+        if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
             return
         self.lastUpdatedLabel.setText("%0.1fs" % topic.Data.getTimeSinceLastUpdate())
