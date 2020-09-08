@@ -117,9 +117,15 @@ class Actuator(QGraphicsItem):
 
     @property
     def warning(self):
-        """If actuator is in warning state (`boolean`).
+        """If actuator is in warning state (`bool`).
         """
         return self._state == self.STATE_WARNING
+
+    @property
+    def active(self):
+        """If actuator is active (`bool`).
+        """
+        return not (self._state == self.STATE_INACTIVE)
 
     def setRange(self, min, max):
         """Set actuator range. This is used for setting display color.

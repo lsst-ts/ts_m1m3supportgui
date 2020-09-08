@@ -123,7 +123,7 @@ class MirrorView(QGraphicsView):
         """
         self._mirror.updateActuator(id, data, state)
         if self._selectedId == id:
-            self.selectionChanged.emit(self.selected)
+            self.selectionChanged.emit(self.selected if self.selected.active else None)
 
     def mousePressEvent(self, event):
         self.selected = self.itemAt(event.pos())
