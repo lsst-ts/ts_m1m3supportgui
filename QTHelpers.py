@@ -37,16 +37,3 @@ def setBoolLabelOpenClosed(label, value):
 
 def setBoolLabelYesNo(label, value):
     setBoolLabel(label, "YES", "NO", value)
-
-def getGradientColor(lowest, highest, value):
-    # Lowest = Blue
-    # Highest = Red
-    if value > highest:
-        value = highest
-    elif value < lowest:
-        value = lowest
-    range = highest - lowest
-    percentage = 1.0
-    if range != 0:
-        percentage = (-(value - lowest) / range) + 1
-    return pg.intColor(int(percentage * 179.0), 255)
