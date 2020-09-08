@@ -183,11 +183,11 @@ class Actuator(QGraphicsItem):
         # draw actuator, write value
         painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
 
+        painter.setPen(Qt.black)
+
         font = painter.font()
         font.setPixelSize(6.5 * self._scale)
-        font.setBold(True)
-
-        painter.setPen(Qt.black)
+        font.setItalic(True)
         painter.setFont(font)
         painter.drawText(
             self._center.x() - 10 * self._scale,
@@ -198,6 +198,9 @@ class Actuator(QGraphicsItem):
             str(self.id),
         )
 
+        font.setItalic(False)
+        font.setBold(True)
+        painter.setFont(font)
         # draw value
         painter.drawText(
             self._center.x() - 10 * self._scale,
