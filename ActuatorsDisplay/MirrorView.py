@@ -21,19 +21,19 @@
 
 from PySide2.QtCore import Signal
 from PySide2.QtWidgets import QGraphicsView
-from . import Mirror
+from . import Mirror, Actuator
 
 
 class MirrorView(QGraphicsView):
     """View on mirror populated by actuators.
     """
 
-    selectionChanged = Signal(object)
+    selectionChanged = Signal(Actuator)
     """Signal raised when another actuator is selected by a mouse click.
 
     Parameters
     ----------
-    object
+    Actuator
         Selected actuator.
     """
 

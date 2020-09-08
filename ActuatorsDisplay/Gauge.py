@@ -25,7 +25,7 @@ from PySide2.QtWidgets import QWidget
 
 
 class Gauge(QWidget):
-    """Draws guage with color scale.
+    """Draws gauge with color scale.
     """
 
     def __init__(self):
@@ -50,12 +50,12 @@ class Gauge(QWidget):
         self.update()
 
     def sizeHint(self):
-        """Overloaded method.
+        """Overridden method.
         """
         return QSize(100, 100)
 
     def paintEvent(self, event):
-        """Overloaded method. Paint gauge as serie of lines, and adds text labels.
+        """Overridden method. Paint gauge as series of lines, and adds text labels.
         """
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)

@@ -135,7 +135,7 @@ class Actuator(QGraphicsItem):
         self.update()
 
     def boundingRect(self):
-        """Returns rectangle occupied by drawing. Overloaded method.
+        """Returns rectangle occupied by drawing. Overridden method.
         """
         return QRect(
             self._center.x() - 10 * self._scale,
@@ -145,7 +145,7 @@ class Actuator(QGraphicsItem):
         )
 
     def paint(self, painter, option, widget):
-        """Paint actuator. Overloaded method.
+        """Paint actuator. Overridden method.
         """
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         # paint grayed circle for actuators not providing the selected value
@@ -153,7 +153,7 @@ class Actuator(QGraphicsItem):
             painter.setPen(QPen(Qt.gray, 2 * self._scale, Qt.DotLine))
             painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
             return
-        # draw recatnagle around selected actuator
+        # draw rectangle around selected actuator
         if self._selected:
             painter.setPen(QPen(Qt.black, 2 * self._scale))
             painter.drawRect(self.boundingRect())
