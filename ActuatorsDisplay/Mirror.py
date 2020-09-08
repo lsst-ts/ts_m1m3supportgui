@@ -29,8 +29,8 @@ class Mirror(QGraphicsScene):
     """Graphics scene containing plot of the mirror surface with actuators.
 
     Actuator list is cleared with clear() method (inherited from
-    QGraphicsScene). Actuators are added with addActuator() method.
-    Actuators data should be updated with updateActuator() call.
+    QGraphicsScene). Actuators are added with addActuator() method. Actuator
+    data should be updated with updateActuator() call.
     """
 
     def __init__(self):
