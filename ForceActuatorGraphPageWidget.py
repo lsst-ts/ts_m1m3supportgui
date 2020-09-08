@@ -325,7 +325,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         fieldGetter = field[1]
         fieldDataIndex = field[2]()
         topicData = topic.Data.get()
-        if topicData == None:
+        if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
             return
         data = fieldGetter(topicData)
@@ -368,7 +368,7 @@ class ForceActuatorGraphPageWidget(QWidget):
             return
         topic = self.topics[topicIndex]
         topicData = topic.Data.get()
-        if topicData == None:
+        if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
             return
         self.lastUpdatedLabel.setText("%0.1fs" % topic.Data.getTimeSinceLastUpdate())

@@ -417,7 +417,7 @@ class ForceActuatorValuePageWidget(QWidget):
         fieldGetter = field[1]
         fieldDataIndex = field[2]()
         topicData = topic.Data.get()
-        if topicData == None:
+        if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
             for label in self.forceActuatorLabels:
                 label.setText("UNKNOWN")
@@ -446,7 +446,7 @@ class ForceActuatorValuePageWidget(QWidget):
             return
         topic = self.topics[topicIndex]
         topicData = topic.Data.get()
-        if topicData == None:
+        if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
             return
         self.lastUpdatedLabel.setText("%0.1fs" % topic.Data.getTimeSinceLastUpdate())
