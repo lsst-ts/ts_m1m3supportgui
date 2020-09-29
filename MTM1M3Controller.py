@@ -92,18 +92,18 @@ class MTM1M3Controller:
         self.sal.salEventPub("MTM1M3_logevent_pidInfo")
         self.sal.salEventPub("MTM1M3_logevent_powerStatus")
         self.sal.salEventPub("MTM1M3_logevent_powerWarning")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedAberrationForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedAccelerationForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedActiveOpticForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedAzimuthForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedBalanceForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedCylinderForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedElevationForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedOffsetForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedStaticForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedThermalForces")
-        self.sal.salEventPub("MTM1M3_logevent_rejectedVelocityForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedAberrationForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedAccelerationForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedActiveOpticForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedAzimuthForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedBalanceForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedCylinderForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedElevationForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedOffsetForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedStaticForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedThermalForces")
+        self.sal.salEventPub("MTM1M3_logevent_preclippedVelocityForces")
 
         self.sal.salTelemetryPub("MTM1M3_accelerometerData")
         self.sal.salTelemetryPub("MTM1M3_forceActuatorData")
@@ -1296,8 +1296,8 @@ class MTM1M3Controller:
 
         return self.sal.logEvent_powerWarning(data, priority)
 
-    def logEvent_rejectedAberrationForces(self, zForces, fZ, mX, mY, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedAberrationForcesC()
+    def logEvent_preclippedAberrationForces(self, zForces, fZ, mX, mY, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedAberrationForcesC()
         for i in range(156):
             data.zForces[i] = zForces[i]
         data.fZ = fZ
@@ -1305,10 +1305,10 @@ class MTM1M3Controller:
         data.mY = mY
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedAberrationForces(data, priority)
+        return self.sal.logEvent_preclippedAberrationForces(data, priority)
 
-    def logEvent_rejectedAccelerationForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedAccelerationForcesC()
+    def logEvent_preclippedAccelerationForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedAccelerationForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1323,10 +1323,10 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedAccelerationForces(data, priority)
+        return self.sal.logEvent_preclippedAccelerationForces(data, priority)
 
-    def logEvent_rejectedActiveOpticForces(self, zForces, fZ, mX, mY, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedActiveOpticForcesC()
+    def logEvent_preclippedActiveOpticForces(self, zForces, fZ, mX, mY, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedActiveOpticForcesC()
         for i in range(156):
             data.zForces[i] = zForces[i]
         data.fZ = fZ
@@ -1334,10 +1334,10 @@ class MTM1M3Controller:
         data.mY = mY
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedActiveOpticForces(data, priority)
+        return self.sal.logEvent_preclippedActiveOpticForces(data, priority)
 
-    def logEvent_rejectedAzimuthForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedAzimuthForcesC()
+    def logEvent_preclippedAzimuthForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedAzimuthForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1352,10 +1352,10 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedAzimuthForces(data, priority)
+        return self.sal.logEvent_preclippedAzimuthForces(data, priority)
 
-    def logEvent_rejectedBalanceForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedBalanceForcesC()
+    def logEvent_preclippedBalanceForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedBalanceForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1370,19 +1370,19 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedBalanceForces(data, priority)
+        return self.sal.logEvent_preclippedBalanceForces(data, priority)
 
-    def logEvent_rejectedCylinderForces(self, secondaryCylinderForces, primaryCylinderForces, priority = 0):
-        data = MTM1M3_logevent_rejectedCylinderForcesC()
+    def logEvent_preclippedCylinderForces(self, secondaryCylinderForces, primaryCylinderForces, priority = 0):
+        data = MTM1M3_logevent_preclippedCylinderForcesC()
         for i in range(112):
             data.secondaryCylinderForces[i] = secondaryCylinderForces[i]
         for i in range(156):
             data.primaryCylinderForces[i] = primaryCylinderForces[i]
 
-        return self.sal.logEvent_rejectedCylinderForces(data, priority)
+        return self.sal.logEvent_preclippedCylinderForces(data, priority)
 
-    def logEvent_rejectedElevationForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedElevationForcesC()
+    def logEvent_preclippedElevationForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedElevationForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1397,10 +1397,10 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedElevationForces(data, priority)
+        return self.sal.logEvent_preclippedElevationForces(data, priority)
 
-    def logEvent_rejectedForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedForcesC()
+    def logEvent_preclippedForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1415,10 +1415,10 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedForces(data, priority)
+        return self.sal.logEvent_preclippedForces(data, priority)
 
-    def logEvent_rejectedOffsetForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedOffsetForcesC()
+    def logEvent_preclippedOffsetForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedOffsetForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1433,10 +1433,10 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedOffsetForces(data, priority)
+        return self.sal.logEvent_preclippedOffsetForces(data, priority)
 
-    def logEvent_rejectedStaticForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedStaticForcesC()
+    def logEvent_preclippedStaticForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedStaticForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1451,10 +1451,10 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedStaticForces(data, priority)
+        return self.sal.logEvent_preclippedStaticForces(data, priority)
 
-    def logEvent_rejectedThermalForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedThermalForcesC()
+    def logEvent_preclippedThermalForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedThermalForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1469,10 +1469,10 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedThermalForces(data, priority)
+        return self.sal.logEvent_preclippedThermalForces(data, priority)
 
-    def logEvent_rejectedVelocityForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
-        data = MTM1M3_logevent_rejectedVelocityForcesC()
+    def logEvent_preclippedVelocityForces(self, xForces, yForces, zForces, fX, fY, fZ, mX, mY, mZ, forceMagnitude, priority = 0):
+        data = MTM1M3_logevent_preclippedVelocityForcesC()
         for i in range(12):
             data.xForces[i] = xForces[i]
         for i in range(100):
@@ -1487,7 +1487,7 @@ class MTM1M3Controller:
         data.mZ = mZ
         data.forceMagnitude = forceMagnitude
 
-        return self.sal.logEvent_rejectedVelocityForces(data, priority)
+        return self.sal.logEvent_preclippedVelocityForces(data, priority)
 
 
 
