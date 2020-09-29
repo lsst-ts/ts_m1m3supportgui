@@ -87,18 +87,18 @@ class MTM1M3Remote:
         self.sal.salEventSub("MTM1M3_logevent_pidInfo")
         self.sal.salEventSub("MTM1M3_logevent_powerStatus")
         self.sal.salEventSub("MTM1M3_logevent_powerWarning")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedAberrationForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedAccelerationForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedActiveOpticForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedAzimuthForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedBalanceForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedCylinderForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedElevationForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedOffsetForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedStaticForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedThermalForces")
-        self.sal.salEventSub("MTM1M3_logevent_rejectedVelocityForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedAberrationForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedAccelerationForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedActiveOpticForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedAzimuthForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedBalanceForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedCylinderForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedElevationForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedOffsetForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedStaticForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedThermalForces")
+        self.sal.salEventSub("MTM1M3_logevent_preclippedVelocityForces")
         self.sal.salEventSub("MTM1M3_logevent_summaryState")
 
         self.sal.salTelemetrySub("MTM1M3_accelerometerData")
@@ -155,18 +155,18 @@ class MTM1M3Remote:
         self.eventSubscribers_pidInfo = []
         self.eventSubscribers_powerStatus = []
         self.eventSubscribers_powerWarning = []
-        self.eventSubscribers_rejectedAberrationForces = []
-        self.eventSubscribers_rejectedAccelerationForces = []
-        self.eventSubscribers_rejectedActiveOpticForces = []
-        self.eventSubscribers_rejectedAzimuthForces = []
-        self.eventSubscribers_rejectedBalanceForces = []
-        self.eventSubscribers_rejectedCylinderForces = []
-        self.eventSubscribers_rejectedElevationForces = []
-        self.eventSubscribers_rejectedForces = []
-        self.eventSubscribers_rejectedOffsetForces = []
-        self.eventSubscribers_rejectedStaticForces = []
-        self.eventSubscribers_rejectedThermalForces = []
-        self.eventSubscribers_rejectedVelocityForces = []
+        self.eventSubscribers_preclippedAberrationForces = []
+        self.eventSubscribers_preclippedAccelerationForces = []
+        self.eventSubscribers_preclippedActiveOpticForces = []
+        self.eventSubscribers_preclippedAzimuthForces = []
+        self.eventSubscribers_preclippedBalanceForces = []
+        self.eventSubscribers_preclippedCylinderForces = []
+        self.eventSubscribers_preclippedElevationForces = []
+        self.eventSubscribers_preclippedForces = []
+        self.eventSubscribers_preclippedOffsetForces = []
+        self.eventSubscribers_preclippedStaticForces = []
+        self.eventSubscribers_preclippedThermalForces = []
+        self.eventSubscribers_preclippedVelocityForces = []
 
         self.telemetrySubscribers_accelerometerData = []
         self.telemetrySubscribers_forceActuatorData = []
@@ -1755,161 +1755,161 @@ class MTM1M3Remote:
         if "event_powerWarning" not in self.topicsSubscribedToo:
             self.topicsSubscribedToo["event_powerWarning"] = [self.getNextEvent_powerWarning, self.eventSubscribers_powerWarning]
 
-    def getNextEvent_rejectedAberrationForces(self):
-        data = MTM1M3_logevent_rejectedAberrationForcesC()
-        result = self.sal.getEvent_rejectedAberrationForces(data)
+    def getNextEvent_preclippedAberrationForces(self):
+        data = MTM1M3_logevent_preclippedAberrationForcesC()
+        result = self.sal.getEvent_preclippedAberrationForces(data)
         return result, data
         
-    def getEvent_rejectedAberrationForces(self):
-        return self.getEvent(self.getNextEvent_rejectedAberrationForces)
+    def getEvent_preclippedAberrationForces(self):
+        return self.getEvent(self.getNextEvent_preclippedAberrationForces)
         
-    def subscribeEvent_rejectedAberrationForces(self, action):
-        self.eventSubscribers_rejectedAberrationForces.append(action)
-        if "event_rejectedAberrationForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedAberrationForces"] = [self.getNextEvent_rejectedAberrationForces, self.eventSubscribers_rejectedAberrationForces]
+    def subscribeEvent_preclippedAberrationForces(self, action):
+        self.eventSubscribers_preclippedAberrationForces.append(action)
+        if "event_preclippedAberrationForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedAberrationForces"] = [self.getNextEvent_preclippedAberrationForces, self.eventSubscribers_preclippedAberrationForces]
 
-    def getNextEvent_rejectedAccelerationForces(self):
-        data = MTM1M3_logevent_rejectedAccelerationForcesC()
-        result = self.sal.getEvent_rejectedAccelerationForces(data)
+    def getNextEvent_preclippedAccelerationForces(self):
+        data = MTM1M3_logevent_preclippedAccelerationForcesC()
+        result = self.sal.getEvent_preclippedAccelerationForces(data)
         return result, data
         
-    def getEvent_rejectedAccelerationForces(self):
-        return self.getEvent(self.getNextEvent_rejectedAccelerationForces)
+    def getEvent_preclippedAccelerationForces(self):
+        return self.getEvent(self.getNextEvent_preclippedAccelerationForces)
         
-    def subscribeEvent_rejectedAccelerationForces(self, action):
-        self.eventSubscribers_rejectedAccelerationForces.append(action)
-        if "event_rejectedAccelerationForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedAccelerationForces"] = [self.getNextEvent_rejectedAccelerationForces, self.eventSubscribers_rejectedAccelerationForces]
+    def subscribeEvent_preclippedAccelerationForces(self, action):
+        self.eventSubscribers_preclippedAccelerationForces.append(action)
+        if "event_preclippedAccelerationForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedAccelerationForces"] = [self.getNextEvent_preclippedAccelerationForces, self.eventSubscribers_preclippedAccelerationForces]
 
-    def getNextEvent_rejectedActiveOpticForces(self):
-        data = MTM1M3_logevent_rejectedActiveOpticForcesC()
-        result = self.sal.getEvent_rejectedActiveOpticForces(data)
+    def getNextEvent_preclippedActiveOpticForces(self):
+        data = MTM1M3_logevent_preclippedActiveOpticForcesC()
+        result = self.sal.getEvent_preclippedActiveOpticForces(data)
         return result, data
         
-    def getEvent_rejectedActiveOpticForces(self):
-        return self.getEvent(self.getNextEvent_rejectedActiveOpticForces)
+    def getEvent_preclippedActiveOpticForces(self):
+        return self.getEvent(self.getNextEvent_preclippedActiveOpticForces)
         
-    def subscribeEvent_rejectedActiveOpticForces(self, action):
-        self.eventSubscribers_rejectedActiveOpticForces.append(action)
-        if "event_rejectedActiveOpticForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedActiveOpticForces"] = [self.getNextEvent_rejectedActiveOpticForces, self.eventSubscribers_rejectedActiveOpticForces]
+    def subscribeEvent_preclippedActiveOpticForces(self, action):
+        self.eventSubscribers_preclippedActiveOpticForces.append(action)
+        if "event_preclippedActiveOpticForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedActiveOpticForces"] = [self.getNextEvent_preclippedActiveOpticForces, self.eventSubscribers_preclippedActiveOpticForces]
 
-    def getNextEvent_rejectedAzimuthForces(self):
-        data = MTM1M3_logevent_rejectedAzimuthForcesC()
-        result = self.sal.getEvent_rejectedAzimuthForces(data)
+    def getNextEvent_preclippedAzimuthForces(self):
+        data = MTM1M3_logevent_preclippedAzimuthForcesC()
+        result = self.sal.getEvent_preclippedAzimuthForces(data)
         return result, data
         
-    def getEvent_rejectedAzimuthForces(self):
-        return self.getEvent(self.getNextEvent_rejectedAzimuthForces)
+    def getEvent_preclippedAzimuthForces(self):
+        return self.getEvent(self.getNextEvent_preclippedAzimuthForces)
         
-    def subscribeEvent_rejectedAzimuthForces(self, action):
-        self.eventSubscribers_rejectedAzimuthForces.append(action)
-        if "event_rejectedAzimuthForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedAzimuthForces"] = [self.getNextEvent_rejectedAzimuthForces, self.eventSubscribers_rejectedAzimuthForces]
+    def subscribeEvent_preclippedAzimuthForces(self, action):
+        self.eventSubscribers_preclippedAzimuthForces.append(action)
+        if "event_preclippedAzimuthForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedAzimuthForces"] = [self.getNextEvent_preclippedAzimuthForces, self.eventSubscribers_preclippedAzimuthForces]
 
-    def getNextEvent_rejectedBalanceForces(self):
-        data = MTM1M3_logevent_rejectedBalanceForcesC()
-        result = self.sal.getEvent_rejectedBalanceForces(data)
+    def getNextEvent_preclippedBalanceForces(self):
+        data = MTM1M3_logevent_preclippedBalanceForcesC()
+        result = self.sal.getEvent_preclippedBalanceForces(data)
         return result, data
         
-    def getEvent_rejectedBalanceForces(self):
-        return self.getEvent(self.getNextEvent_rejectedBalanceForces)
+    def getEvent_preclippedBalanceForces(self):
+        return self.getEvent(self.getNextEvent_preclippedBalanceForces)
         
-    def subscribeEvent_rejectedBalanceForces(self, action):
-        self.eventSubscribers_rejectedBalanceForces.append(action)
-        if "event_rejectedBalanceForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedBalanceForces"] = [self.getNextEvent_rejectedBalanceForces, self.eventSubscribers_rejectedBalanceForces]
+    def subscribeEvent_preclippedBalanceForces(self, action):
+        self.eventSubscribers_preclippedBalanceForces.append(action)
+        if "event_preclippedBalanceForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedBalanceForces"] = [self.getNextEvent_preclippedBalanceForces, self.eventSubscribers_preclippedBalanceForces]
 
-    def getNextEvent_rejectedCylinderForces(self):
-        data = MTM1M3_logevent_rejectedCylinderForcesC()
-        result = self.sal.getEvent_rejectedCylinderForces(data)
+    def getNextEvent_preclippedCylinderForces(self):
+        data = MTM1M3_logevent_preclippedCylinderForcesC()
+        result = self.sal.getEvent_preclippedCylinderForces(data)
         return result, data
         
-    def getEvent_rejectedCylinderForces(self):
-        return self.getEvent(self.getNextEvent_rejectedCylinderForces)
+    def getEvent_preclippedCylinderForces(self):
+        return self.getEvent(self.getNextEvent_preclippedCylinderForces)
         
-    def subscribeEvent_rejectedCylinderForces(self, action):
-        self.eventSubscribers_rejectedCylinderForces.append(action)
-        if "event_rejectedCylinderForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedCylinderForces"] = [self.getNextEvent_rejectedCylinderForces, self.eventSubscribers_rejectedCylinderForces]
+    def subscribeEvent_preclippedCylinderForces(self, action):
+        self.eventSubscribers_preclippedCylinderForces.append(action)
+        if "event_preclippedCylinderForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedCylinderForces"] = [self.getNextEvent_preclippedCylinderForces, self.eventSubscribers_preclippedCylinderForces]
 
-    def getNextEvent_rejectedElevationForces(self):
-        data = MTM1M3_logevent_rejectedElevationForcesC()
-        result = self.sal.getEvent_rejectedElevationForces(data)
+    def getNextEvent_preclippedElevationForces(self):
+        data = MTM1M3_logevent_preclippedElevationForcesC()
+        result = self.sal.getEvent_preclippedElevationForces(data)
         return result, data
         
-    def getEvent_rejectedElevationForces(self):
-        return self.getEvent(self.getNextEvent_rejectedElevationForces)
+    def getEvent_preclippedElevationForces(self):
+        return self.getEvent(self.getNextEvent_preclippedElevationForces)
         
-    def subscribeEvent_rejectedElevationForces(self, action):
-        self.eventSubscribers_rejectedElevationForces.append(action)
-        if "event_rejectedElevationForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedElevationForces"] = [self.getNextEvent_rejectedElevationForces, self.eventSubscribers_rejectedElevationForces]
+    def subscribeEvent_preclippedElevationForces(self, action):
+        self.eventSubscribers_preclippedElevationForces.append(action)
+        if "event_preclippedElevationForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedElevationForces"] = [self.getNextEvent_preclippedElevationForces, self.eventSubscribers_preclippedElevationForces]
 
-    def getNextEvent_rejectedForces(self):
-        data = MTM1M3_logevent_rejectedForcesC()
-        result = self.sal.getEvent_rejectedForces(data)
+    def getNextEvent_preclippedForces(self):
+        data = MTM1M3_logevent_preclippedForcesC()
+        result = self.sal.getEvent_preclippedForces(data)
         return result, data
         
-    def getEvent_rejectedForces(self):
-        return self.getEvent(self.getNextEvent_rejectedForces)
+    def getEvent_preclippedForces(self):
+        return self.getEvent(self.getNextEvent_preclippedForces)
         
-    def subscribeEvent_rejectedForces(self, action):
-        self.eventSubscribers_rejectedForces.append(action)
-        if "event_rejectedForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedForces"] = [self.getNextEvent_rejectedForces, self.eventSubscribers_rejectedForces]
+    def subscribeEvent_preclippedForces(self, action):
+        self.eventSubscribers_preclippedForces.append(action)
+        if "event_preclippedForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedForces"] = [self.getNextEvent_preclippedForces, self.eventSubscribers_preclippedForces]
 
-    def getNextEvent_rejectedOffsetForces(self):
-        data = MTM1M3_logevent_rejectedOffsetForcesC()
-        result = self.sal.getEvent_rejectedOffsetForces(data)
+    def getNextEvent_preclippedOffsetForces(self):
+        data = MTM1M3_logevent_preclippedOffsetForcesC()
+        result = self.sal.getEvent_preclippedOffsetForces(data)
         return result, data
         
-    def getEvent_rejectedOffsetForces(self):
-        return self.getEvent(self.getNextEvent_rejectedOffsetForces)
+    def getEvent_preclippedOffsetForces(self):
+        return self.getEvent(self.getNextEvent_preclippedOffsetForces)
         
-    def subscribeEvent_rejectedOffsetForces(self, action):
-        self.eventSubscribers_rejectedOffsetForces.append(action)
-        if "event_rejectedOffsetForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedOffsetForces"] = [self.getNextEvent_rejectedOffsetForces, self.eventSubscribers_rejectedOffsetForces]
+    def subscribeEvent_preclippedOffsetForces(self, action):
+        self.eventSubscribers_preclippedOffsetForces.append(action)
+        if "event_preclippedOffsetForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedOffsetForces"] = [self.getNextEvent_preclippedOffsetForces, self.eventSubscribers_preclippedOffsetForces]
 
-    def getNextEvent_rejectedStaticForces(self):
-        data = MTM1M3_logevent_rejectedStaticForcesC()
-        result = self.sal.getEvent_rejectedStaticForces(data)
+    def getNextEvent_preclippedStaticForces(self):
+        data = MTM1M3_logevent_preclippedStaticForcesC()
+        result = self.sal.getEvent_preclippedStaticForces(data)
         return result, data
         
-    def getEvent_rejectedStaticForces(self):
-        return self.getEvent(self.getNextEvent_rejectedStaticForces)
+    def getEvent_preclippedStaticForces(self):
+        return self.getEvent(self.getNextEvent_preclippedStaticForces)
         
-    def subscribeEvent_rejectedStaticForces(self, action):
-        self.eventSubscribers_rejectedStaticForces.append(action)
-        if "event_rejectedStaticForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedStaticForces"] = [self.getNextEvent_rejectedStaticForces, self.eventSubscribers_rejectedStaticForces]
+    def subscribeEvent_preclippedStaticForces(self, action):
+        self.eventSubscribers_preclippedStaticForces.append(action)
+        if "event_preclippedStaticForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedStaticForces"] = [self.getNextEvent_preclippedStaticForces, self.eventSubscribers_preclippedStaticForces]
 
-    def getNextEvent_rejectedThermalForces(self):
-        data = MTM1M3_logevent_rejectedThermalForcesC()
-        result = self.sal.getEvent_rejectedThermalForces(data)
+    def getNextEvent_preclippedThermalForces(self):
+        data = MTM1M3_logevent_preclippedThermalForcesC()
+        result = self.sal.getEvent_preclippedThermalForces(data)
         return result, data
         
-    def getEvent_rejectedThermalForces(self):
-        return self.getEvent(self.getNextEvent_rejectedThermalForces)
+    def getEvent_preclippedThermalForces(self):
+        return self.getEvent(self.getNextEvent_preclippedThermalForces)
         
-    def subscribeEvent_rejectedThermalForces(self, action):
-        self.eventSubscribers_rejectedThermalForces.append(action)
-        if "event_rejectedThermalForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedThermalForces"] = [self.getNextEvent_rejectedThermalForces, self.eventSubscribers_rejectedThermalForces]
+    def subscribeEvent_preclippedThermalForces(self, action):
+        self.eventSubscribers_preclippedThermalForces.append(action)
+        if "event_preclippedThermalForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedThermalForces"] = [self.getNextEvent_preclippedThermalForces, self.eventSubscribers_preclippedThermalForces]
 
-    def getNextEvent_rejectedVelocityForces(self):
-        data = MTM1M3_logevent_rejectedVelocityForcesC()
-        result = self.sal.getEvent_rejectedVelocityForces(data)
+    def getNextEvent_preclippedVelocityForces(self):
+        data = MTM1M3_logevent_preclippedVelocityForcesC()
+        result = self.sal.getEvent_preclippedVelocityForces(data)
         return result, data
         
-    def getEvent_rejectedVelocityForces(self):
-        return self.getEvent(self.getNextEvent_rejectedVelocityForces)
+    def getEvent_preclippedVelocityForces(self):
+        return self.getEvent(self.getNextEvent_preclippedVelocityForces)
         
-    def subscribeEvent_rejectedVelocityForces(self, action):
-        self.eventSubscribers_rejectedVelocityForces.append(action)
-        if "event_rejectedVelocityForces" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["event_rejectedVelocityForces"] = [self.getNextEvent_rejectedVelocityForces, self.eventSubscribers_rejectedVelocityForces]
+    def subscribeEvent_preclippedVelocityForces(self, action):
+        self.eventSubscribers_preclippedVelocityForces.append(action)
+        if "event_preclippedVelocityForces" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["event_preclippedVelocityForces"] = [self.getNextEvent_preclippedVelocityForces, self.eventSubscribers_preclippedVelocityForces]
 
 
 

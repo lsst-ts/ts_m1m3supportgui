@@ -43,18 +43,18 @@ class ForceActuatorValuePageWidget(QWidget):
             TopicData("Applied Static Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
             TopicData("Applied Thermal Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
             TopicData("Applied Velocity Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Aberration Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]]),
-            TopicData("Rejected Acceleration Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Active Optic Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]]),
-            TopicData("Rejected Azimuth Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Balance Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Cylinder Forces", [["Primary Cylinder Forces", lambda x: [i / 1000.0 for i in x.primaryCylinderForces], lambda: FATABLE_ZINDEX], ["Secondary Cylinder Forces", lambda x: [i / 1000.0 for i in x.secondaryCylinderForces], lambda: FATABLE_SINDEX]]),
-            TopicData("Rejected Elevation Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Offset Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Static Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Thermal Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
-            TopicData("Rejected Velocity Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Aberration Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]]),
+            TopicData("Pre-clipped Acceleration Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Active Optic Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]]),
+            TopicData("Pre-clipped Azimuth Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Balance Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Cylinder Forces", [["Primary Cylinder Forces", lambda x: [i / 1000.0 for i in x.primaryCylinderForces], lambda: FATABLE_ZINDEX], ["Secondary Cylinder Forces", lambda x: [i / 1000.0 for i in x.secondaryCylinderForces], lambda: FATABLE_SINDEX]]),
+            TopicData("Pre-clipped Elevation Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Offset Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Static Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Thermal Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
+            TopicData("Pre-clipped Velocity Forces", [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX], ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX], ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX]]),
             TopicData("Force Actuator Backup Calibration Info", [["Primary Coefficient", lambda x: x.primaryCoefficient, lambda: FATABLE_ZINDEX], ["Primary Offset", lambda x: x.primaryOffset, lambda: FATABLE_ZINDEX], ["Primary Sensitivity", lambda x: x.primarySensitivity, lambda: FATABLE_ZINDEX], ["Secondary Coefficient", lambda x: x.secondaryCoefficient, lambda: FATABLE_SINDEX], ["Secondary Offset", lambda x: x.secondaryOffset, lambda: FATABLE_SINDEX], ["Secondary Sensitivity", lambda x: x.secondarySensitivity, lambda: FATABLE_SINDEX]]),
             TopicData("Force Actuator Info", [["Subnet", lambda x: x.modbusSubnet, lambda: FATABLE_ZINDEX], ["Address", lambda x: x.modbusAddress, lambda: FATABLE_ZINDEX], ["ILC Status", lambda x: x.ilcStatus, lambda: FATABLE_ZINDEX], ["Mezzanine Status", lambda x: x.mezzanineStatus, lambda: FATABLE_ZINDEX],["Actuator Type", lambda x: x.actuatorType, lambda: FATABLE_ZINDEX], ["Actuator Orientation", lambda x: x.actuatorOrientation, lambda: FATABLE_ZINDEX], ["X Position", lambda x: x.xPosition, lambda: FATABLE_ZINDEX], ["Y Position", lambda x: x.yPosition, lambda: FATABLE_ZINDEX], ["Z Position", lambda x: x.zPosition, lambda: FATABLE_ZINDEX]]),
             TopicData("Force Actuator Id Info", [["X Data Reference Id", lambda x: x.xDataReferenceId, lambda: FATABLE_XINDEX], ["Y Data Reference Id", lambda x: x.yDataReferenceId, lambda: FATABLE_YINDEX], ["Z Data Reference Id", lambda x: x.zDataReferenceId, lambda: FATABLE_ZINDEX], ["S Data Reference Id", lambda x: x.sDataReferenceId, lambda: FATABLE_SINDEX], ["ILC Unique Id", lambda x: x.ilcUniqueId, lambda: FATABLE_ZINDEX], ["Mezzanine Unique Id", lambda x: x.xDataReferenceId, lambda: FATABLE_ZINDEX]]),
@@ -213,18 +213,18 @@ class ForceActuatorValuePageWidget(QWidget):
         self.dataEventForceActuatorInfo = DataCache()
         self.dataEventForceActuatorState = DataCache()
         self.dataEventForceActuatorWarning = DataCache()
-        self.dataEventRejectedAberrationForces = DataCache()
-        self.dataEventRejectedAccelerationForces = DataCache()
-        self.dataEventRejectedActiveOpticForces = DataCache()
-        self.dataEventRejectedAzimuthForces = DataCache()
-        self.dataEventRejectedBalanceForces = DataCache()
-        self.dataEventRejectedCylinderForces = DataCache()
-        self.dataEventRejectedElevationForces = DataCache()
-        self.dataEventRejectedForces = DataCache()
-        self.dataEventRejectedOffsetForces = DataCache()
-        self.dataEventRejectedStaticForces = DataCache()
-        self.dataEventRejectedThermalForces = DataCache()
-        self.dataEventRejectedVelocityForces = DataCache()
+        self.dataEventPreclippedAberrationForces = DataCache()
+        self.dataEventPreclippedAccelerationForces = DataCache()
+        self.dataEventPreclippedActiveOpticForces = DataCache()
+        self.dataEventPreclippedAzimuthForces = DataCache()
+        self.dataEventPreclippedBalanceForces = DataCache()
+        self.dataEventPreclippedCylinderForces = DataCache()
+        self.dataEventPreclippedElevationForces = DataCache()
+        self.dataEventPreclippedForces = DataCache()
+        self.dataEventPreclippedOffsetForces = DataCache()
+        self.dataEventPreclippedStaticForces = DataCache()
+        self.dataEventPreclippedThermalForces = DataCache()
+        self.dataEventPreclippedVelocityForces = DataCache()
 
         self.setTopicData("Applied Aberration Forces", self.dataEventAppliedAberrationForces)
         self.setTopicData("Applied Acceleration Forces", self.dataEventAppliedAccelerationForces)
@@ -241,18 +241,18 @@ class ForceActuatorValuePageWidget(QWidget):
         self.setTopicData("Force Actuator Info", self.dataEventForceActuatorInfo)
         self.setTopicData("Force Actuator State", self.dataEventForceActuatorState)
         self.setTopicData("Force Actuator Warning", self.dataEventForceActuatorWarning)
-        self.setTopicData("Rejected Aberration Forces", self.dataEventRejectedAberrationForces)
-        self.setTopicData("Rejected Acceleration Forces", self.dataEventRejectedAccelerationForces)
-        self.setTopicData("Rejected Active Optic Forces", self.dataEventRejectedActiveOpticForces)
-        self.setTopicData("Rejected Azimuth Forces", self.dataEventRejectedAzimuthForces)
-        self.setTopicData("Rejected Balance Forces", self.dataEventRejectedBalanceForces)
-        self.setTopicData("Rejected Cylinder Forces", self.dataEventRejectedCylinderForces)
-        self.setTopicData("Rejected Elevation Forces", self.dataEventRejectedElevationForces)
-        self.setTopicData("Rejected Forces", self.dataEventRejectedForces)
-        self.setTopicData("Rejected Offset Forces", self.dataEventRejectedOffsetForces)
-        self.setTopicData("Rejected Static Forces", self.dataEventRejectedStaticForces)
-        self.setTopicData("Rejected Thermal Forces", self.dataEventRejectedThermalForces)
-        self.setTopicData("Rejected Velocity Forces", self.dataEventRejectedVelocityForces)
+        self.setTopicData("Pre-clipped Aberration Forces", self.dataEventPreclippedAberrationForces)
+        self.setTopicData("Pre-clipped Acceleration Forces", self.dataEventPreclippedAccelerationForces)
+        self.setTopicData("Pre-clipped Active Optic Forces", self.dataEventPreclippedActiveOpticForces)
+        self.setTopicData("Pre-clipped Azimuth Forces", self.dataEventPreclippedAzimuthForces)
+        self.setTopicData("Pre-clipped Balance Forces", self.dataEventPreclippedBalanceForces)
+        self.setTopicData("Pre-clipped Cylinder Forces", self.dataEventPreclippedCylinderForces)
+        self.setTopicData("Pre-clipped Elevation Forces", self.dataEventPreclippedElevationForces)
+        self.setTopicData("Pre-clipped Forces", self.dataEventPreclippedForces)
+        self.setTopicData("Pre-clipped Offset Forces", self.dataEventPreclippedOffsetForces)
+        self.setTopicData("Pre-clipped Static Forces", self.dataEventPreclippedStaticForces)
+        self.setTopicData("Pre-clipped Thermal Forces", self.dataEventPreclippedThermalForces)
+        self.setTopicData("Pre-clipped Velocity Forces", self.dataEventPreclippedVelocityForces)
 
         self.MTM1M3.subscribeEvent_appliedAberrationForces(self.processEventAppliedAberrationForces)
         self.MTM1M3.subscribeEvent_appliedAccelerationForces(self.processEventAppliedAccelerationForces)
@@ -271,18 +271,18 @@ class ForceActuatorValuePageWidget(QWidget):
         self.MTM1M3.subscribeEvent_forceActuatorState(self.processEventForceActuatorState)
         self.MTM1M3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
 
-        self.MTM1M3.subscribeEvent_rejectedAberrationForces(self.processEventRejectedAberrationForces)
-        self.MTM1M3.subscribeEvent_rejectedAccelerationForces(self.processEventRejectedAccelerationForces)
-        self.MTM1M3.subscribeEvent_rejectedActiveOpticForces(self.processEventRejectedActiveOpticForces)
-        self.MTM1M3.subscribeEvent_rejectedAzimuthForces(self.processEventRejectedAzimuthForces)
-        self.MTM1M3.subscribeEvent_rejectedBalanceForces(self.processEventRejectedBalanceForces)
-        self.MTM1M3.subscribeEvent_rejectedCylinderForces(self.processEventRejectedCylinderForces)
-        self.MTM1M3.subscribeEvent_rejectedElevationForces(self.processEventRejectedElevationForces)
-        self.MTM1M3.subscribeEvent_rejectedForces(self.processEventRejectedForces)
-        self.MTM1M3.subscribeEvent_rejectedOffsetForces(self.processEventRejectedOffsetForces)
-        self.MTM1M3.subscribeEvent_rejectedStaticForces(self.processEventRejectedStaticForces)
-        self.MTM1M3.subscribeEvent_rejectedThermalForces(self.processEventRejectedThermalForces)
-        self.MTM1M3.subscribeEvent_rejectedVelocityForces(self.processEventRejectedVelocityForces)
+        self.MTM1M3.subscribeEvent_preclippedAberrationForces(self.processEventPreclippedAberrationForces)
+        self.MTM1M3.subscribeEvent_preclippedAccelerationForces(self.processEventPreclippedAccelerationForces)
+        self.MTM1M3.subscribeEvent_preclippedActiveOpticForces(self.processEventPreclippedActiveOpticForces)
+        self.MTM1M3.subscribeEvent_preclippedAzimuthForces(self.processEventPreclippedAzimuthForces)
+        self.MTM1M3.subscribeEvent_preclippedBalanceForces(self.processEventPreclippedBalanceForces)
+        self.MTM1M3.subscribeEvent_preclippedCylinderForces(self.processEventPreclippedCylinderForces)
+        self.MTM1M3.subscribeEvent_preclippedElevationForces(self.processEventPreclippedElevationForces)
+        self.MTM1M3.subscribeEvent_preclippedForces(self.processEventPreclippedForces)
+        self.MTM1M3.subscribeEvent_preclippedOffsetForces(self.processEventPreclippedOffsetForces)
+        self.MTM1M3.subscribeEvent_preclippedStaticForces(self.processEventPreclippedStaticForces)
+        self.MTM1M3.subscribeEvent_preclippedThermalForces(self.processEventPreclippedThermalForces)
+        self.MTM1M3.subscribeEvent_preclippedVelocityForces(self.processEventPreclippedVelocityForces)
 
     def setPageActive(self, active):
         self.pageActive = active
@@ -345,41 +345,41 @@ class ForceActuatorValuePageWidget(QWidget):
     def processEventForceActuatorWarning(self, data):
         self.dataEventForceActuatorWarning.set(data[-1])
 
-    def processEventRejectedAberrationForces(self, data):
-        self.dataEventRejectedAberrationForces.set(data[-1])
+    def processEventPreclippedAberrationForces(self, data):
+        self.dataEventPreclippedAberrationForces.set(data[-1])
 
-    def processEventRejectedAccelerationForces(self, data):
-        self.dataEventRejectedAccelerationForces.set(data[-1])
+    def processEventPreclippedAccelerationForces(self, data):
+        self.dataEventPreclippedAccelerationForces.set(data[-1])
 
-    def processEventRejectedActiveOpticForces(self, data):
-        self.dataEventRejectedActiveOpticForces.set(data[-1])
+    def processEventPreclippedActiveOpticForces(self, data):
+        self.dataEventPreclippedActiveOpticForces.set(data[-1])
     
-    def processEventRejectedAzimuthForces(self, data):
-        self.dataEventRejectedAzimuthForces.set(data[-1])
+    def processEventPreclippedAzimuthForces(self, data):
+        self.dataEventPreclippedAzimuthForces.set(data[-1])
 
-    def processEventRejectedBalanceForces(self, data):
-        self.dataEventRejectedBalanceForces.set(data[-1])
+    def processEventPreclippedBalanceForces(self, data):
+        self.dataEventPreclippedBalanceForces.set(data[-1])
 
-    def processEventRejectedCylinderForces(self, data):
-        self.dataEventRejectedCylinderForces.set(data[-1])
+    def processEventPreclippedCylinderForces(self, data):
+        self.dataEventPreclippedCylinderForces.set(data[-1])
 
-    def processEventRejectedElevationForces(self, data):
-        self.dataEventRejectedElevationForces.set(data[-1])
+    def processEventPreclippedElevationForces(self, data):
+        self.dataEventPreclippedElevationForces.set(data[-1])
 
-    def processEventRejectedForces(self, data):
-        self.dataEventRejectedForces.set(data[-1])
+    def processEventPreclippedForces(self, data):
+        self.dataEventPreclippedForces.set(data[-1])
 
-    def processEventRejectedOffsetForces(self, data):
-        self.dataEventRejectedOffsetForces.set(data[-1])
+    def processEventPreclippedOffsetForces(self, data):
+        self.dataEventPreclippedOffsetForces.set(data[-1])
 
-    def processEventRejectedStaticForces(self, data):
-        self.dataEventRejectedStaticForces.set(data[-1])
+    def processEventPreclippedStaticForces(self, data):
+        self.dataEventPreclippedStaticForces.set(data[-1])
 
-    def processEventRejectedThermalForces(self, data):
-        self.dataEventRejectedThermalForces.set(data[-1])
+    def processEventPreclippedThermalForces(self, data):
+        self.dataEventPreclippedThermalForces.set(data[-1])
 
-    def processEventRejectedVelocityForces(self, data):
-        self.dataEventRejectedVelocityForces.set(data[-1])
+    def processEventPreclippedVelocityForces(self, data):
+        self.dataEventPreclippedVelocityForces.set(data[-1])
 
     def selectedTopicChanged(self):
         topicIndex = self.topicList.currentRow()
