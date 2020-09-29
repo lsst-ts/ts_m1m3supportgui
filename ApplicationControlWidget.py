@@ -80,11 +80,6 @@ class ApplicationControlWidget(QWidget):
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.updateButton(self.button4, "Standby", self.issueCommandStandby)
-        elif state == DetailedStates.EnabledState:
-            QTHelpers.hideButton(self.button1)
-            QTHelpers.hideButton(self.button2)
-            QTHelpers.hideButton(self.button3)
-            QTHelpers.updateButton(self.button4, "Disable", self.issueCommandDisable)
         elif state == DetailedStates.ParkedState:
             QTHelpers.updateButton(self.button1, "Raise M1M3", self.issueCommandRaiseM1M3)
             QTHelpers.updateButton(self.button2, "Enter Engineering", self.issueCommandEnterEngineering)

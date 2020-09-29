@@ -52,9 +52,6 @@ class ApplicationStatusWidget(QWidget):
         if detailedState == DetailedStates.DisabledState:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        elif detailedState == DetailedStates.EnabledState:
-            modeStateText = "Automatic"
-            mirrorStateText = "Parked"
         elif detailedState == DetailedStates.FaultState:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
