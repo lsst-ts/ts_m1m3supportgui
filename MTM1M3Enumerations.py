@@ -2,7 +2,6 @@ from SALPY_MTM1M3 import *
 
 class DetailedStates:
     DisabledState = MTM1M3_shared_DetailedStates_DisabledState
-    EnabledState = MTM1M3_shared_DetailedStates_EnabledState
     FaultState = MTM1M3_shared_DetailedStates_FaultState
     OfflineState = MTM1M3_shared_DetailedStates_OfflineState
     StandbyState = MTM1M3_shared_DetailedStates_StandbyState
@@ -10,7 +9,6 @@ class DetailedStates:
     RaisingState = MTM1M3_shared_DetailedStates_RaisingState
     ActiveState = MTM1M3_shared_DetailedStates_ActiveState
     LoweringState = MTM1M3_shared_DetailedStates_LoweringState
-    EngineeringState = MTM1M3_shared_DetailedStates_EngineeringState
     ParkedEngineeringState = MTM1M3_shared_DetailedStates_ParkedEngineeringState
     RaisingEngineeringState = MTM1M3_shared_DetailedStates_RaisingEngineeringState
     ActiveEngineeringState = MTM1M3_shared_DetailedStates_ActiveEngineeringState
