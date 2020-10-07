@@ -36,7 +36,7 @@ class MTM1M3Controller:
         self.sal.salProcessor("MTM1M3_command_programILC")
         self.sal.salProcessor("MTM1M3_command_raiseM1M3")
         self.sal.salProcessor("MTM1M3_command_resetPID")
-        self.sal.salProcessor("MTM1M3_command_shutdown")
+        self.sal.salProcessor("MTM1M3_command_exitControl")
         self.sal.salProcessor("MTM1M3_command_stopHardpointMotion")
         self.sal.salProcessor("MTM1M3_command_testAir")
         self.sal.salProcessor("MTM1M3_command_testForceActuator")
@@ -148,7 +148,7 @@ class MTM1M3Controller:
         self.commandSubscribers_programILC = []
         self.commandSubscribers_raiseM1M3 = []
         self.commandSubscribers_resetPID = []
-        self.commandSubscribers_shutdown = []
+        self.commandSubscribers_exitControl = []
         self.commandSubscribers_stopHardpointMotion = []
         self.commandSubscribers_testAir = []
         self.commandSubscribers_testForceActuator = []
@@ -589,18 +589,18 @@ class MTM1M3Controller:
         if "command_resetPID" not in self.topicsSubscribedToo:
             self.topicsSubscribedToo["command_resetPID"] = [self.acceptCommand_resetPID, self.commandSubscribers_resetPID]
 
-    def acceptCommand_shutdown(self):
-        data = MTM1M3_command_shutdownC()
-        result = self.sal.acceptCommand_shutdown(data)
+    def acceptCommand_exitControl(self):
+        data = MTM1M3_command_exitControlC()
+        result = self.sal.acceptCommand_exitControl(data)
         return result, data
 
-    def ackCommand_shutdown(self, cmdId, ackCode, errorCode, description):
-        return self.sal.ackCommand_shutdown(cmdId, ackCode, errorCode, description)
+    def ackCommand_exitControl(self, cmdId, ackCode, errorCode, description):
+        return self.sal.ackCommand_exitControl(cmdId, ackCode, errorCode, description)
 
-    def subscribeCommand_shutdown(self, action):
-        self.commandSubscribers_shutdown.append(action)
-        if "command_shutdown" not in self.topicsSubscribedToo:
-            self.topicsSubscribedToo["command_shutdown"] = [self.acceptCommand_shutdown, self.commandSubscribers_shutdown]
+    def subscribeCommand_exitControl(self, action):
+        self.commandSubscribers_exitControl.append(action)
+        if "command_exitControl" not in self.topicsSubscribedToo:
+            self.topicsSubscribedToo["command_exitControl"] = [self.acceptCommand_exitControl, self.commandSubscribers_exitControl]
 
     def acceptCommand_stopHardpointMotion(self):
         data = MTM1M3_command_stopHardpointMotionC()

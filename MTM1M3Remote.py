@@ -36,7 +36,6 @@ class MTM1M3Remote:
         self.sal.salCommand("MTM1M3_command_programILC")
         self.sal.salCommand("MTM1M3_command_raiseM1M3")
         self.sal.salCommand("MTM1M3_command_resetPID")
-        self.sal.salCommand("MTM1M3_command_shutdown")
         self.sal.salCommand("MTM1M3_command_stopHardpointMotion")
         self.sal.salCommand("MTM1M3_command_testAir")
         self.sal.salCommand("MTM1M3_command_testForceActuator")
@@ -896,27 +895,6 @@ class MTM1M3Remote:
     def issueCommandThenWait_resetPID(self, pid, timeoutInSeconds = 10):
         cmdId = self.issueCommand_resetPID(pid)
         return self.waitForCompletion_resetPID(cmdId, timeoutInSeconds)
-
-    def issueCommand_shutdown(self, value):
-        data = MTM1M3_command_shutdownC()
-        data.value = value
-
-        return self.sal.issueCommand_shutdown(data)
-
-    def getResponse_shutdown(self):
-        data = MTM1M3_ackcmdC()
-        result = self.sal.getResponse_shutdown(data)
-        return result, data
-        
-    def waitForCompletion_shutdown(self, cmdId, timeoutInSeconds = 10):
-        waitResult = self.sal.waitForCompletion_shutdown(cmdId, timeoutInSeconds)
-        #ackResult, ack = self.getResponse_shutdown()
-        #return waitResult, ackResult, ack
-        return waitResult
-        
-    def issueCommandThenWait_shutdown(self, value, timeoutInSeconds = 10):
-        cmdId = self.issueCommand_shutdown(value)
-        return self.waitForCompletion_shutdown(cmdId, timeoutInSeconds)
 
     def issueCommand_stopHardpointMotion(self, value):
         data = MTM1M3_command_stopHardpointMotionC()

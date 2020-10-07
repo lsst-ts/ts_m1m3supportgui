@@ -65,8 +65,8 @@ class ApplicationControlWidget(QWidget):
     def issueCommandStandby(self):
         self.MTM1M3.issueCommandThenWait_standby(False)
 
-    def issueCommandShutdown(self):
-        self.MTM1M3.issueCommandThenWait_shutdown(False)
+    def issueCommandExitControl(self):
+        self.MTM1M3.issueCommandThenWait_exitControl(False)
 
     def processEventDetailedState(self, data):
         state = data[len(data) - 1].detailedState
@@ -74,7 +74,7 @@ class ApplicationControlWidget(QWidget):
             QTHelpers.updateButton(self.button1, "Start", self.issueCommandStart)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
-            QTHelpers.updateButton(self.button4, "Shutdown", self.issueCommandShutdown)
+            QTHelpers.updateButton(self.button4, "Exit Control", self.issueCommandExitControl)
         elif state == DetailedStates.DisabledState:
             QTHelpers.updateButton(self.button1, "Enable", self.issueCommandEnable)
             QTHelpers.hideButton(self.button2)
