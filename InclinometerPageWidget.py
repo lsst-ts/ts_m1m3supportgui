@@ -1,12 +1,14 @@
 import QTHelpers
 import TimeChart
-from DataCache import DataCache
-from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout)
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
+from PySide2.QtCore import Slot
 
 class InclinometerPageWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
@@ -69,24 +71,22 @@ class InclinometerPageWidget(QWidget):
 
         self.setLayout(self.layout)
 
-        self.dataEventInclinometerSensorWarning = DataCache()
-        self.dataTelemetryInclinometerData = DataCache()
-        
-        self.MTM1M3.subscribeEvent_inclinometerSensorWarning(self.processEventInclinometerSensorWarning)
-        self.MTM1M3.subscribeTelemetry_inclinometerData(self.processTelemetryInclinometerData)
-
     def setPageActive(self, active):
+        if self.pageActive == active:
+            return
+
+        if active:
+            self.comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
+            self.comm.inclinometerData.connect(self.inclinometerData)
+        else:
+            self.comm.inclinometerSensorWarning.disconnect(self.inclinometerSensorWarning)
+            self.comm.inclinometerData.disconnect(self.inclinometerData)
+
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
 
-    def updatePage(self):
-        if not self.pageActive:
-            return 
-
-        if self.dataEventInclinometerSensorWarning.hasBeenUpdated():
-            data = self.dataEventInclinometerSensorWarning.get()
-            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+    @Slot(bool)
+    def inclinometerSensorWarning(self, anyWarning):
+        QTHelpers.setWarningLabel(self.anyWarningLabel, anyWarning)
             #TODO QTHelpers.setWarningLabel(self.sensorReportsIllegalFunctionLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.SensorReportsIllegalFunction))
             #TODO QTHelpers.setWarningLabel(self.sensorReportsIllegalDataAddressLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.SensorReportsIllegalDataAddress))
             #TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.ResponseTimeout))
@@ -96,13 +96,8 @@ class InclinometerPageWidget(QWidget):
             #TODO QTHelpers.setWarningLabel(self.unknownFunctionLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownFunction))
             #TODO QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.inclinometerSensorFlags, InclinometerSensorFlags.UnknownProblem))
 
-        if self.dataTelemetryInclinometerData.hasBeenUpdated():
-            data = self.dataTelemetryInclinometerData.get()
-            self.angleLabel.setText("%0.3f" % (data.inclinometerAngle))
+    @Slot(map)
+    def inclinometerData(self, data):
+        self.angleLabel.setText("%0.3f" % (data.inclinometerAngle))
 
-    def processEventInclinometerSensorWarning(self, data):
-        self.dataEventInclinometerSensorWarning.set(data[-1])
-
-    def processTelemetryInclinometerData(self, data):
-        self.chart.append('Angle (deg)', 'Inclinometer Angle', [(x.timestamp,x.inclinometerAngle) for x in data])
-        self.dataTelemetryInclinometerData.set(data[-1])
+        self.chart.append('Angle (deg)', 'Inclinometer Angle', [(data.timestamp,data.inclinometerAngle)])

@@ -39,9 +39,11 @@ class TimeChart(QtCharts.QChart):
     maxItems : `int`, optional
         Number of items to keep in graph. When series grows above the specified
         number of points, oldest points are removed. Defaults to 50 * 30 = 50Hz * 30s
+    redrawAfter : `int`, optional
+        Redraw axis after adding this number of points.
     """
 
-    def __init__(self, maxItems=50*30):
+    def __init__(self, maxItems=50*30, redrawAfter = 50):
         super().__init__()
         self.maxItems = maxItems
         self.timeAxis = QtCharts.QDateTimeAxis()
@@ -51,6 +53,8 @@ class TimeChart(QtCharts.QChart):
         self.timeAxis.setFormat("h:mm:ss.zzz")
 
         self._storedSeries = {}
+        self._redrawAfter = redrawAfter
+        self._appendCount = 0
 
     def _findSerie(self, axis, serie):
         """
@@ -107,7 +111,7 @@ class TimeChart(QtCharts.QChart):
         y_range = [y_range[0] - clip, y_range[1] + clip]
         a.setRange(*y_range)
 
-    def append(self, axis, serie, data):
+    def append(self, axis, serie, data, forceUpdate=False):
         """Add data to a serie. Creates axis and serie if needed.
 
         Parameters
@@ -118,14 +122,25 @@ class TimeChart(QtCharts.QChart):
             Serie name. Will be shown as data label.
         data : matrix
             Float matrix 2xn. First element is timestamp, second is the value.
+        forceUpdate : `bool`
+            Force graph redraw.
         """
+
+        self._appendCount += len(data)
+
+        if self._appendCount >= self._redrawAfter:
+            self._appendCount = 0
+            forceUpdate = True
+
         try:
             a, s = self._findSerie(axis, serie)
-            s.detachAxis(self.timeAxis)
-            s.detachAxis(a)
-            self.removeSeries(s)
+            if forceUpdate:
+                s.detachAxis(self.timeAxis)
+                s.detachAxis(a)
+                self.removeSeries(s)
         except KeyError:
             a, s = self._addSerie(axis, serie)
+            forceUpdate = True
 
         for (i, d) in data:
             s.append(i * 1000.0, d)
@@ -133,13 +148,13 @@ class TimeChart(QtCharts.QChart):
         if s.count() > self.maxItems:
             s.removePoints(0, s.count() - self.maxItems)
 
-        self.autoRange(axis)
-        a.applyNiceNumbers()
-        self.addSeries(s)
+        if forceUpdate:
+            self.autoRange(axis)
+            a.applyNiceNumbers()
+            self.addSeries(s)
 
-        s.attachAxis(self.timeAxis)
-        s.attachAxis(a)
-
+            s.attachAxis(self.timeAxis)
+            s.attachAxis(a)
 
 class TimeChartView(QtCharts.QChartView):
     """Time chart view. Add handling of mouse move events.

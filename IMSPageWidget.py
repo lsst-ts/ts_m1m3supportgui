@@ -1,14 +1,15 @@
-
 import QTHelpers
 import TimeChart
-from DataCache import DataCache
 from BitHelper import BitHelper
-from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout)
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
+from PySide2.QtCore import Slot
 
 class IMSPageWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
@@ -147,24 +148,22 @@ class IMSPageWidget(QWidget):
         self.plotLayout.addWidget(self.posChartView)
         self.plotLayout.addWidget(self.rawChartView)
 
-        self.dataEventDisplacementSensorWarning = DataCache()
-        self.dataTelemetryIMSData = DataCache()
-
-        self.MTM1M3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
-        self.MTM1M3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
-
     def setPageActive(self, active):
+        if self.pageActive == active:
+            return
+
+        if active:
+            self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
+            self.comm.imsData.connect(self.imsData)
+        else:
+            self.comm.displacementSensorWarning.disconnect(self.displacementSensorWarning)
+            self.comm.imsData.disconnect(self.imsData)
+
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
 
-    def updatePage(self):
-        if not self.pageActive:
-            return 
-
-        if self.dataEventDisplacementSensorWarning.hasBeenUpdated():
-            data = self.dataEventDisplacementSensorWarning.get()
-            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+    @Slot(bool)
+    def displacementSensorWarning(self, anyWarning):
+        QTHelpers.setWarningLabel(self.anyWarningLabel, anyWarning)
             #TODO QTHelpers.setWarningLabel(self.sensorReportsInvalidCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsInvalidCommand))
             #TODO QTHelpers.setWarningLabel(self.sensorReportsCommunicationTimeoutErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationTimeoutError))
             #TODO QTHelpers.setWarningLabel(self.sensorReportsDataLengthErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsDataLengthError))
@@ -180,41 +179,36 @@ class IMSPageWidget(QWidget):
             #TODO QTHelpers.setWarningLabel(self.unknownCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownCommand))
             #TODO QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownProblem))
 
-        if self.dataTelemetryIMSData.hasBeenUpdated():
-            data = self.dataTelemetryIMSData.get()
-            self.rawPositiveXAxialLabel.setText("%0.3f" % (data.rawSensorData[0]))
-            self.rawPositiveXTangentLabel.setText("%0.3f" % (data.rawSensorData[1]))
-            self.rawNegativeYAxialLabel.setText("%0.3f" % (data.rawSensorData[2]))
-            self.rawNegativeYTangentLabel.setText("%0.3f" % (data.rawSensorData[3]))
-            self.rawNegativeXAxialLabel.setText("%0.3f" % (data.rawSensorData[4]))
-            self.rawNegativeXTangentLabel.setText("%0.3f" % (data.rawSensorData[5]))
-            self.rawPositiveYAxialLabel.setText("%0.3f" % (data.rawSensorData[6]))
-            self.rawPositiveYTangentLabel.setText("%0.3f" % (data.rawSensorData[7]))
-            self.xPositionLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-            self.yPositionLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-            self.zPositionLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-            self.xRotationLabel.setText("%0.3f" % (data.xRotation))
-            self.yRotationLabel.setText("%0.3f" % (data.yRotation))
-            self.zRotationLabel.setText("%0.3f" % (data.zRotation))
+    @Slot(map)
+    def imsData(self, data):
+        self.rawPositiveXAxialLabel.setText("%0.3f" % (data.rawSensorData[0]))
+        self.rawPositiveXTangentLabel.setText("%0.3f" % (data.rawSensorData[1]))
+        self.rawNegativeYAxialLabel.setText("%0.3f" % (data.rawSensorData[2]))
+        self.rawNegativeYTangentLabel.setText("%0.3f" % (data.rawSensorData[3]))
+        self.rawNegativeXAxialLabel.setText("%0.3f" % (data.rawSensorData[4]))
+        self.rawNegativeXTangentLabel.setText("%0.3f" % (data.rawSensorData[5]))
+        self.rawPositiveYAxialLabel.setText("%0.3f" % (data.rawSensorData[6]))
+        self.rawPositiveYTangentLabel.setText("%0.3f" % (data.rawSensorData[7]))
+        self.xPositionLabel.setText("%0.3f" % (data.xPosition * 1000.0))
+        self.yPositionLabel.setText("%0.3f" % (data.yPosition * 1000.0))
+        self.zPositionLabel.setText("%0.3f" % (data.zPosition * 1000.0))
+        self.xRotationLabel.setText("%0.3f" % (data.xRotation))
+        self.yRotationLabel.setText("%0.3f" % (data.yRotation))
+        self.zRotationLabel.setText("%0.3f" % (data.zRotation))
 
-    def processEventDisplacementSensorWarning(self, data):
-        self.dataEventDisplacementSensorWarning.set(data[-1])        
-
-    def processTelemetryIMSData(self, data):
-        self.rawChart.append('Displacement (mm)', '+X Axial', [(x.timestamp, x.rawSensorData[0] / 1000) for x in data])
-        self.rawChart.append('Displacement (mm)', '+X Tangent', [(x.timestamp, x.rawSensorData[1] / 1000) for x in data])
-        self.rawChart.append('Displacement (mm)', '-Y Axial', [(x.timestamp, x.rawSensorData[2] / 1000) for x in data])
-        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(x.timestamp, x.rawSensorData[3] / 1000) for x in data])
-        self.rawChart.append('Displacement (mm)', '-X Axial', [(x.timestamp, x.rawSensorData[4] / 1000) for x in data])
-        self.rawChart.append('Displacement (mm)', '-X Tangent', [(x.timestamp, x.rawSensorData[5] / 1000) for x in data])
-        self.rawChart.append('Displacement (mm)', '-Y Axial', [(x.timestamp, x.rawSensorData[6] / 1000) for x in data])
-        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(x.timestamp, x.rawSensorData[7] / 1000) for x in data])
+        self.rawChart.append('Displacement (mm)', '+X Axial', [(data.timestamp, data.rawSensorData[0] / 1000)])
+        self.rawChart.append('Displacement (mm)', '+X Tangent', [(data.timestamp, data.rawSensorData[1] / 1000)])
+        self.rawChart.append('Displacement (mm)', '-Y Axial', [(data.timestamp, data.rawSensorData[2] / 1000)])
+        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(data.timestamp, data.rawSensorData[3] / 1000)])
+        self.rawChart.append('Displacement (mm)', '-X Axial', [(data.timestamp, data.rawSensorData[4] / 1000)])
+        self.rawChart.append('Displacement (mm)', '-X Tangent', [(data.timestamp, data.rawSensorData[5] / 1000)])
+        self.rawChart.append('Displacement (mm)', '-Y Axial', [(data.timestamp, data.rawSensorData[6] / 1000)])
+        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(data.timestamp, data.rawSensorData[7] / 1000)])
  
-        self.posChart.append('Position (m)', 'X', [(x.timestamp, x.xPosition) for x in data])
+        self.posChart.append('Position (m)', 'X', [(data.timestamp, data.xPosition)])
 
-        self.posChart.append('Position (m)', 'Y', [(x.timestamp, x.yPosition) for x in data])
-        self.posChart.append('Position (m)', 'Z', [(x.timestamp, x.zPosition) for x in data])
-        self.posChart.append('Rotation (rad)', 'X', [(x.timestamp, x.xRotation) for x in data])
-        self.posChart.append('Rotation (rad)', 'Y', [(x.timestamp, x.yRotation) for x in data])
-        self.posChart.append('Rotation (rad)', 'Z', [(x.timestamp, x.zRotation) for x in data])
-        self.dataTelemetryIMSData.set(data[-1])
+        self.posChart.append('Position (m)', 'Y', [(data.timestamp, data.yPosition)])
+        self.posChart.append('Position (m)', 'Z', [(data.timestamp, data.zPosition)])
+        self.posChart.append('Rotation (rad)', 'X', [(data.timestamp, data.xRotation)])
+        self.posChart.append('Rotation (rad)', 'Y', [(data.timestamp, data.yRotation)])
+        self.posChart.append('Rotation (rad)', 'Z', [(data.timestamp, data.zRotation)])

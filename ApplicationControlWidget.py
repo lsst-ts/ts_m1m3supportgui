@@ -1,12 +1,13 @@
-
 import QTHelpers
-from MTM1M3Enumerations import DetailedStates
-from PySide2.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout)
+from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
+from PySide2.QtCore import Slot
+from asyncqt import asyncSlot
+from lsst.ts.salobj import State
 
 class ApplicationControlWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
         self.layout = QVBoxLayout()
         self.commandLayout = QVBoxLayout()
         self.layout.addLayout(self.commandLayout)
@@ -34,93 +35,103 @@ class ApplicationControlWidget(QWidget):
         QTHelpers.hideButton(self.button2)
         QTHelpers.hideButton(self.button3)
         QTHelpers.hideButton(self.button4)
-        
-        self.MTM1M3.subscribeEvent_detailedState(self.processEventDetailedState)
 
-    def issueCommandStart(self):
-        #self.MTM1M3.issueCommandThenWait_start("Simulator")
-        self.MTM1M3.issueCommandThenWait_start("Default")
+        # connect SAL signals
+        self.comm.detailedState.connect(self.processEventDetailedState)
 
-    def issueCommandEnable(self):
-        self.MTM1M3.issueCommandThenWait_enable(False)
+    @asyncSlot()
+    async def issueCommandStart(self):
+        await self.comm.MTM1M3.cmd_start.set_start(settingsToApply="Default", timeout=60)
 
-    def issueCommandRaiseM1M3(self):
-        self.MTM1M3.issueCommandThenWait_raiseM1M3(False)
+    @asyncSlot()
+    async def issueCommandEnable(self):
+        await self.comm.MTM1M3.cmd_enable.start()
 
-    def issueCommandAbortRaiseM1M3(self):
-        self.MTM1M3.issueCommandThenWait_abortRaiseM1M3(False)
+    @asyncSlot()
+    async def issueCommandRaiseM1M3(self):
+        await self.comm.MTM1M3.cmd_raiseM1M3.set_start(raiseM1M3=True, bypassReferencePosition=False)
 
-    def issueCommandLowerM1M3(self):
-        self.MTM1M3.issueCommandThenWait_lowerM1M3(False)
+    @asyncSlot()
+    async def issueCommandAbortRaiseM1M3(self):
+        await self.comm.MTM1M3.cmd_abortRaiseM1M3.start()
 
-    def issueCommandEnterEngineering(self):
-        self.MTM1M3.issueCommandThenWait_enterEngineering(False)
+    @asyncSlot()
+    async def issueCommandLowerM1M3(self):
+        await self.comm.MTM1M3.cmd_lowerM1M3.start()
 
-    def issueCommandExitEngineering(self):
-        self.MTM1M3.issueCommandThenWait_exitEngineering(False)
+    @asyncSlot()
+    async def issueCommandEnterEngineering(self):
+        await self.comm.MTM1M3.cmd_enterEngineering.start()
 
-    def issueCommandDisable(self):
-        self.MTM1M3.issueCommandThenWait_disable(False)
+    @asyncSlot()
+    async def issueCommandExitEngineering(self):
+        await self.comm.MTM1M3.cmd_exitEngineering.start()
 
-    def issueCommandStandby(self):
-        self.MTM1M3.issueCommandThenWait_standby(False)
+    @asyncSlot()
+    async def issueCommandDisable(self):
+        await self.comm.MTM1M3.cmd_disable.start()
 
-    def issueCommandExitControl(self):
-        self.MTM1M3.issueCommandThenWait_exitControl(False)
+    @asyncSlot()
+    async def issueCommandStandby(self):
+        await self.comm.MTM1M3.cmd_standby.start()
 
+    @asyncSlot()
+    async def issueCommandExitControl(self):
+        await self.comm.MTM1M3.cmd_exitControl.start()
+
+    @Slot(map)
     def processEventDetailedState(self, data):
-        state = data[len(data) - 1].detailedState
-        if state == DetailedStates.StandbyState:
+        if data.detailedState == 4: # DetailedStates.StandbyState:
             QTHelpers.updateButton(self.button1, "Start", self.issueCommandStart)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.updateButton(self.button4, "Exit Control", self.issueCommandExitControl)
-        elif state == DetailedStates.DisabledState:
+        elif data.detailedState == 1: # DetailedStates.DisabledState:
             QTHelpers.updateButton(self.button1, "Enable", self.issueCommandEnable)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.updateButton(self.button4, "Standby", self.issueCommandStandby)
-        elif state == DetailedStates.ParkedState:
+        elif data.detailedState == 5: # DetailedStates.ParkedState:
             QTHelpers.updateButton(self.button1, "Raise M1M3", self.issueCommandRaiseM1M3)
             QTHelpers.updateButton(self.button2, "Enter Engineering", self.issueCommandEnterEngineering)
             QTHelpers.hideButton(self.button3)
             QTHelpers.updateButton(self.button4, "Disable", self.issueCommandDisable)
-        elif state == DetailedStates.RaisingState:
+        elif data.detailedState == 6: # DetailedStates.RaisingState:
             QTHelpers.hideButton(self.button1)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.updateButton(self.button4, "Abort Raise M1M3", self.issueCommandAbortRaiseM1M3)
-        elif state == DetailedStates.ActiveState:
+        elif data.detailedState == 7: # DetailedStates.ActiveState:
             QTHelpers.hideButton(self.button1)
             QTHelpers.updateButton(self.button2, "Enter Engineering", self.issueCommandEnterEngineering)
             QTHelpers.hideButton(self.button3)
             QTHelpers.updateButton(self.button4, "Lower M1M3", self.issueCommandLowerM1M3) 
-        elif state == DetailedStates.LoweringState:
+        elif data.detailedState == 8: # DetailedStates.LoweringState:
             QTHelpers.hideButton(self.button1)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.hideButton(self.button4)
-        elif state == DetailedStates.ParkedEngineeringState:
+        elif data.detailedState == 9: # DetailedStates.ParkedEngineeringState:
             QTHelpers.updateButton(self.button1, "Raise M1M3", self.issueCommandRaiseM1M3)
             QTHelpers.hideButton(self.button2)
             QTHelpers.updateButton(self.button3, "Exit Engineering", self.issueCommandExitEngineering)
             QTHelpers.updateButton(self.button4, "Disable", self.issueCommandDisable)    
-        elif state == DetailedStates.RaisingEngineeringState:
+        elif data.detailedState == 10: # DetailedStates.RaisingEngineeringState:
             QTHelpers.hideButton(self.button1)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.updateButton(self.button4, "Abort Raise M1M3", self.issueCommandAbortRaiseM1M3)
-        elif state == DetailedStates.ActiveEngineeringState:
+        elif data.detailedState == 11: # DetailedStates.ActiveEngineeringState:
             QTHelpers.hideButton(self.button1)
             QTHelpers.hideButton(self.button2)
             QTHelpers.updateButton(self.button3, "Exit Engineering", self.issueCommandExitEngineering)
             QTHelpers.updateButton(self.button4, "Lower M1M3", self.issueCommandLowerM1M3)    
-        elif state == DetailedStates.LoweringEngineeringState:
+        elif data.detailedState == 12: # DetailedStates.LoweringEngineeringState:
             QTHelpers.hideButton(self.button1)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.hideButton(self.button4)
-        elif state == DetailedStates.FaultState or state == DetailedStates.LoweringFaultState:
+        elif data.detailedState == 13: # DetailedStates.FaultState or data.detailedState == DetailedStates.LoweringFaultState:
             QTHelpers.hideButton(self.button1)
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)

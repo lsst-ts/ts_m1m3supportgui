@@ -1,14 +1,15 @@
-
 import QTHelpers
 import TimeChart
 from BitHelper import BitHelper
-from DataCache import DataCache
-from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout)
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
+from PySide2.QtCore import Slot
 
 class GyroPageWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
@@ -256,24 +257,23 @@ class GyroPageWidget(QWidget):
         
         self.plotLayout.addWidget(self.chart_view)
 
-        self.dataEventGyroWarning = DataCache()
-        self.dataTelemetryGyroData = DataCache()
-
-        self.MTM1M3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
-        self.MTM1M3.subscribeTelemetry_gyroData(self.processTelemetryGyroData)
 
     def setPageActive(self, active):
+        if self.pageActive == active:
+            return
+
+        if active:
+            self.comm.gyroWarning.connect(self.gyroWarning)
+            self.comm.gyroData.connect(self.gyroData)
+        else:
+            self.comm.gyroWarning.disconnect(self.gyroWarning)
+            self.comm.gyroData.disconnect(self.gyroData)
+
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
 
-    def updatePage(self):
-        if not self.pageActive:
-            return 
-
-        if self.dataEventGyroWarning.hasBeenUpdated():
-            data = self.dataEventGyroWarning.get()
-            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+    @Slot(bool)
+    def gyroWarning(self, anyWarning):
+        QTHelpers.setWarningLabel(self.anyWarningLabel, anyWarning)
             #TODO QTHelpers.setWarningLabel(self.gyroXStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroXStatusWarning))
             #TODO QTHelpers.setWarningLabel(self.gyroYStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroYStatusWarning))
             #TODO QTHelpers.setWarningLabel(self.gyroZStatusWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GyroZStatusWarning))
@@ -322,19 +322,14 @@ class GyroPageWidget(QWidget):
             #TODO QTHelpers.setWarningLabel(self.gcbADCCommsWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.GCBADCCommsWarning))
             #TODO QTHelpers.setWarningLabel(self.mSYNCExternalTimingWarningLabel, BitHelper.get(data.gyroSensorFlags, GyroSensorFlags.MSYNCExternalTimingWarning))
 
-        if self.dataTelemetryGyroData.hasBeenUpdated():
-            data = self.dataTelemetryGyroData.get()
-            self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
-            self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
-            self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
-            self.sequenceNumberLabel.setText("%0.3f" % (data.sequenceNumber))
-            self.temperatureLabel.setText("%0.3f" % (data.temperature))
+    @Slot(map)
+    def gyroData(self, data):
+        self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
+        self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
+        self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
+        self.sequenceNumberLabel.setText("%0.3f" % (data.sequenceNumber))
+        self.temperatureLabel.setText("%0.3f" % (data.temperature))
 
-    def processEventGyroWarning(self, data):
-        self.dataEventGyroWarning.set(data[-1])
-        
-    def processTelemetryGyroData(self, data):
-        self.chart.append('Angular Velocity (rad/s)', 'X', [(x.timestamp, x.angularVelocityX) for x in data])
-        self.chart.append('Angular Velocity (rad/s)', 'Y', [(x.timestamp, x.angularVelocityY) for x in data])
-        self.chart.append('Angular Velocity (rad/s)', 'Z', [(x.timestamp, x.angularVelocityZ) for x in data])
-        self.dataTelemetryGyroData.set(data[-1])
+        self.chart.append('Angular Velocity (rad/s)', 'X', [(data.timestamp, data.angularVelocityX)])
+        self.chart.append('Angular Velocity (rad/s)', 'Y', [(data.timestamp, data.angularVelocityY)])
+        self.chart.append('Angular Velocity (rad/s)', 'Z', [(data.timestamp, data.angularVelocityZ)])

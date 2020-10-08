@@ -1,7 +1,6 @@
 
 import QTHelpers
 import TimeChart
-from DataCache import DataCache
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import TopicData
@@ -9,9 +8,11 @@ from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLa
 from ActuatorsDisplay import MirrorWidget, Actuator
 
 class ForceActuatorGraphPageWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QHBoxLayout()
         self.plotLayout = QVBoxLayout()
         self.selectionLayout = QVBoxLayout()

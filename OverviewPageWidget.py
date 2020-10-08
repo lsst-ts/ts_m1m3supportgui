@@ -1,13 +1,14 @@
-
 import QTHelpers
 from datetime import datetime
-from DataCache import DataCache
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QGridLayout
+from PySide2.QtCore import Slot
 
 class OverviewPageWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QHBoxLayout()
         self.dataLayout = QGridLayout()
         self.layout.addLayout(self.dataLayout)
@@ -26,7 +27,7 @@ class OverviewPageWidget(QWidget):
         self.gyroWarningLabel = QLabel("UNKNOWN")
         self.airSupplyWarningLabel = QLabel("UNKNOWN")
         self.imsWarningLabel = QLabel("UNKNOWN")
-        self.cellLightingWarningLabel = QLabel("UNKNOWN")
+        self.cellLightWarningLabel = QLabel("UNKNOWN")
         self.heartbeatLabel = QLabel("UNKNOWN")
         self.faCommandedXLabel = QLabel("UNKNOWN")
         self.faCommandedYLabel = QLabel("UNKNOWN")
@@ -116,8 +117,8 @@ class OverviewPageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("IMS"), row, col)
         self.dataLayout.addWidget(self.imsWarningLabel, row, col + 1)
         row += 1
-        self.dataLayout.addWidget(QLabel("Cell Lighting"), row, col) 
-        self.dataLayout.addWidget(self.cellLightingWarningLabel, row, col + 1)
+        self.dataLayout.addWidget(QLabel("Cell Light"), row, col)
+        self.dataLayout.addWidget(self.cellLightWarningLabel, row, col + 1)
         row += 1
         self.dataLayout.addWidget(QLabel("Heartbeat"), row, col)
         self.dataLayout.addWidget(self.heartbeatLabel, row, col + 1)
@@ -220,243 +221,201 @@ class OverviewPageWidget(QWidget):
         self.dataLayout.addWidget(self.inclinometerLabel, row, col + 1)
         self.dataLayout.addWidget(self.tmaElevationLabel, row, col + 2)
 
-        self.dataEventAccelerometerWarning = DataCache()
-        self.dataEventAirSupplyWarning = DataCache()
-        self.dataEventAppliedForces = DataCache()
-        self.dataEventCellLightWarning = DataCache()
-        self.dataEventDisplacementSensorWarning = DataCache()
-        self.dataEventDetailedState = DataCache()
-        self.dataEventForceActuatorWarning = DataCache()
-        self.dataEventGyroWarning = DataCache()
-        self.dataEventHardpointActuatorWarning = DataCache()
-        self.dataEventHardpointMonitorWarning = DataCache()
-        self.dataEventInclinometerSensorWarning = DataCache()
-        self.dataEventInterlockWarning = DataCache()
-        self.dataEventPowerWarning = DataCache()
-        self.dataTelemetryAccelerometerData = DataCache()
-        self.dataTelemetryForceActuatorData = DataCache()
-        self.dataTelemetryGyroData = DataCache()
-        self.dataTelemetryHardpointActuatorData = DataCache()
-        self.dataTelemetryIMSData = DataCache()
-        self.dataTelemetryInclinometerData = DataCache()
-        self.dataMTMountTelemetryAzimuthData = DataCache()
-        self.dataMTMountTelemetryElevationData = DataCache()
-
-        self.MTM1M3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
-        self.MTM1M3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
-        self.MTM1M3.subscribeEvent_appliedForces(self.processEventAppliedForces)
-        self.MTM1M3.subscribeEvent_cellLightWarning(self.processEventCellLightWarning)
-        self.MTM1M3.subscribeEvent_heartbeat(self.processEventHeartbeat)
-        self.MTM1M3.subscribeEvent_displacementSensorWarning(self.processEventDisplacementSensorWarning)
-        self.MTM1M3.subscribeEvent_detailedState(self.processEventDetailedState)
-        self.MTM1M3.subscribeEvent_forceActuatorWarning(self.processEventForceActuatorWarning)
-        self.MTM1M3.subscribeEvent_gyroWarning(self.processEventGyroWarning)
-        self.MTM1M3.subscribeEvent_hardpointActuatorWarning(self.processEventHardpointActuatorWarning)
-        self.MTM1M3.subscribeEvent_hardpointMonitorWarning(self.processEventHardpointMonitorWarning)
-        self.MTM1M3.subscribeEvent_inclinometerSensorWarning(self.processEventInclinometerSensorWarning)
-        self.MTM1M3.subscribeEvent_interlockWarning(self.processEventInterlockWarning)
-        self.MTM1M3.subscribeEvent_powerWarning(self.processEventPowerWarning)
-        self.MTM1M3.subscribeTelemetry_accelerometerData(self.processTelemetryAccelerometerData)
-        self.MTM1M3.subscribeTelemetry_forceActuatorData(self.processTelemetryForceActuatorData)
-        self.MTM1M3.subscribeTelemetry_gyroData(self.processTelemetryGyroData)
-        self.MTM1M3.subscribeTelemetry_hardpointActuatorData(self.processTelemetryHardpointActuatorData)
-        self.MTM1M3.subscribeTelemetry_imsData(self.processTelemetryIMSData)
-        self.MTM1M3.subscribeTelemetry_inclinometerData(self.processTelemetryInclinometerData)
-
     def setPageActive(self, active):
+        if self.pageActive == active:
+            return
+
+        if active:
+            self.comm.accelerometerWarning.connect(self.accelerometerWarning)
+            self.comm.airSupplyWarning.connect(self.airSupplyWarning)
+            self.comm.appliedForces.connect(self.appliedForces)
+            self.comm.cellLightWarning.connect(self.cellLightWarning)
+            self.comm.detailedState.connect(self.detailedState)
+            self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
+            self.comm.forceActuatorWarning.connect(self.forceActuatorWarning)
+            self.comm.gyroWarning.connect(self.gyroWarning)
+            self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
+            self.comm.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
+            self.comm.heartbeat.connect(self.heartbeat)
+            self.comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
+            self.comm.interlockWarning.connect(self.interlockWarning)
+            self.comm.powerWarning.connect(self.powerWarning)
+
+            self.comm.accelerometerData.connect(self.accelerometerData)
+            self.comm.forceActuatorData.connect(self.forceActuatorData)
+            self.comm.gyroData.connect(self.gyroData)
+            self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+            self.comm.imsData.connect(self.imsData)
+            self.comm.inclinometerData.connect(self.inclinometerData)
+
+            self.comm.azimuth.connect(self.azimuth)
+            self.comm.elevation.connect(self.elevation)
+        else:
+            self.comm.accelerometerWarning.disconnect(self.accelerometerWarning)
+            self.comm.airSupplyWarning.disconnect(self.airSupplyWarning)
+            self.comm.appliedForces.disconnect(self.appliedForces)
+            self.comm.cellLightWarning.disconnect(self.cellLightWarning)
+            self.comm.detailedState.disconnect(self.detailedState)
+            self.comm.displacementSensorWarning.disconnect(self.displacementSensorWarning)
+            self.comm.forceActuatorWarning.disconnect(self.forceActuatorWarning)
+            self.comm.gyroWarning.disconnect(self.gyroWarning)
+            self.comm.hardpointActuatorWarning.disconnect(self.hardpointActuatorWarning)
+            self.comm.hardpointMonitorWarning.disconnect(self.hardpointMonitorWarning)
+            self.comm.heartbeat.disconnect(self.heartbeat)
+            self.comm.inclinometerSensorWarning.disconnect(self.inclinometerSensorWarning)
+            self.comm.interlockWarning.disconnect(self.interlockWarning)
+            self.comm.powerWarning.disconnect(self.powerWarning)
+
+            self.comm.accelerometerData.disconnect(self.accelerometerData)
+            self.comm.forceActuatorData.disconnect(self.forceActuatorData)
+            self.comm.gyroData.disconnect(self.gyroData)
+            self.comm.hardpointActuatorData.disconnect(self.hardpointActuatorData)
+            self.comm.imsData.disconnect(self.imsData)
+            self.comm.inclinometerData.disconnect(self.inclinometerData)
+
+            self.comm.azimuth.disconnect(self.azimuth)
+            self.comm.elevation.disconnect(self.elevation)
+
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
 
-    def updatePage(self):
-        if not self.pageActive:
-            return 
+    def accelerometerWarning(self, data):
+        QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data.anyWarning)
 
-        if self.dataEventAccelerometerWarning.hasBeenUpdated():
-            data = self.dataEventAccelerometerWarning.get()
-            QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data.anyWarning)
-        
-        if self.dataEventAirSupplyWarning.hasBeenUpdated():
-            data = self.dataEventAirSupplyWarning.get()
-            QTHelpers.setWarningLabel(self.airSupplyWarningLabel, data.anyWarning)
+    @Slot(map)
+    def airSupplyWarning(self, data):
+        QTHelpers.setWarningLabel(self.airSupplyWarningLabel, data.anyWarning)
 
-        if self.dataEventAppliedForces.hasBeenUpdated():
-            data = self.dataEventAppliedForces.get()
-            self.faCommandedXLabel.setText("%0.3f" % (data.fx))
-            self.faCommandedYLabel.setText("%0.3f" % (data.fy))
-            self.faCommandedZLabel.setText("%0.3f" % (data.fz))
-            self.faCommandedMxLabel.setText("%0.3f" % (data.mx))
-            self.faCommandedMyLabel.setText("%0.3f" % (data.my))
-            self.faCommandedMzLabel.setText("%0.3f" % (data.mz))
-            self.faCommandedMagLabel.setText("%0.3f" % (data.forceMagnitude))
+    @Slot(map)
+    def appliedForces(self, data):
+        self.faCommandedXLabel.setText("%0.3f" % (data.fx))
+        self.faCommandedYLabel.setText("%0.3f" % (data.fy))
+        self.faCommandedZLabel.setText("%0.3f" % (data.fz))
+        self.faCommandedMxLabel.setText("%0.3f" % (data.mx))
+        self.faCommandedMyLabel.setText("%0.3f" % (data.my))
+        self.faCommandedMzLabel.setText("%0.3f" % (data.mz))
+        self.faCommandedMagLabel.setText("%0.3f" % (data.forceMagnitude))
 
-        if self.dataEventCellLightWarning.hasBeenUpdated():
-            data = self.dataEventCellLightWarning.get()
-            QTHelpers.setWarningLabel(self.cellLightingWarningLabel, data.anyWarning)
+    @Slot(map)
+    def cellLightWarning(self, data):
+        QTHelpers.setWarningLabel(self.cellLightWarningLabel, data.anyWarning)
 
-        if self.dataEventDisplacementSensorWarning.hasBeenUpdated():
-            data = self.dataEventDisplacementSensorWarning.get()
-            QTHelpers.setWarningLabel(self.imsWarningLabel, data.anyWarning)
+    @Slot(map)
+    def displacementSensorWarning(self, data):
+        QTHelpers.setWarningLabel(self.imsWarningLabel, data.anyWarning)
 
-        if self.dataEventDetailedState.hasBeenUpdated():
-            data = self.dataEventDetailedState.get()
-            state = data.detailedState
-            summaryStates = ["Offline", "Disabled", "Enabled", "Fault", "Offline", "Standby", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Enabled", "Fault"]
-            mirrorStates = ["Parked", "Parked", "Parked", "Parked", "Parked", "Parked", "Parked", "Raising", "Active", "Lowering", "Engineering", "Parked", "Raising", "Actve", "Lowering", "Lowering"]
-            modeStates = ["Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Automatic", "Engineering", "Engineering", "Engineering", "Engineering", "Engineering", "Automatic"]
-            self.summaryStateLabel.setText(summaryStates[state])
-            self.mirrorStateLabel.setText(mirrorStates[state])
-            self.modeStateLabel.setText(modeStates[state])
+    @Slot(map)
+    def detailedState(self, data):
+        # summary state, mirror state, mode
+        matrix = [
+                ["---", "---", "---"],
+                ["Disabled", "Parked", "Automatic"],
+                ["Fault", "Parked", "Automatic"],
+                ["Offline", "Unknown", "Unknown"],
+                ["Standby", "Parked", "Automatic"],
+                ["Enabled", "Parked", "Automatic"],
+                ["Enabled", "Raising", "Automatic"],
+                ["Enabled", "Active", "Automatic"],
+                ["Enabled", "Lowering", "Automatic"],
+                ["Enabled", "Parked", "Engineering"],
+                ["Enabled", "Raising", "Engineering"],
+                ["Enabled", "Active", "Engineering"],
+                ["Enabled", "Lowering", "Engineering"],
+                ["Fault", "Lowering", "Automatic"],
+                ["Profile Hardpoint", "Parked", "Profile Hardpoint"]
+                ]
+        m = matrix[data.detailedState]
+        self.summaryStateLabel.setText(m[0])
+        self.mirrorStateLabel.setText(m[1])
+        self.modeStateLabel.setText(m[2])
 
-        if self.dataEventForceActuatorWarning.hasBeenUpdated():
-            data = self.dataEventForceActuatorWarning.get()
-            QTHelpers.setWarningLabel(self.forceActuatorWarningLabel, data.anyWarning)
+    @Slot(map)
+    def forceActuatorWarning(self, data):
+        QTHelpers.setWarningLabel(self.forceActuatorWarningLabel, data.anyWarning)
 
-        if self.dataEventGyroWarning.hasBeenUpdated():
-            data = self.dataEventGyroWarning.get()
-            QTHelpers.setWarningLabel(self.gyroWarningLabel, data.anyWarning)
 
-        if self.dataEventHardpointActuatorWarning.hasBeenUpdated():
-            data = self.dataEventHardpointActuatorWarning.get()
-            QTHelpers.setWarningLabel(self.hardpointActuatorWarningLabel, data.anyWarning)
+    @Slot(map)
+    def gyroWarning(self, data):
+        QTHelpers.setWarningLabel(self.gyroWarningLabel, data.anyWarning)
 
-        if self.dataEventHardpointMonitorWarning.hasBeenUpdated():
-            data = self.dataEventHardpointMonitorWarning.get()
-            QTHelpers.setWarningLabel(self.hardpointMonitorWarningLabel, data.anyWarning)
+    @Slot(map)
+    def hardpointActuatorWarning(self, data):
+        QTHelpers.setWarningLabel(self.hardpointActuatorWarningLabel, data.anyWarning)
 
-        if self.dataEventInclinometerSensorWarning.hasBeenUpdated():
-            data = self.dataEventInclinometerSensorWarning.get()
-            QTHelpers.setWarningLabel(self.inclinometerWarningLabel, data.anyWarning)
+    @Slot(map)
+    def hardpointMonitorWarning(self, data):
+        QTHelpers.setWarningLabel(self.hardpointMonitorWarningLabel, data.anyWarning)
 
-        if self.dataEventInterlockWarning.hasBeenUpdated():
-            data = self.dataEventInterlockWarning.get()
-            QTHelpers.setWarningLabel(self.interlockWarningLabel, data.anyWarning)
-
-        if self.dataEventPowerWarning.hasBeenUpdated():
-            data = self.dataEventPowerWarning.get()
-            QTHelpers.setWarningLabel(self.powerWarningLabel, data.anyWarning)
-
-        if self.dataTelemetryAccelerometerData.hasBeenUpdated():
-            data = self.dataTelemetryAccelerometerData.get()
-            self.accelationXLabel.setText("%0.3f" % (data.angularAccelerationX))
-            self.accelationYLabel.setText("%0.3f" % (data.angularAccelerationY))
-            self.accelationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
-
-        if self.dataTelemetryForceActuatorData.hasBeenUpdated():
-            data = self.dataTelemetryForceActuatorData.get()
-            self.faMeasuredXLabel.setText("%0.3f" % (data.fx))
-            self.faMeasuredYLabel.setText("%0.3f" % (data.fy))
-            self.faMeasuredZLabel.setText("%0.3f" % (data.fz))
-            self.faMeasuredMxLabel.setText("%0.3f" % (data.mx))
-            self.faMeasuredMyLabel.setText("%0.3f" % (data.my))
-            self.faMeasuredMzLabel.setText("%0.3f" % (data.mz))
-            self.faMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
-
-        if self.dataTelemetryGyroData.hasBeenUpdated():
-            data = self.dataTelemetryGyroData.get()
-            self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
-            self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
-            self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
-
-        if self.dataTelemetryHardpointActuatorData.hasBeenUpdated():
-            data = self.dataTelemetryHardpointActuatorData.get()
-            self.hpPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-            self.hpPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-            self.hpPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-            self.hpPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
-            self.hpPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
-            self.hpPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
-            self.hpMeasuredXLabel.setText("%0.3f" % (data.fx))
-            self.hpMeasuredYLabel.setText("%0.3f" % (data.fy))
-            self.hpMeasuredZLabel.setText("%0.3f" % (data.fz))
-            self.hpMeasuredMxLabel.setText("%0.3f" % (data.mx))
-            self.hpMeasuredMyLabel.setText("%0.3f" % (data.my))
-            self.hpMeasuredMzLabel.setText("%0.3f" % (data.mz))
-            self.hpMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
-
-        if self.dataTelemetryIMSData.hasBeenUpdated():
-            data = self.dataTelemetryIMSData.get()
-            self.imsPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-            self.imsPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-            self.imsPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-            self.imsPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
-            self.imsPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
-            self.imsPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
-
-        if self.dataTelemetryInclinometerData.hasBeenUpdated():
-            data = self.dataTelemetryInclinometerData.get()
-            self.inclinometerLabel.setText("%0.3f" % (data.inclinometerAngle))
-
-        if self.dataMTMountTelemetryAzimuthData.hasBeenUpdated():
-            data = self.dataMTMountTelemetryAzimuthData.get()
-            self.tmaAzimuthLabel.setText("%0.3f" % (data.Azimuth_Angle_Actual))
-
-        if self.dataMTMountTelemetryElevationData.hasBeenUpdated():
-            data = self.dataMTMountTelemetryElevationData.get()
-            self.tmaElevationLabel.setText("%0.3f" % (data.Elevation_Angle_Actual))
-
-    def processEventAccelerometerWarning(self, data):
-        self.dataEventAccelerometerWarning.set(data[-1])
-
-    def processEventAirSupplyWarning(self, data):
-        self.dataEventAirSupplyWarning.set(data[-1])
-
-    def processEventAppliedForces(self, data):
-        self.dataEventAppliedForces.set(data[-1])
-        
-    def processEventCellLightWarning(self, data):
-        self.dataEventCellLightWarning.set(data[-1])        
-
-    def processEventHeartbeat(self, data):
+    @Slot(map)
+    def heartbeat(self, data):
         self.heartbeatLabel.setText(datetime.now().strftime("%H:%M:%S.%f"))
 
-    def processEventDisplacementSensorWarning(self, data):
-        self.dataEventDisplacementSensorWarning.set(data[-1])
+    @Slot(map)
+    def inclinometerSensorWarning(self, data):
+        QTHelpers.setWarningLabel(self.inclinometerWarningLabel, data.anyWarning)
 
-    def processEventDetailedState(self, data):
-        self.dataEventDetailedState.set(data[-1])
+    @Slot(map)
+    def interlockWarning(self, data):
+        QTHelpers.setWarningLabel(self.interlockWarningLabel, data.anyWarning)
 
-    def processEventForceActuatorWarning(self, data):
-        self.dataEventForceActuatorWarning.set(data[-1])        
+    @Slot(map)
+    def powerWarning(self, data):
+        QTHelpers.setWarningLabel(self.powerWarningLabel, data.anyWarning)
 
-    def processEventGyroWarning(self, data):
-        self.dataEventGyroWarning.set(data[-1])
+    @Slot(map)
+    def accelerometerData(self, data):
+        self.accelationXLabel.setText("%0.3f" % (data.angularAccelerationX))
+        self.accelationYLabel.setText("%0.3f" % (data.angularAccelerationY))
+        self.accelationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
 
-    def processEventHardpointActuatorWarning(self, data):
-        self.dataEventHardpointActuatorWarning.set(data[-1])
+    @Slot(map)
+    def forceActuatorData(self, data):
+        self.faMeasuredXLabel.setText("%0.3f" % (data.fx))
+        self.faMeasuredYLabel.setText("%0.3f" % (data.fy))
+        self.faMeasuredZLabel.setText("%0.3f" % (data.fz))
+        self.faMeasuredMxLabel.setText("%0.3f" % (data.mx))
+        self.faMeasuredMyLabel.setText("%0.3f" % (data.my))
+        self.faMeasuredMzLabel.setText("%0.3f" % (data.mz))
+        self.faMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
 
-    def processEventHardpointMonitorWarning(self, data):
-        self.dataEventHardpointMonitorWarning.set(data[-1])
+    @Slot(map)
+    def gyroData(self, data):
+        self.velocityXLabel.setText("%0.3f" % (data.angularVelocityX))
+        self.velocityYLabel.setText("%0.3f" % (data.angularVelocityY))
+        self.velocityZLabel.setText("%0.3f" % (data.angularVelocityZ))
 
-    def processEventInclinometerSensorWarning(self, data):
-        self.dataEventInclinometerSensorWarning.set(data[-1])
-    
-    def processEventInterlockWarning(self, data):
-        self.dataEventInterlockWarning.set(data[-1]) 
+    @Slot(map)
+    def hardpointActuatorData(self, data):
+        self.hpPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
+        self.hpPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
+        self.hpPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
+        self.hpPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
+        self.hpPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
+        self.hpPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
+        self.hpMeasuredXLabel.setText("%0.3f" % (data.fx))
+        self.hpMeasuredYLabel.setText("%0.3f" % (data.fy))
+        self.hpMeasuredZLabel.setText("%0.3f" % (data.fz))
+        self.hpMeasuredMxLabel.setText("%0.3f" % (data.mx))
+        self.hpMeasuredMyLabel.setText("%0.3f" % (data.my))
+        self.hpMeasuredMzLabel.setText("%0.3f" % (data.mz))
+        self.hpMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
 
-    def processEventPowerWarning(self, data):
-        self.dataEventPowerWarning.set(data[-1])
+    @Slot(map)
+    def imsData(self, data):
+        self.imsPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
+        self.imsPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
+        self.imsPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
+        self.imsPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
+        self.imsPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
+        self.imsPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
 
-    def processTelemetryAccelerometerData(self, data):
-        self.dataTelemetryAccelerometerData.set(data[-1])
-        
-    def processTelemetryForceActuatorData(self, data):
-        self.dataTelemetryForceActuatorData.set(data[-1])
+    @Slot(map)
+    def inclinometerData(self, data):
+        self.inclinometerLabel.setText("%0.3f" % (data.inclinometerAngle))
 
-    def processTelemetryGyroData(self, data):
-        self.dataTelemetryGyroData.set(data[-1])
-        
-    def processTelemetryHardpointActuatorData(self, data):
-        self.dataTelemetryHardpointActuatorData.set(data[-1])
-        
-    def processTelemetryIMSData(self, data):
-        self.dataTelemetryIMSData.set(data[-1])
-        
-    def processTelemetryInclinometerData(self, data):
-        self.dataTelemetryInclinometerData.set(data[-1])
+    @Slot(map)
+    def azimuth(self, data):
+        self.tmaAzimuthLabel.setText("%0.3f" % (data.actualAngle))
 
-    def processMTMountTelemetryAzimuthData(self, data):
-        self.dataMTMountTelemetryAzimuthData.set(data[-1])
-
-    def processMTMountTelemetryElevationData(self, data):
-        self.dataMTMountTelemetryElevationData.set(data[-1])
+    @Slot(map)
+    def elevation(self, data):
+        self.tmaElevationLabel.setText("%0.3f" % (data.actualAngle))

@@ -1,14 +1,16 @@
-
 import QTHelpers
 import TimeChart
-from DataCache import DataCache
 from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
+from PySide2.QtCore import Slot
+from asyncqt import asyncSlot
 
 class PowerPageWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
@@ -252,26 +254,24 @@ class PowerPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chartView)
 
-        self.dataEventPowerWarning = DataCache()
-        self.dataEventPowerStatus = DataCache()
-        self.dataTelemetryPowerSupplyData = DataCache()
-        
-        self.MTM1M3.subscribeEvent_powerWarning(self.processEventPowerWarning)
-        self.MTM1M3.subscribeEvent_powerStatus(self.processEventPowerStatus)
-        self.MTM1M3.subscribeTelemetry_powerSupplyData(self.processTelemetryPowerSupplyData)
-
     def setPageActive(self, active):
+        if self.pageActive == active:
+            return
+
+        if active:
+            self.comm.powerWarning.connect(self.powerWarning)
+            self.comm.powerStatus.connect(self.powerStatus)
+            self.comm.powerSupplyData.connect(self.powerSupplyData)
+        else:
+            self.comm.powerWarning.disconnect(self.powerWarning)
+            self.comm.powerStatus.disconnect(self.powerStatus)
+            self.comm.powerSupplyData.disconnect(self.powerSupplyData)
+
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
 
-    def updatePage(self):
-        if not self.pageActive:
-            return 
-
-        if self.dataEventPowerWarning.hasBeenUpdated():
-            data = self.dataEventPowerWarning.get()
-            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+    @Slot(map)
+    def powerWarning(self, data):
+        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
             #TODO QTHelpers.setWarningLabel(self.rcpMirrorCellUtility220VAC1StatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPMirrorCellUtility220VAC1Status))
             #TODO QTHelpers.setWarningLabel(self.rcpCabinetUtility220VACStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPCabinetUtility220VACStatus))
             #TODO QTHelpers.setWarningLabel(self.rcpExternalEquipment220VACStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.RCPExternalEquipment220VACStatus))
@@ -296,85 +296,93 @@ class PowerPageWidget(QWidget):
             #TODO QTHelpers.setWarningLabel(self.externalEquipmentPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.ExternalEquipmentPowerNetworkStatus))
             #TODO QTHelpers.setWarningLabel(self.laserTrackerPowerNetworkStatusLabel, BitHelper.get(data.powerSystemFlags, PowerSystemFlags.LaserTrackerPowerNetworkStatus))
 
-        if self.dataEventPowerStatus.hasBeenUpdated():
-            data = self.dataEventPowerStatus.get()
-            QTHelpers.setBoolLabelOnOff(self.powerNetworkACommandedOnLabel, data.powerNetworkACommandedOn)
-            QTHelpers.setBoolLabelOnOff(self.powerNetworkBCommandedOnLabel, data.powerNetworkBCommandedOn)
-            QTHelpers.setBoolLabelOnOff(self.powerNetworkCCommandedOnLabel, data.powerNetworkCCommandedOn)
-            QTHelpers.setBoolLabelOnOff(self.powerNetworkDCommandedOnLabel, data.powerNetworkDCommandedOn)
-            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkACommandedOnLabel, data.auxPowerNetworkACommandedOn)
-            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkBCommandedOnLabel, data.auxPowerNetworkBCommandedOn)
-            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkCCommandedOnLabel, data.auxPowerNetworkCCommandedOn)
-            QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkDCommandedOnLabel, data.auxPowerNetworkDCommandedOn)
+    @Slot(map)
+    def powerStatus(self, data):
+        QTHelpers.setBoolLabelOnOff(self.powerNetworkACommandedOnLabel, data.powerNetworkACommandedOn)
+        QTHelpers.setBoolLabelOnOff(self.powerNetworkBCommandedOnLabel, data.powerNetworkBCommandedOn)
+        QTHelpers.setBoolLabelOnOff(self.powerNetworkCCommandedOnLabel, data.powerNetworkCCommandedOn)
+        QTHelpers.setBoolLabelOnOff(self.powerNetworkDCommandedOnLabel, data.powerNetworkDCommandedOn)
+        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkACommandedOnLabel, data.auxPowerNetworkACommandedOn)
+        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkBCommandedOnLabel, data.auxPowerNetworkBCommandedOn)
+        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkCCommandedOnLabel, data.auxPowerNetworkCCommandedOn)
+        QTHelpers.setBoolLabelOnOff(self.auxPowerNetworkDCommandedOnLabel, data.auxPowerNetworkDCommandedOn)
 
-        if self.dataTelemetryPowerSupplyData.hasBeenUpdated():
-            data = self.dataTelemetryPowerSupplyData.get()
-            self.powerNetworkACurrentLabel.setText("%0.3f" % data.powerNetworkACurrent)
-            self.powerNetworkBCurrentLabel.setText("%0.3f" % data.powerNetworkBCurrent)
-            self.powerNetworkCCurrentLabel.setText("%0.3f" % data.powerNetworkCCurrent)
-            self.powerNetworkDCurrentLabel.setText("%0.3f" % data.powerNetworkDCurrent)
-            self.lightPowerNetworkCurrentLabel.setText("%0.3f" % data.lightPowerNetworkCurrent)
-            self.controlsPowerNetworkCurrentLabel.setText("%0.3f" % data.controlsPowerNetworkCurrent)
+    @Slot(map)
+    def powerSupplyData(self, data):
+        self.powerNetworkACurrentLabel.setText("%0.3f" % data.powerNetworkACurrent)
+        self.powerNetworkBCurrentLabel.setText("%0.3f" % data.powerNetworkBCurrent)
+        self.powerNetworkCCurrentLabel.setText("%0.3f" % data.powerNetworkCCurrent)
+        self.powerNetworkDCurrentLabel.setText("%0.3f" % data.powerNetworkDCurrent)
+        self.lightPowerNetworkCurrentLabel.setText("%0.3f" % data.lightPowerNetworkCurrent)
+        self.controlsPowerNetworkCurrentLabel.setText("%0.3f" % data.controlsPowerNetworkCurrent)
 
-    def issueCommandTurnMainAOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(True, False, False, False, False, False, False, False)
+        self.chart.append('Current (A)', 'A', [(data.timestamp, data.powerNetworkACurrent)])
+        self.chart.append('Current (A)', 'B', [(data.timestamp, data.powerNetworkBCurrent)])
+        self.chart.append('Current (A)', 'C', [(data.timestamp, data.powerNetworkCCurrent)])
+        self.chart.append('Current (A)', 'D', [(data.timestamp, data.powerNetworkDCurrent)])
+        self.chart.append('Current (A)', 'Lights', [(data.timestamp, data.lightPowerNetworkCurrent)])
+        self.chart.append('Current (A)', 'Controls', [(data.timestamp, data.controlsPowerNetworkCurrent)])
 
-    def issueCommandTurnMainAOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(True, False, False, False, False, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainAOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(True, False, False, False, False, False, False, False)
 
-    def issueCommandTurnMainBOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, True, False, False, False, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainAOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(True, False, False, False, False, False, False, False)
 
-    def issueCommandTurnMainBOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, True, False, False, False, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainBOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(False, True, False, False, False, False, False, False)
 
-    def issueCommandTurnMainCOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, True, False, False, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainBOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(False, True, False, False, False, False, False, False)
 
-    def issueCommandTurnMainCOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, True, False, False, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainCOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(False, False, True, False, False, False, False, False)
 
-    def issueCommandTurnMainDOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, True, False, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainCOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(False, False, True, False, False, False, False, False)
 
-    def issueCommandTurnMainDOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, True, False, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainDOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(False, False, False, True, False, False, False, False)
 
-    def issueCommandTurnAuxAOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, True, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnMainDOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(False, False, False, True, False, False, False, False)
 
-    def issueCommandTurnAuxAOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, True, False, False, False)
+    @asyncSlot()
+    async def issueCommandTurnAuxAOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(False, False, False, False, True, False, False, False)
 
-    def issueCommandTurnAuxBOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, True, False, False)
+    @asyncSlot()
+    async def issueCommandTurnAuxAOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(False, False, False, False, True, False, False, False)
 
-    def issueCommandTurnAuxBOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, True, False, False)
+    @asyncSlot()
+    async def issueCommandTurnAuxBOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(False, False, False, False, False, True, False, False)
 
-    def issueCommandTurnAuxCOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, False, True, False)
+    @asyncSlot()
+    async def issueCommandTurnAuxBOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(False, False, False, False, False, True, False, False)
 
-    def issueCommandTurnAuxCOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, False, True, False)
+    @asyncSlot()
+    async def issueCommandTurnAuxCOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(False, False, False, False, False, False, True, False)
 
-    def issueCommandTurnAuxDOn(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOn(False, False, False, False, False, False, False, True)
+    @asyncSlot()
+    async def issueCommandTurnAuxCOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(False, False, False, False, False, False, True, False)
 
-    def issueCommandTurnAuxDOff(self):
-        self.MTM1M3.issueCommandThenWait_turnPowerOff(False, False, False, False, False, False, False, True)
+    @asyncSlot()
+    async def issueCommandTurnAuxDOn(self):
+        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(False, False, False, False, False, False, False, True)
 
-    def processEventPowerWarning(self, data):
-        self.dataEventPowerWarning.set(data[-1])
-
-    def processEventPowerStatus(self, data):
-        self.dataEventPowerStatus.set(data[-1])
-
-    def processTelemetryPowerSupplyData(self, data):
-        self.chart.append('Current (A)', 'A', [(x.timestamp, x.powerNetworkACurrent) for x in data])
-        self.chart.append('Current (A)', 'B', [(x.timestamp, x.powerNetworkBCurrent) for x in data])
-        self.chart.append('Current (A)', 'C', [(x.timestamp, x.powerNetworkCCurrent) for x in data])
-        self.chart.append('Current (A)', 'D', [(x.timestamp, x.powerNetworkDCurrent) for x in data])
-        self.chart.append('Current (A)', 'Lights', [(x.timestamp, x.lightPowerNetworkCurrent) for x in data])
-        self.chart.append('Current (A)', 'Controls', [(x.timestamp, x.controlsPowerNetworkCurrent) for x in data])
-        self.dataTelemetryPowerSupplyData.set(data[-1])
+    @asyncSlot()
+    async def issueCommandTurnAuxDOff(self):
+        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(False, False, False, False, False, False, False, True)

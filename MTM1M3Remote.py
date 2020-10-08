@@ -1,9 +1,11 @@
 import time
 from SALPY_MTM1M3 import *
+from lsst.ts import salobj
 
 class MTM1M3Remote:
     def __init__(self):
         self.sal = SAL_MTM1M3()
+        self.salobj = salobj.Remote(domain=salobj.Domain(), name="MTM1M3", index=0)
         self.sal.setDebugLevel(0)
         self.sal.salCommand("MTM1M3_command_abort")
         self.sal.salCommand("MTM1M3_command_enable")
@@ -240,27 +242,6 @@ class MTM1M3Remote:
     def issueCommandThenWait_abort(self, value, timeoutInSeconds = 10):
         cmdId = self.issueCommand_abort(value)
         return self.waitForCompletion_abort(cmdId, timeoutInSeconds)
-
-    def issueCommand_enable(self, value):
-        data = MTM1M3_command_enableC()
-        data.value = value
-
-        return self.sal.issueCommand_enable(data)
-
-    def getResponse_enable(self):
-        data = MTM1M3_ackcmdC()
-        result = self.sal.getResponse_enable(data)
-        return result, data
-        
-    def waitForCompletion_enable(self, cmdId, timeoutInSeconds = 10):
-        waitResult = self.sal.waitForCompletion_enable(cmdId, timeoutInSeconds)
-        #ackResult, ack = self.getResponse_enable()
-        #return waitResult, ackResult, ack
-        return waitResult
-        
-    def issueCommandThenWait_enable(self, value, timeoutInSeconds = 10):
-        cmdId = self.issueCommand_enable(value)
-        return self.waitForCompletion_enable(cmdId, timeoutInSeconds)
 
     def issueCommand_disable(self, value):
         data = MTM1M3_command_disableC()

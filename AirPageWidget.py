@@ -1,13 +1,15 @@
-
 import QTHelpers
-from DataCache import DataCache
 from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
+from PySide2.QtCore import Slot
+from asyncqt import asyncSlot
 
 class AirPageWidget(QWidget):
-    def __init__(self, MTM1M3):
+    def __init__(self, comm):
         QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
@@ -56,40 +58,34 @@ class AirPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
         self.warningLayout.addWidget(self.airValveSensorMismatch, row, col + 1)
 
-        self.dataEventAirSupplyWarning = DataCache()
-        self.dataEventAirSupplyStatus = DataCache()
-        
-        self.MTM1M3.subscribeEvent_airSupplyWarning(self.processEventAirSupplyWarning)
-        self.MTM1M3.subscribeEvent_airSupplyStatus(self.processEventAirSupplyStatus)
-
     def setPageActive(self, active):
+        if self.pageActive == active:
+            return
+
+        if active:
+            self.comm.airSupplyWarning.connect(self.airSupplyWarning)
+            self.comm.airSupplyStatus.connect(self.airSupplyStatus)
+        else:
+            self.comm.airSupplyWarning.disconnect(self.airSupplyWarning)
+            self.comm.airSupplyStatus.disconnect(self.airSupplyStatus)
+
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
 
-    def updatePage(self):
-        if not self.pageActive:
-            return 
-
-        if self.dataEventAirSupplyWarning.hasBeenUpdated():
-            data = self.dataEventAirSupplyWarning.get()
-            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+    @Slot(map)
+    def airSupplyWarning(self, data):
+        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
             # TODO QTHelpers.setWarningLabel(self.airValveSensorMismatch, BitHelper.get(data.airSupplyFlags, AirSupplyFlags.AirValveSensorMismatch))
 
-        if self.dataEventAirSupplyStatus.hasBeenUpdated():
-            data = self.dataEventAirSupplyStatus.get()
-            QTHelpers.setBoolLabelOnOff(self.airCommandedOnLabel, data.airCommandedOn)
-            QTHelpers.setBoolLabelHighLow(self.airValveOpenedLabel, data.airValveOpened)
-            QTHelpers.setBoolLabelHighLow(self.airValveClosedLabel, data.airValveClosed)
+    @Slot(map)
+    def airSupplyStatus(self, data):
+        QTHelpers.setBoolLabelOnOff(self.airCommandedOnLabel, data.airCommandedOn)
+        QTHelpers.setBoolLabelHighLow(self.airValveOpenedLabel, data.airValveOpened)
+        QTHelpers.setBoolLabelHighLow(self.airValveClosedLabel, data.airValveClosed)
 
-    def issueCommandTurnAirOn(self):
-        self.MTM1M3.issueCommandThenWait_turnAirOn(False)
+    @asyncSlot()
+    async def issueCommandTurnAirOn(self):
+        await self.comm.MTM1M3.cmd_turnAirOn.start()
 
-    def issueCommandTurnAirOff(self):
-        self.MTM1M3.issueCommandThenWait_turnAirOff(False)
-
-    def processEventAirSupplyWarning(self, data):
-        self.dataEventAirSupplyWarning.set(data[-1])
-        
-    def processEventAirSupplyStatus(self, data):
-        self.dataEventAirSupplyStatus.set(data[-1])
+    @asyncSlot()
+    async def issueCommandTurnAirOff(self):
+        await self.comm.MTM1M3.cmd_turnAirOff.start()

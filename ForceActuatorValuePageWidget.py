@@ -1,5 +1,3 @@
-
-from DataCache import DataCache
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import TopicData
