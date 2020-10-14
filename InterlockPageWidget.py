@@ -5,7 +5,7 @@ from PySide2.QtCore import Slot
 
 class InterlockPageWidget(QWidget):
     def __init__(self, comm):
-        QWidget.__init__(self)
+        super().__init__()
         self.comm = comm
         self.pageActive = False
 

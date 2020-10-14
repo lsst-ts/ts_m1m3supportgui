@@ -3,7 +3,7 @@ from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStackedLayout,
 
 class ApplicationPaginationWidget(QWidget):
     def __init__(self):
-        QWidget.__init__(self)
+        super().__init__()
         self.layout = QHBoxLayout()
         self.listLayout = QVBoxLayout()
         self.pageLayout = QStackedLayout()

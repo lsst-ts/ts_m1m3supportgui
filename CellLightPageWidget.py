@@ -6,7 +6,7 @@ from asyncqt import asyncSlot
 
 class CellLightPageWidget(QWidget):
     def __init__(self, comm):
-        QWidget.__init__(self)
+        super().__init__()
         self.comm = comm
         self.pageActive = False
 
