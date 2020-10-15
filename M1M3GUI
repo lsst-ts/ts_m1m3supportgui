@@ -5,7 +5,6 @@ import sys
 import time
 
 from SALComm import SALComm
-from UpdateDisplay import UpdateDisplay
 
 from ApplicationControlWidget import ApplicationControlWidget
 from ApplicationStatusWidget import ApplicationStatusWidget
@@ -26,7 +25,6 @@ from OverviewPageWidget import OverviewPageWidget
 from PIDPageWidget import PIDPageWidget
 from PowerPageWidget import PowerPageWidget
 
-from PySide2.QtCore import QTimer
 from PySide2.QtWidgets import (QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel)
 from PySide2.QtGui import QFont
 
@@ -35,7 +33,6 @@ from asyncqt import QEventLoop
 class EUI(QDialog):
     def __init__(self, parent=None):
         super(EUI, self).__init__(parent)
-        self.updateDisplay = UpdateDisplay()
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
 
@@ -88,10 +85,6 @@ class EUI(QDialog):
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
 
-    def updateDisplays(self):
-        #self.MTM1M3.runSubscriberChecks()
-        self.updateDisplay.update()
-
 if __name__ == '__main__':
     # Create the Qt Application
     app = QApplication(sys.argv)
@@ -100,10 +93,6 @@ if __name__ == '__main__':
     # Create EUI
     eui = EUI()
     eui.show()
-    # Create MTM1M3 Telemetry & Event Loop & Display update
-    #telemetryEventLoopTimer = QTimer()
-    #telemetryEventLoopTimer.timeout.connect(eui.updateDisplays)
-    #telemetryEventLoopTimer.start(500)
 
     # Run the main Qt loop
     with loop:
