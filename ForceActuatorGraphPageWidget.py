@@ -3,14 +3,24 @@ import TimeChart
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import Topics
-from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget
+from PySide2.QtWidgets import (
+    QWidget,
+    QLabel,
+    QPushButton,
+    QHBoxLayout,
+    QVBoxLayout,
+    QGridLayout,
+    QListWidget,
+)
 from ActuatorsDisplay import MirrorWidget, Actuator
 from lsst.ts.salobj import current_tai
+
 
 class ForceActuatorGraphPageWidget(QWidget):
     """
     Draw distribution of force actuators, and selected value. Intercept events callbacks to trigger updates.
     """
+
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
@@ -46,7 +56,9 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.fieldList.itemSelectionChanged.connect(self.selectedFieldChanged)
 
         self.mirrorWidget = MirrorWidget()
-        self.mirrorWidget.mirrorView.selectionChanged.connect(self.updateSelectedActuator)
+        self.mirrorWidget.mirrorView.selectionChanged.connect(
+            self.updateSelectedActuator
+        )
         self.plotLayout.addWidget(self.mirrorWidget)
 
         row = 0
@@ -82,7 +94,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.fieldList.clear()
         for field in self.topics.topics[topicIndex].fields:
             self.fieldList.addItem(field[0])
-        self.fieldList.setCurrentRow(self.topics.topics[topicIndex].selectedField) 
+        self.fieldList.setCurrentRow(self.topics.topics[topicIndex].selectedField)
 
     def selectedFieldChanged(self):
         if self.ignoreFieldChange:
@@ -126,12 +138,22 @@ class ForceActuatorGraphPageWidget(QWidget):
             if index < 0:
                 state = Actuator.STATE_INACTIVE
             elif warningData is not None:
-                state = Actuator.STATE_WARNING if warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0 else Actuator.STATE_ACTIVE
+                state = (
+                    Actuator.STATE_WARNING
+                    if warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
+                    else Actuator.STATE_ACTIVE
+                )
             else:
                 state = Actuator.STATE_ACTIVE
 
-            self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
-            #else:
+            self.mirrorWidget.mirrorView.addActuator(
+                id,
+                row[FATABLE_XPOSITION] * 1000,
+                row[FATABLE_YPOSITION] * 1000,
+                data[index],
+                state,
+            )
+            # else:
             #    try:
             #        self.mirrorWidget.mirrorView.updateActuator(id, data[index], state)
             #    except KeyError:
@@ -144,9 +166,9 @@ class ForceActuatorGraphPageWidget(QWidget):
 
     def updateSelectedActuator(self, s):
         if s is None:
-            self.selectedActuatorIdLabel.setText('not selected')
-            self.selectedActuatorValueLabel.setText('')
-            self.selectedActuatorWarningLabel.setText('')
+            self.selectedActuatorIdLabel.setText("not selected")
+            self.selectedActuatorValueLabel.setText("")
+            self.selectedActuatorWarningLabel.setText("")
             return
 
         self.selectedActuatorIdLabel.setText(str(s.id))

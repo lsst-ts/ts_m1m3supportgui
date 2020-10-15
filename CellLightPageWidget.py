@@ -4,6 +4,7 @@ from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLa
 from PySide2.QtCore import Slot
 from asyncqt import asyncSlot
 
+
 class CellLightPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
@@ -21,7 +22,7 @@ class CellLightPageWidget(QWidget):
         self.layout.addLayout(self.warningLayout)
         self.setLayout(self.layout)
         self.setFixedHeight(300)
-        
+
         self.turnLightsOnButton = QPushButton("Turn Lights On")
         self.turnLightsOnButton.clicked.connect(self.issueCommandTurnLightsOn)
         self.turnLightsOnButton.setFixedWidth(256)
@@ -45,7 +46,7 @@ class CellLightPageWidget(QWidget):
         row += 1
         self.dataLayout.addWidget(QLabel("Sensor"), row, col)
         self.dataLayout.addWidget(self.cellLightsOnLabel, row, col + 1)
-        
+
         row = 0
         col = 0
         self.warningLayout.addWidget(QLabel("Any Warnings"), row, col)
@@ -56,7 +57,7 @@ class CellLightPageWidget(QWidget):
 
     def setPageActive(self, active):
         if self.pageActive == active:
-            return 
+            return
 
         if active:
             self.comm.cellLightWarning.connect(self.cellLightWarning)
@@ -70,11 +71,13 @@ class CellLightPageWidget(QWidget):
     @Slot(map)
     def cellLightWarning(self, data):
         QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-            # TODO QTHelpers.setWarningLabel(self.cellLightSensorMismatchLabel, BitHelper.get(data.cellLightFlags, CellLightFlags.CellLightSensorMismatch))
+        # TODO QTHelpers.setWarningLabel(self.cellLightSensorMismatchLabel, BitHelper.get(data.cellLightFlags, CellLightFlags.CellLightSensorMismatch))
 
     @Slot(map)
     def cellLightStatus(self, data):
-        QTHelpers.setBoolLabelOnOff(self.cellLightsCommandedOnLabel, data.cellLightsCommandedOn)
+        QTHelpers.setBoolLabelOnOff(
+            self.cellLightsCommandedOnLabel, data.cellLightsCommandedOn
+        )
         QTHelpers.setBoolLabelOnOff(self.cellLightsOnLabel, data.cellLightsOn)
 
     @asyncSlot()

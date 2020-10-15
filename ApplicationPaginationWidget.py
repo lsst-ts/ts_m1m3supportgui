@@ -1,5 +1,11 @@
+from PySide2.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QStackedLayout,
+    QListWidget,
+)
 
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStackedLayout, QListWidget
 
 class ApplicationPaginationWidget(QWidget):
     def __init__(self):

@@ -4,6 +4,7 @@ from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLa
 from PySide2.QtCore import Slot
 from asyncqt import asyncSlot
 
+
 class AirPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
@@ -21,7 +22,7 @@ class AirPageWidget(QWidget):
         self.layout.addLayout(self.warningLayout)
         self.setLayout(self.layout)
         self.setFixedHeight(300)
-        
+
         self.turnAirOnButton = QPushButton("Turn Air On")
         self.turnAirOnButton.clicked.connect(self.issueCommandTurnAirOn)
         self.turnAirOnButton.setFixedWidth(256)
@@ -35,7 +36,7 @@ class AirPageWidget(QWidget):
 
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.airValveSensorMismatch = QLabel("UNKNOWN")
-        
+
         self.commandLayout.addWidget(self.turnAirOnButton)
         self.commandLayout.addWidget(self.turnAirOffButton)
 
@@ -74,7 +75,7 @@ class AirPageWidget(QWidget):
     @Slot(map)
     def airSupplyWarning(self, data):
         QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-            # TODO QTHelpers.setWarningLabel(self.airValveSensorMismatch, BitHelper.get(data.airSupplyFlags, AirSupplyFlags.AirValveSensorMismatch))
+        # TODO QTHelpers.setWarningLabel(self.airValveSensorMismatch, BitHelper.get(data.airSupplyFlags, AirSupplyFlags.AirValveSensorMismatch))
 
     @Slot(map)
     def airSupplyStatus(self, data):

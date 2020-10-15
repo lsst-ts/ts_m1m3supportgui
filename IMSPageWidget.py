@@ -4,6 +4,7 @@ from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 
+
 class IMSPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
@@ -19,8 +20,8 @@ class IMSPageWidget(QWidget):
         self.layout.addLayout(self.warningLayout)
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
-        
-        self.maxPlotSize = 50 * 30 # 50Hz * 30s
+
+        self.maxPlotSize = 50 * 30  # 50Hz * 30s
 
         self.rawPositiveXAxialLabel = QLabel("UNKNOWN")
         self.rawPositiveXTangentLabel = QLabel("UNKNOWN")
@@ -36,7 +37,7 @@ class IMSPageWidget(QWidget):
         self.xRotationLabel = QLabel("UNKNOWN")
         self.yRotationLabel = QLabel("UNKNOWN")
         self.zRotationLabel = QLabel("UNKNOWN")
-       
+
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.sensorReportsInvalidCommandLabel = QLabel("UNKNOWN")
         self.sensorReportsCommunicationTimeoutErrorLabel = QLabel("UNKNOWN")
@@ -58,7 +59,7 @@ class IMSPageWidget(QWidget):
 
         self.posChart = TimeChart.TimeChart()
         self.posChartView = TimeChart.TimeChartView(self.posChart)
-        
+
         row = 0
         col = 0
         self.dataLayout.addWidget(QLabel("X"), row, col + 1)
@@ -100,37 +101,53 @@ class IMSPageWidget(QWidget):
         self.warningLayout.addWidget(self.anyWarningLabel, row, col + 1)
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor Invalid Command"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsInvalidCommandLabel, row, col + 1)
+        self.warningLayout.addWidget(
+            self.sensorReportsInvalidCommandLabel, row, col + 1
+        )
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor Communication Timeout"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsCommunicationTimeoutErrorLabel, row, col + 1)
+        self.warningLayout.addWidget(
+            self.sensorReportsCommunicationTimeoutErrorLabel, row, col + 1
+        )
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor Data Length Error"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsDataLengthErrorLabel, row, col + 1)
+        self.warningLayout.addWidget(
+            self.sensorReportsDataLengthErrorLabel, row, col + 1
+        )
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor Parameter Count Error"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsNumberOfParametersErrorLabel, row, col + 1)
+        self.warningLayout.addWidget(
+            self.sensorReportsNumberOfParametersErrorLabel, row, col + 1
+        )
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor Parameter Error"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsParameterErrorLabel, row, col + 1)
-        
+        self.warningLayout.addWidget(
+            self.sensorReportsParameterErrorLabel, row, col + 1
+        )
+
         row = 1
         col = 2
         self.warningLayout.addWidget(QLabel("Sensor Communication Error"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsCommunicationErrorLabel, row, col + 1)
+        self.warningLayout.addWidget(
+            self.sensorReportsCommunicationErrorLabel, row, col + 1
+        )
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor ID Number Error"), row, col)
         self.warningLayout.addWidget(self.sensorReportsIDNumberErrorLabel, row, col + 1)
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor Expansion Line Error"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsExpansionLineErrorLabel, row, col + 1)
+        self.warningLayout.addWidget(
+            self.sensorReportsExpansionLineErrorLabel, row, col + 1
+        )
         row += 1
         self.warningLayout.addWidget(QLabel("Sensor Write Control Error"), row, col)
-        self.warningLayout.addWidget(self.sensorReportsWriteControlErrorLabel, row, col + 1)
+        self.warningLayout.addWidget(
+            self.sensorReportsWriteControlErrorLabel, row, col + 1
+        )
         row += 1
         self.warningLayout.addWidget(QLabel("Response Timeout"), row, col)
         self.warningLayout.addWidget(self.responseTimeoutLabel, row, col + 1)
-        
+
         row = 1
         col = 4
         self.warningLayout.addWidget(QLabel("Invalid Length"), row, col)
@@ -156,7 +173,9 @@ class IMSPageWidget(QWidget):
             self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
             self.comm.imsData.connect(self.imsData)
         else:
-            self.comm.displacementSensorWarning.disconnect(self.displacementSensorWarning)
+            self.comm.displacementSensorWarning.disconnect(
+                self.displacementSensorWarning
+            )
             self.comm.imsData.disconnect(self.imsData)
 
         self.pageActive = active
@@ -164,20 +183,20 @@ class IMSPageWidget(QWidget):
     @Slot(bool)
     def displacementSensorWarning(self, anyWarning):
         QTHelpers.setWarningLabel(self.anyWarningLabel, anyWarning)
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsInvalidCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsInvalidCommand))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsCommunicationTimeoutErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationTimeoutError))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsDataLengthErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsDataLengthError))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsNumberOfParametersErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsNumberOfParametersError))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsParameterErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsCommunicationErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsIDNumberErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsIDNumberError))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsExpansionLineErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsExpansionLineError))
-            #TODO QTHelpers.setWarningLabel(self.sensorReportsWriteControlErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsWriteControlError))
-            #TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.ResponseTimeout))
-            #TODO QTHelpers.setWarningLabel(self.invalidLengthLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidLength))
-            #TODO QTHelpers.setWarningLabel(self.invalidResponseLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidResponse))
-            #TODO QTHelpers.setWarningLabel(self.unknownCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownCommand))
-            #TODO QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownProblem))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsInvalidCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsInvalidCommand))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsCommunicationTimeoutErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationTimeoutError))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsDataLengthErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsDataLengthError))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsNumberOfParametersErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsNumberOfParametersError))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsParameterErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsCommunicationErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsCommunicationError))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsIDNumberErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsIDNumberError))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsExpansionLineErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsExpansionLineError))
+        # TODO QTHelpers.setWarningLabel(self.sensorReportsWriteControlErrorLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.SensorReportsWriteControlError))
+        # TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.ResponseTimeout))
+        # TODO QTHelpers.setWarningLabel(self.invalidLengthLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidLength))
+        # TODO QTHelpers.setWarningLabel(self.invalidResponseLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.InvalidResponse))
+        # TODO QTHelpers.setWarningLabel(self.unknownCommandLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownCommand))
+        # TODO QTHelpers.setWarningLabel(self.unknownProblemLabel, BitHelper.get(data.displacementSensorFlags, DisplacementSensorFlags.UnknownProblem))
 
     @Slot(map)
     def imsData(self, data):
@@ -196,19 +215,51 @@ class IMSPageWidget(QWidget):
         self.yRotationLabel.setText("%0.3f" % (data.yRotation))
         self.zRotationLabel.setText("%0.3f" % (data.zRotation))
 
-        self.rawChart.append('Displacement (mm)', '+X Axial', [(data.timestamp, data.rawSensorData[0] / 1000)])
-        self.rawChart.append('Displacement (mm)', '+X Tangent', [(data.timestamp, data.rawSensorData[1] / 1000)])
-        self.rawChart.append('Displacement (mm)', '-Y Axial', [(data.timestamp, data.rawSensorData[2] / 1000)])
-        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(data.timestamp, data.rawSensorData[3] / 1000)])
-        self.rawChart.append('Displacement (mm)', '-X Axial', [(data.timestamp, data.rawSensorData[4] / 1000)])
-        self.rawChart.append('Displacement (mm)', '-X Tangent', [(data.timestamp, data.rawSensorData[5] / 1000)])
-        self.rawChart.append('Displacement (mm)', '-Y Axial', [(data.timestamp, data.rawSensorData[6] / 1000)])
-        self.rawChart.append('Displacement (mm)', '-Y Tangent', [(data.timestamp, data.rawSensorData[7] / 1000)])
- 
-        self.posChart.append('Position (m)', 'X', [(data.timestamp, data.xPosition)])
+        self.rawChart.append(
+            "Displacement (mm)",
+            "+X Axial",
+            [(data.timestamp, data.rawSensorData[0] / 1000)],
+        )
+        self.rawChart.append(
+            "Displacement (mm)",
+            "+X Tangent",
+            [(data.timestamp, data.rawSensorData[1] / 1000)],
+        )
+        self.rawChart.append(
+            "Displacement (mm)",
+            "-Y Axial",
+            [(data.timestamp, data.rawSensorData[2] / 1000)],
+        )
+        self.rawChart.append(
+            "Displacement (mm)",
+            "-Y Tangent",
+            [(data.timestamp, data.rawSensorData[3] / 1000)],
+        )
+        self.rawChart.append(
+            "Displacement (mm)",
+            "-X Axial",
+            [(data.timestamp, data.rawSensorData[4] / 1000)],
+        )
+        self.rawChart.append(
+            "Displacement (mm)",
+            "-X Tangent",
+            [(data.timestamp, data.rawSensorData[5] / 1000)],
+        )
+        self.rawChart.append(
+            "Displacement (mm)",
+            "-Y Axial",
+            [(data.timestamp, data.rawSensorData[6] / 1000)],
+        )
+        self.rawChart.append(
+            "Displacement (mm)",
+            "-Y Tangent",
+            [(data.timestamp, data.rawSensorData[7] / 1000)],
+        )
 
-        self.posChart.append('Position (m)', 'Y', [(data.timestamp, data.yPosition)])
-        self.posChart.append('Position (m)', 'Z', [(data.timestamp, data.zPosition)])
-        self.posChart.append('Rotation (rad)', 'X', [(data.timestamp, data.xRotation)])
-        self.posChart.append('Rotation (rad)', 'Y', [(data.timestamp, data.yRotation)])
-        self.posChart.append('Rotation (rad)', 'Z', [(data.timestamp, data.zRotation)])
+        self.posChart.append("Position (m)", "X", [(data.timestamp, data.xPosition)])
+
+        self.posChart.append("Position (m)", "Y", [(data.timestamp, data.yPosition)])
+        self.posChart.append("Position (m)", "Z", [(data.timestamp, data.zPosition)])
+        self.posChart.append("Rotation (rad)", "X", [(data.timestamp, data.xRotation)])
+        self.posChart.append("Rotation (rad)", "Y", [(data.timestamp, data.yRotation)])
+        self.posChart.append("Rotation (rad)", "Z", [(data.timestamp, data.zRotation)])

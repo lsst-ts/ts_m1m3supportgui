@@ -3,6 +3,7 @@ from datetime import datetime
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 
+
 class OverviewPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
@@ -73,7 +74,7 @@ class OverviewPageWidget(QWidget):
         self.inclinometerLabel = QLabel("UNKNOWN")
         self.tmaAzimuthLabel = QLabel("UNKNOWN")
         self.tmaElevationLabel = QLabel("UNKNOWN")
-        
+
         row = 0
         col = 0
         self.dataLayout.addWidget(QLabel("Summary State"), row, col)
@@ -84,7 +85,7 @@ class OverviewPageWidget(QWidget):
         row += 1
         self.dataLayout.addWidget(QLabel("Mode State"), row, col)
         self.dataLayout.addWidget(self.modeStateLabel, row, col + 1)
-        row += 1    
+        row += 1
         self.dataLayout.addWidget(QLabel("Warnings"), row, col)
         row += 1
         self.dataLayout.addWidget(QLabel("Interlocks"), row, col)
@@ -184,7 +185,7 @@ class OverviewPageWidget(QWidget):
         self.dataLayout.addWidget(self.imsPositionRxLabel, row, col + 4)
         self.dataLayout.addWidget(self.imsPositionRyLabel, row, col + 5)
         self.dataLayout.addWidget(self.imsPositionRzLabel, row, col + 6)
-        row += 1    
+        row += 1
         self.dataLayout.addWidget(QLabel("Angular Acceleration"), row, col)
         self.dataLayout.addWidget(QLabel("X (?)"), row, col + 1)
         self.dataLayout.addWidget(QLabel("Y (?)"), row, col + 2)
@@ -193,7 +194,7 @@ class OverviewPageWidget(QWidget):
         self.dataLayout.addWidget(self.accelationXLabel, row, col + 1)
         self.dataLayout.addWidget(self.accelationYLabel, row, col + 2)
         self.dataLayout.addWidget(self.accelationZLabel, row, col + 3)
-        row += 1    
+        row += 1
         self.dataLayout.addWidget(QLabel("Angular Velocity"), row, col)
         self.dataLayout.addWidget(QLabel("X (?)"), row, col + 1)
         self.dataLayout.addWidget(QLabel("Y (?)"), row, col + 2)
@@ -208,8 +209,8 @@ class OverviewPageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("Valve State"), row, col + 2)
         row += 1
         self.dataLayout.addWidget(self.airCommandLabel, row, col + 1)
-        self.dataLayout.addWidget(self.airValveLabel, row, col + 2)       
-        row += 1    
+        self.dataLayout.addWidget(self.airValveLabel, row, col + 2)
+        row += 1
         self.dataLayout.addWidget(QLabel("M1M3"), row, col + 1)
         self.dataLayout.addWidget(QLabel("TMA"), row, col + 2)
         row += 1
@@ -256,13 +257,17 @@ class OverviewPageWidget(QWidget):
             self.comm.appliedForces.disconnect(self.appliedForces)
             self.comm.cellLightWarning.disconnect(self.cellLightWarning)
             self.comm.detailedState.disconnect(self.detailedState)
-            self.comm.displacementSensorWarning.disconnect(self.displacementSensorWarning)
+            self.comm.displacementSensorWarning.disconnect(
+                self.displacementSensorWarning
+            )
             self.comm.forceActuatorWarning.disconnect(self.forceActuatorWarning)
             self.comm.gyroWarning.disconnect(self.gyroWarning)
             self.comm.hardpointActuatorWarning.disconnect(self.hardpointActuatorWarning)
             self.comm.hardpointMonitorWarning.disconnect(self.hardpointMonitorWarning)
             self.comm.heartbeat.disconnect(self.heartbeat)
-            self.comm.inclinometerSensorWarning.disconnect(self.inclinometerSensorWarning)
+            self.comm.inclinometerSensorWarning.disconnect(
+                self.inclinometerSensorWarning
+            )
             self.comm.interlockWarning.disconnect(self.interlockWarning)
             self.comm.powerWarning.disconnect(self.powerWarning)
 
@@ -307,22 +312,22 @@ class OverviewPageWidget(QWidget):
     def detailedState(self, data):
         # summary state, mirror state, mode
         matrix = [
-                ["---", "---", "---"],
-                ["Disabled", "Parked", "Automatic"],
-                ["Fault", "Parked", "Automatic"],
-                ["Offline", "Unknown", "Unknown"],
-                ["Standby", "Parked", "Automatic"],
-                ["Enabled", "Parked", "Automatic"],
-                ["Enabled", "Raising", "Automatic"],
-                ["Enabled", "Active", "Automatic"],
-                ["Enabled", "Lowering", "Automatic"],
-                ["Enabled", "Parked", "Engineering"],
-                ["Enabled", "Raising", "Engineering"],
-                ["Enabled", "Active", "Engineering"],
-                ["Enabled", "Lowering", "Engineering"],
-                ["Fault", "Lowering", "Automatic"],
-                ["Profile Hardpoint", "Parked", "Profile Hardpoint"]
-                ]
+            ["---", "---", "---"],
+            ["Disabled", "Parked", "Automatic"],
+            ["Fault", "Parked", "Automatic"],
+            ["Offline", "Unknown", "Unknown"],
+            ["Standby", "Parked", "Automatic"],
+            ["Enabled", "Parked", "Automatic"],
+            ["Enabled", "Raising", "Automatic"],
+            ["Enabled", "Active", "Automatic"],
+            ["Enabled", "Lowering", "Automatic"],
+            ["Enabled", "Parked", "Engineering"],
+            ["Enabled", "Raising", "Engineering"],
+            ["Enabled", "Active", "Engineering"],
+            ["Enabled", "Lowering", "Engineering"],
+            ["Fault", "Lowering", "Automatic"],
+            ["Profile Hardpoint", "Parked", "Profile Hardpoint"],
+        ]
         m = matrix[data.detailedState]
         self.summaryStateLabel.setText(m[0])
         self.mirrorStateLabel.setText(m[1])
@@ -331,7 +336,6 @@ class OverviewPageWidget(QWidget):
     @Slot(map)
     def forceActuatorWarning(self, data):
         QTHelpers.setWarningLabel(self.forceActuatorWarningLabel, data.anyWarning)
-
 
     @Slot(map)
     def gyroWarning(self, data):

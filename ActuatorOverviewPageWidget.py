@@ -1,6 +1,7 @@
 import TimeChart
-from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout)
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
+
 
 class ActuatorOverviewPageWidget(QWidget):
     def __init__(self, comm):
@@ -106,7 +107,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.velocityMzLabel = QLabel("UNKNOWN")
         self.velocityMagLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart(50 * 30) # 50Hz * 30s
+        self.chart = TimeChart.TimeChart(50 * 30)  # 50Hz * 30s
         self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -264,7 +265,9 @@ class ActuatorOverviewPageWidget(QWidget):
             self.comm.appliedVelocityForces.connect(self.appliedVelocityForces)
         else:
             self.comm.appliedAberrationForces.disconnect(self.appliedAberrationForces)
-            self.comm.appliedAccelerationForces.disconnect(self.appliedAccelerationForces)
+            self.comm.appliedAccelerationForces.disconnect(
+                self.appliedAccelerationForces
+            )
             self.comm.appliedActiveOpticForces.disconnect(self.appliedActiveOpticForces)
             self.comm.appliedAzimuthForces.disconnect(self.appliedAzimuthForces)
             self.comm.appliedBalanceForces.disconnect(self.appliedBalanceForces)
@@ -292,7 +295,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.accelerationMyLabel.setText("%0.1f" % data.my)
         self.accelerationMzLabel.setText("%0.1f" % data.mz)
         self.accelerationMagLabel.setText("%0.1f" % data.forceMagnitude)
-    
+
     @Slot(map)
     def appliedActiveOpticForces(self, data):
         self.activeOpticZLabel.setText("%0.1f" % data.fz)
@@ -339,7 +342,9 @@ class ActuatorOverviewPageWidget(QWidget):
         self.totalCommandedMzLabel.setText("%0.1f" % data.mz)
         self.totalCommandedMagLabel.setText("%0.1f" % data.forceMagnitude)
 
-        self.chart.append('Force (N)', 'Total Mag', [(data.timestamp, data.forceMagnitude)])
+        self.chart.append(
+            "Force (N)", "Total Mag", [(data.timestamp, data.forceMagnitude)]
+        )
 
     @Slot(map)
     def appliedOffsetForces(self, data):

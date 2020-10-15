@@ -4,6 +4,7 @@ from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QSpacerItem
 from PySide2.QtCore import Slot
 
+
 class DCAccelerometerPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
@@ -19,7 +20,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.layout.addLayout(self.warningLayout)
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
-        
+
         self.rawAccelerometer1XLabel = QLabel("UNKNOWN")
         self.rawAccelerometer1YLabel = QLabel("UNKNOWN")
         self.rawAccelerometer2XLabel = QLabel("UNKNOWN")
@@ -43,7 +44,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.responseTimeoutLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart(50 * 30) # 50Hz * 30s
+        self.chart = TimeChart.TimeChart(50 * 30)  # 50Hz * 30s
         self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -52,7 +53,9 @@ class DCAccelerometerPageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
         self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
         row += 1
-        self.dataLayout.addWidget(QLabel("Angular Acceleration (rad/s<sup>2</sup>)"), row, col)
+        self.dataLayout.addWidget(
+            QLabel("Angular Acceleration (rad/s<sup>2</sup>)"), row, col
+        )
         self.dataLayout.addWidget(self.angularAccelerationXLabel, row, col + 1)
         self.dataLayout.addWidget(self.angularAccelerationYLabel, row, col + 2)
         self.dataLayout.addWidget(self.angularAccelerationZLabel, row, col + 3)
@@ -87,7 +90,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.dataLayout.addWidget(self.accelerometer3YLabel, row, col + 6)
         self.dataLayout.addWidget(self.accelerometer4XLabel, row, col + 7)
         self.dataLayout.addWidget(self.accelerometer4YLabel, row, col + 8)
-        
+
         row = 0
         col = 0
         self.warningLayout.addWidget(QLabel("Any Warnings"), row, col)
@@ -97,7 +100,6 @@ class DCAccelerometerPageWidget(QWidget):
         self.warningLayout.addWidget(self.responseTimeoutLabel, row, col + 1)
 
         self.plotLayout.addWidget(self.chart_view)
-
 
     def setPageActive(self, active):
         if self.pageActive == active:
@@ -115,7 +117,7 @@ class DCAccelerometerPageWidget(QWidget):
     @Slot(map)
     def accelerometerWarning(self, data):
         QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-        #TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.accelerometerFlags, AccelerometerFlags.ResponseTimeout))
+        # TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.accelerometerFlags, AccelerometerFlags.ResponseTimeout))
 
     @Slot(map)
     def accelerometerData(self, data):
@@ -139,6 +141,18 @@ class DCAccelerometerPageWidget(QWidget):
         self.angularAccelerationYLabel.setText("%0.3f" % (data.angularAccelerationY))
         self.angularAccelerationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
 
-        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','X', [(data.timestamp, data.angularAccelerationX)])
-        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','Y', [(data.timestamp, data.angularAccelerationY)])
-        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','Z', [(data.timestamp, data.angularAccelerationZ)])
+        self.chart.append(
+            "Angular Acceleration (rad/s<sup>2</sup>)",
+            "X",
+            [(data.timestamp, data.angularAccelerationX)],
+        )
+        self.chart.append(
+            "Angular Acceleration (rad/s<sup>2</sup>)",
+            "Y",
+            [(data.timestamp, data.angularAccelerationY)],
+        )
+        self.chart.append(
+            "Angular Acceleration (rad/s<sup>2</sup>)",
+            "Z",
+            [(data.timestamp, data.angularAccelerationZ)],
+        )

@@ -43,7 +43,7 @@ class TimeChart(QtCharts.QChart):
         Redraw axis after adding this number of points.
     """
 
-    def __init__(self, maxItems=50*30, redrawAfter = 50):
+    def __init__(self, maxItems=50 * 30, redrawAfter=50):
         super().__init__()
         self.maxItems = maxItems
         self.timeAxis = QtCharts.QDateTimeAxis()
@@ -155,6 +155,7 @@ class TimeChart(QtCharts.QChart):
 
             s.attachAxis(self.timeAxis)
             s.attachAxis(a)
+
 
 class TimeChartView(QtCharts.QChartView):
     """Time chart view. Add handling of mouse move events.

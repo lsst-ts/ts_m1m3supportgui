@@ -1,9 +1,9 @@
-
 import QTHelpers
 import TimeChart
 from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
+
 
 class PIDPageWidget(QWidget):
     def __init__(self, comm):
@@ -131,7 +131,7 @@ class PIDPageWidget(QWidget):
 
         self.chart = TimeChart.TimeChart()
         self.chartView = TimeChart.TimeChartView(self.chart)
-        
+
         row = 0
         col = 0
         self.dataLayout.addWidget(QLabel("Setpoint"), row, col + 1)
@@ -422,9 +422,9 @@ class PIDPageWidget(QWidget):
         self.mzControlT1Label.setText("%0.3f" % data.controlT1[5])
         self.mzControlT2Label.setText("%0.3f" % data.controlT2[5])
 
-        self.chart.append('Command', 'Fx', [(data.timestamp, data.control[0])])
-        self.chart.append('Command', 'Fy', [(data.timestamp, data.control[1])])
-        self.chart.append('Command', 'Fz', [(data.timestamp, data.control[2])])
-        self.chart.append('Command', 'Mx', [(data.timestamp, data.control[3])])
-        self.chart.append('Command', 'My', [(data.timestamp, data.control[4])])
-        self.chart.append('Command', 'Mz', [(data.timestamp, data.control[5])])
+        self.chart.append("Command", "Fx", [(data.timestamp, data.control[0])])
+        self.chart.append("Command", "Fy", [(data.timestamp, data.control[1])])
+        self.chart.append("Command", "Fz", [(data.timestamp, data.control[2])])
+        self.chart.append("Command", "Mx", [(data.timestamp, data.control[3])])
+        self.chart.append("Command", "My", [(data.timestamp, data.control[4])])
+        self.chart.append("Command", "Mz", [(data.timestamp, data.control[5])])

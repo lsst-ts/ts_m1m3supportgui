@@ -1,8 +1,16 @@
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import Topics
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QHBoxLayout, QListWidget
+from PySide2.QtWidgets import (
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QGridLayout,
+    QHBoxLayout,
+    QListWidget,
+)
 from lsst.ts.salobj import current_tai
+
 
 class ForceActuatorValuePageWidget(QWidget):
     def __init__(self, comm):
@@ -59,102 +67,138 @@ class ForceActuatorValuePageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("110"), row, col)
         for i in range(10):
             self.dataLayout.addWidget(self.forceActuatorLabels[9 + i], row, col + 1 + i)
-        
+
         row += 1
         self.dataLayout.addWidget(QLabel("120"), row, col)
         for i in range(10):
-            self.dataLayout.addWidget(self.forceActuatorLabels[19 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[19 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("130"), row, col)
         for i in range(10):
-            self.dataLayout.addWidget(self.forceActuatorLabels[29 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[29 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("140"), row, col)
         for i in range(4):
-            self.dataLayout.addWidget(self.forceActuatorLabels[39 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[39 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel(" "), row, col)
         row += 1
         self.dataLayout.addWidget(QLabel("200"), row, col)
         for i in range(3):
-            self.dataLayout.addWidget(self.forceActuatorLabels[43 + i], row, col + 8 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[43 + i], row, col + 8 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("210"), row, col)
         for i in range(9):
-            self.dataLayout.addWidget(self.forceActuatorLabels[46 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[46 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("220"), row, col)
         for i in range(9):
-            self.dataLayout.addWidget(self.forceActuatorLabels[55 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[55 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("230"), row, col)
         for i in range(10):
-            self.dataLayout.addWidget(self.forceActuatorLabels[64 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[64 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("240"), row, col)
         for i in range(4):
-            self.dataLayout.addWidget(self.forceActuatorLabels[74 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[74 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel(" "), row, col)
         row += 1
         self.dataLayout.addWidget(QLabel("300"), row, col)
         for i in range(9):
-            self.dataLayout.addWidget(self.forceActuatorLabels[78 + i], row, col + 2 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[78 + i], row, col + 2 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("310"), row, col)
         for i in range(10):
-            self.dataLayout.addWidget(self.forceActuatorLabels[87 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[87 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("320"), row, col)
         for i in range(10):
-            self.dataLayout.addWidget(self.forceActuatorLabels[97 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[97 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("330"), row, col)
         for i in range(10):
-            self.dataLayout.addWidget(self.forceActuatorLabels[107 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[107 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("340"), row, col)
         for i in range(4):
-            self.dataLayout.addWidget(self.forceActuatorLabels[117 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[117 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel(" "), row, col)
         row += 1
         self.dataLayout.addWidget(QLabel("400"), row, col)
         for i in range(3):
-            self.dataLayout.addWidget(self.forceActuatorLabels[121 + i], row, col + 8 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[121 + i], row, col + 8 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("410"), row, col)
         for i in range(9):
-            self.dataLayout.addWidget(self.forceActuatorLabels[124 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[124 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("420"), row, col)
         for i in range(9):
-            self.dataLayout.addWidget(self.forceActuatorLabels[133 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[133 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("430"), row, col)
         for i in range(10):
-            self.dataLayout.addWidget(self.forceActuatorLabels[142 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[142 + i], row, col + 1 + i
+            )
 
         row += 1
         self.dataLayout.addWidget(QLabel("440"), row, col)
         for i in range(4):
-            self.dataLayout.addWidget(self.forceActuatorLabels[152 + i], row, col + 1 + i)
+            self.dataLayout.addWidget(
+                self.forceActuatorLabels[152 + i], row, col + 1 + i
+            )
 
         row = 0
         col = 0
@@ -176,7 +220,7 @@ class ForceActuatorValuePageWidget(QWidget):
         self.fieldList.clear()
         for field in self.topics.topics[topicIndex].fields:
             self.fieldList.addItem(field[0])
-        self.fieldList.setCurrentRow(self.topics.topics[topicIndex].selectedField) 
+        self.fieldList.setCurrentRow(self.topics.topics[topicIndex].selectedField)
 
     def selectedFieldChanged(self):
         if self.ignoreFieldChange:
@@ -210,13 +254,13 @@ class ForceActuatorValuePageWidget(QWidget):
                 label.setText("UNKNOWN")
             return
         data = fieldGetter(topicData)
-        #warningData = self.dataEventForceActuatorWarning.get()
+        # warningData = self.dataEventForceActuatorWarning.get()
         i = -1
         for row in FATABLE:
             i += 1
             dataIndex = row[fieldDataIndex]
-            #warning = False
-            #if self.actuatorWarningData is not None:
+            # warning = False
+            # if self.actuatorWarningData is not None:
             #    warning = self.actuatorWarningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
             if dataIndex != -1 and data is not None:
                 self.forceActuatorLabels[i].setText("%0.1f" % data[dataIndex])
@@ -236,4 +280,6 @@ class ForceActuatorValuePageWidget(QWidget):
         if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
             return
-        self.lastUpdatedLabel.setText("%0.1fs" % current_tai() - topic.data.get().timestamp)
+        self.lastUpdatedLabel.setText(
+            "%0.1fs" % current_tai() - topic.data.get().timestamp
+        )
