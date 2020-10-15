@@ -243,28 +243,33 @@ class ForceActuatorValuePageWidget(QWidget):
     def changePlot(self, topicIndex, fieldIndex):
         topic = self.topics.topics[topicIndex]
         field = topic.fields[fieldIndex]
-        fieldGetter = field[1]
+        self.fieldGetter = field[1]
         self.fieldDataIndex = field[2]()
-        topicData = topic.data.get()
-        if topicData is None:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            for label in self.forceActuatorLabels:
-                label.setText("UNKNOWN")
+        data = topic.data.get()
+        if data is None:
+            self.setUnknown()
             return
-        self.updateData(fieldGetter(topicData))
 
+        self.updateData(data)
+        self.topics.changeTopic(topicIndex, self.dataCallback)
+
+    def dataCallback(self, data):
+        self.updateData(data)
+        if self.topics.lastCallBack is not None:
+            self.topics.lastCallBack(data)
+          
     def updateData(self, data):
         # warningData = self.dataEventForceActuatorWarning.get()
         i = -1
         for row in FATABLE:
             i += 1
-            dataIndex = row[self.fieldDataIndex]
+            index = row[self.fieldDataIndex]
             # warning = False
             # if self.actuatorWarningData is not None:
             #    warning = self.actuatorWarningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
-            if dataIndex != -1 and data is not None:
-                self.forceActuatorLabels[i].setText("%0.1f" % data[dataIndex])
-            elif dataIndex != -1:
+            if index != -1 and data is not None:
+                self.forceActuatorLabels[i].setText("%0.1f" % self.fieldGetter(data)[index])
+            elif index != -1:
                 self.forceActuatorLabels[i].setText("UNKNOWN")
             else:
                 self.forceActuatorLabels[i].setText("")

@@ -17,6 +17,9 @@ class Topics:
     """
 
     def __init__(self, comm):
+        self.lastIndex = None
+        self.lastCallBack = None
+
         self.topics = [
             TopicData(
                 "Applied Aberration Forces",
@@ -389,3 +392,15 @@ class Topics:
                 comm.MTM1M3.evt_forceActuatorWarning,
             ),  # , ["ILC Major Fault", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX], ["Broadcast Counter Mismatch", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX]]),
         ]
+
+    def changeTopic(self, index, callback):
+        if self.lastIndex is not None:
+            self.topics[self.lastIndex].data.callback = self.lastCallBack
+
+        self.lastIndex = index
+        if index is None:
+            self.lastCallBack = None
+            return
+
+        self.lastCallBack = self.topics[index].data.callback
+        self.topics[index].data.callback = callback

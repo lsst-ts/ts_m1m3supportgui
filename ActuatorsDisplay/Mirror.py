@@ -36,18 +36,18 @@ class Mirror(QGraphicsScene):
     def __init__(self):
         super().__init__()
 
-    def setRange(self, min, max):
+    def setRange(self, minValue, maxValue):
         """Set display range. Display range is used for colors displayed by the actuator.
 
         Parameters
         ----------
-        min : `float`
-               Minimal data range.
-        max : `float`
-               Maximal data range.
+        minValue : `float`
+                   Minimal data range.
+        maxValue : `float`
+                   Maximal data range.
         """
         for a in self.items():
-            a.setRange(min, max)
+            a.setRange(minValue, maxValue)
 
     def addActuator(self, id, x, y, data, state, selected):
         """Adds actuator to the list.

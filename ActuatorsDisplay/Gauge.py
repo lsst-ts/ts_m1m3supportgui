@@ -60,23 +60,26 @@ class Gauge(QWidget):
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         swidth = max(self.width() - 100, 20)
+        sheight = self.height()
         if self._min == self._max:
             painter.setBrush(QBrush(Qt.red, Qt.DiagCrossPattern))
-            painter.drawRect(0, 0, swidth, self.height())
+            painter.drawRect(0, 0, swidth, sheight)
             painter.setPen(Qt.black)
             if self._min is not None:
                 painter.drawText(
                     0,
                     0,
                     self.width() - swidth,
-                    self.height(),
+                    sheight,
                     Qt.AlignCenter,
                     "{0:.2f}".format(self._min),
                 )
             return
 
-        for x in range(0, self.height()):
-            painter.setPen(QColor.fromHsvF(x / self.height() * 179 / 255, 1, 1))
+
+
+        for x in range(0, sheight):
+            painter.setPen(QColor.fromHsvF((x / sheight) * 0.7, 1, 1))
             painter.drawLine(0, x, swidth, x)
 
         painter.setPen(Qt.black)
@@ -86,13 +89,13 @@ class Gauge(QWidget):
             self.width() - swidth,
             30,
             Qt.AlignCenter,
-            "{0:.2f}".format(self._min),
+            "{0:.2f}".format(self._max),
         )
         painter.drawText(
             0,
-            self.height() - 30,
+            sheight - 30,
             self.width() - swidth,
             30,
             Qt.AlignCenter,
-            "{0:.2f}".format(self._max),
+            "{0:.2f}".format(self._min),
         )

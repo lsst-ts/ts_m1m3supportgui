@@ -1,17 +1,9 @@
 import QTHelpers
-import TimeChart
+import copy
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import Topics
-from PySide2.QtWidgets import (
-    QWidget,
-    QLabel,
-    QPushButton,
-    QHBoxLayout,
-    QVBoxLayout,
-    QGridLayout,
-    QListWidget,
-)
+from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget
 from ActuatorsDisplay import MirrorWidget, Actuator
 from lsst.ts.salobj import current_tai
 
@@ -25,6 +17,8 @@ class ForceActuatorGraphPageWidget(QWidget):
         super().__init__()
         self.comm = comm
         self.pageActive = False
+
+        self.fieldDataIndex = None
 
         self.layout = QHBoxLayout()
         self.plotLayout = QVBoxLayout()
@@ -47,13 +41,13 @@ class ForceActuatorGraphPageWidget(QWidget):
 
         self.topicList = QListWidget()
         self.topicList.setFixedWidth(256)
-        self.topicList.itemSelectionChanged.connect(self.selectedTopicChanged)
+        self.topicList.currentItemChanged.connect(self.selectedTopicChanged)
         self.topics = Topics(comm)
         for topic in self.topics.topics:
             self.topicList.addItem(topic.name)
         self.fieldList = QListWidget()
         self.fieldList.setFixedWidth(256)
-        self.fieldList.itemSelectionChanged.connect(self.selectedFieldChanged)
+        self.fieldList.currentItemChanged.connect(self.selectedFieldChanged)
 
         self.mirrorWidget = MirrorWidget()
         self.mirrorWidget.mirrorView.selectionChanged.connect(
@@ -83,58 +77,70 @@ class ForceActuatorGraphPageWidget(QWidget):
 
     def setPageActive(self, active):
         self.pageActive = active
-        if active:
-            self.updatePlot()
+        if not(active):
+            self.topics.changeTopic(None, None)
 
-    def selectedTopicChanged(self):
+    def selectedTopicChanged(self, current, previous):
         topicIndex = self.topicList.currentRow()
         if topicIndex < 0:
+            self.setUnknown()
             return
-        self.ignoreFieldChange = True
+
         self.fieldList.clear()
         for field in self.topics.topics[topicIndex].fields:
             self.fieldList.addItem(field[0])
-        self.fieldList.setCurrentRow(self.topics.topics[topicIndex].selectedField)
 
-    def selectedFieldChanged(self):
-        if self.ignoreFieldChange:
-            self.ignoreFieldChange = False
+        fieldIndex = self.topics.topics[topicIndex].selectedField
+        if fieldIndex < 0:
+            self.setUnknown()
             return
+
+        self.fieldList.setCurrentRow(fieldIndex)
+        self.changePlot(topicIndex, fieldIndex)
+
+    def selectedFieldChanged(self, current, previous):
         topicIndex = self.topicList.currentRow()
         fieldIndex = self.fieldList.currentRow()
         if topicIndex < 0 or fieldIndex < 0:
+            self.setUnknown()
             return
+        self.changePlot(topicIndex, fieldIndex)
         self.topics.topics[topicIndex].selectedField = fieldIndex
-        self.updatePlot()
 
-    def updatePlot(self):
+    def setUnknown(self):
+        self.lastUpdatedLabel.setText("UNKNOWN")
+
+    def changePlot(self, topicIndex, fieldIndex):
         """
         Redraw actuators with values.
         """
-        if not self.pageActive:
+        topic = self.topics.topics[topicIndex]
+        field = topic.fields[fieldIndex]
+        self.fieldGetter = field[1]
+        self.fieldDataIndex = field[2]()
+        data = topic.data.get()
+        if data is None:
+            self.setUnknown()
             return
+
+        self.updateData(data)
+        self.topics.changeTopic(topicIndex, self.dataCallback)
+
+    def dataCallback(self, data):
+        self.updateData(data)
+        if self.topics.lastCallBack is not None:
+            self.topics.lastCallBack(data)
+
+    def updateData(self, data):
+        warningData = self.comm.MTM1M3.evt_forceActuatorWarning.get()
+        points = []
+        values = self.fieldGetter(data)
 
         self.mirrorWidget.mirrorView.clear()
 
-        topicIndex = self.topicList.currentRow()
-        fieldIndex = self.fieldList.currentRow()
-        if topicIndex < 0 or fieldIndex < 0:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            return
-        topic = self.topics.topics[topicIndex]
-        field = topic.fields[fieldIndex]
-        fieldGetter = field[1]
-        fieldDataIndex = field[2]()
-        topicData = topic.data.get()
-        if topicData is None:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            return
-        data = fieldGetter(topicData)
-        warningData = self.comm.MTM1M3.evt_forceActuatorWarning.get()
-        points = []
         for row in FATABLE:
             id = row[FATABLE_ID]
-            index = row[fieldDataIndex]
+            index = row[self.fieldDataIndex]
             if index < 0:
                 state = Actuator.STATE_INACTIVE
             elif warningData is not None:
@@ -150,17 +156,17 @@ class ForceActuatorGraphPageWidget(QWidget):
                 id,
                 row[FATABLE_XPOSITION] * 1000,
                 row[FATABLE_YPOSITION] * 1000,
-                data[index],
-                state,
+                values[index],
+                state
             )
             # else:
             #    try:
-            #        self.mirrorWidget.mirrorView.updateActuator(id, data[index], state)
+            #        self.mirrorWidget.mirrorView.updateActuator(id, values[index], state)
             #    except KeyError:
             #        # for the case when list is empty..we need to scale then..
             #        self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
             #        redraw = True
-        self.mirrorWidget.setRange(min(data), max(data))
+        self.mirrorWidget.setRange(min(values), max(values))
         self.mirrorWidget.mirrorView.resetTransform()
         self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
