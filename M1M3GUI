@@ -71,7 +71,7 @@ class EUI(QDialog):
         self.addPage("Power", PowerPageWidget(self.comm))
         self.addPage("PID", PIDPageWidget(self.comm))
         self.addPage("Force Balance System", ForceBalanceSystemPageWidget(self.comm))
-        #self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(#self.MTM1M3))
+        self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
         #self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(#self.MTM1M3))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
