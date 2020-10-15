@@ -1,14 +1,8 @@
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import Topics
-from PySide2.QtWidgets import (
-    QWidget,
-    QLabel,
-    QVBoxLayout,
-    QGridLayout,
-    QHBoxLayout,
-    QListWidget,
-)
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QHBoxLayout, QListWidget
+from PySide2.QtCore import Slot
 from lsst.ts.salobj import current_tai
 
 
@@ -16,6 +10,8 @@ class ForceActuatorValuePageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
+
+        self.fieldDataIndex = None
 
         self.layout = QHBoxLayout()
         self.dataLayout = QGridLayout()
@@ -37,13 +33,13 @@ class ForceActuatorValuePageWidget(QWidget):
 
         self.topicList = QListWidget()
         self.topicList.setFixedWidth(256)
-        self.topicList.itemSelectionChanged.connect(self.selectedTopicChanged)
+        self.topicList.currentItemChanged.connect(self.selectedTopicChanged)
         self.topics = Topics(comm)
         for topic in self.topics.topics:
             self.topicList.addItem(topic.name)
         self.fieldList = QListWidget()
         self.fieldList.setFixedWidth(256)
-        self.fieldList.itemSelectionChanged.connect(self.selectedFieldChanged)
+        self.fieldList.currentItemChanged.connect(self.selectedFieldChanged)
 
         row = 0
         col = 0
@@ -212,53 +208,57 @@ class ForceActuatorValuePageWidget(QWidget):
     def setPageActive(self, active):
         self.pageActive = active
 
-    def selectedTopicChanged(self):
+    def selectedTopicChanged(self, current, previous):
         topicIndex = self.topicList.currentRow()
         if topicIndex < 0:
+            self.setUnknown()
             return
-        self.ignoreFieldChange = True
+
         self.fieldList.clear()
         for field in self.topics.topics[topicIndex].fields:
             self.fieldList.addItem(field[0])
-        self.fieldList.setCurrentRow(self.topics.topics[topicIndex].selectedField)
 
-    def selectedFieldChanged(self):
-        if self.ignoreFieldChange:
-            self.ignoreFieldChange = False
+        fieldIndex = self.topics.topics[topicIndex].selectedField
+        if fieldIndex < 0:
+            self.setUnknown()
             return
+
+        self.fieldList.setCurrentRow(fieldIndex)
+        self.changePlot(topicIndex, fieldIndex)
+
+    def selectedFieldChanged(self, current, previous):
         topicIndex = self.topicList.currentRow()
         fieldIndex = self.fieldList.currentRow()
         if topicIndex < 0 or fieldIndex < 0:
+            self.setUnknown()
             return
+        self.changePlot(topicIndex, fieldIndex)
         self.topics.topics[topicIndex].selectedField = fieldIndex
-        self.updatePlot()
 
-    def updatePlot(self):
-        if not self.pageActive:
-            return
-        topicIndex = self.topicList.currentRow()
-        fieldIndex = self.fieldList.currentRow()
-        if topicIndex < 0 or fieldIndex < 0:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            for label in self.forceActuatorLabels:
-                label.setText("UNKNOWN")
-            return
+    def setUnknown(self):
+        self.lastUpdatedLabel.setText("UNKNOWN")
+        for label in self.forceActuatorLabels:
+            label.setText("UNKNOWN")
+
+    def changePlot(self, topicIndex, fieldIndex):
         topic = self.topics.topics[topicIndex]
         field = topic.fields[fieldIndex]
         fieldGetter = field[1]
-        fieldDataIndex = field[2]()
+        self.fieldDataIndex = field[2]()
         topicData = topic.data.get()
         if topicData is None:
             self.lastUpdatedLabel.setText("UNKNOWN")
             for label in self.forceActuatorLabels:
                 label.setText("UNKNOWN")
             return
-        data = fieldGetter(topicData)
+        self.updateData(fieldGetter(topicData))
+
+    def updateData(self, data):
         # warningData = self.dataEventForceActuatorWarning.get()
         i = -1
         for row in FATABLE:
             i += 1
-            dataIndex = row[fieldDataIndex]
+            dataIndex = row[self.fieldDataIndex]
             # warning = False
             # if self.actuatorWarningData is not None:
             #    warning = self.actuatorWarningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
@@ -268,18 +268,3 @@ class ForceActuatorValuePageWidget(QWidget):
                 self.forceActuatorLabels[i].setText("UNKNOWN")
             else:
                 self.forceActuatorLabels[i].setText("")
-
-    def updateLastUpdated(self):
-        topicIndex = self.topicList.currentRow()
-        fieldIndex = self.fieldList.currentRow()
-        if topicIndex < 0 or fieldIndex < 0:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            return
-        topic = self.topics.topics[topicIndex]
-        topicData = topic.data.get()
-        if topicData is None:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            return
-        self.lastUpdatedLabel.setText(
-            "%0.1fs" % current_tai() - topic.data.get().timestamp
-        )
