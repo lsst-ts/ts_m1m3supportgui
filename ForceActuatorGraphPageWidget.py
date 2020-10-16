@@ -171,20 +171,18 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.mirrorWidget.mirrorView.resetTransform()
         self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
-        if self.mirrorView.selected is not None:
+        if self.mirrorWidget.mirrorView.selected is not None:
             self.selectedActuatorValueLabel.setText(
-                str(values[self.mirrorView.selected.dataIndex])
+                str(values[self.mirrorWidget.mirrorView.selected.dataIndex])
             )
 
     def updateSelectedActuator(self, s):
         if s is None:
-            self.selected = None
             self.selectedActuatorIdLabel.setText("not selected")
             self.selectedActuatorValueLabel.setText("")
             self.selectedActuatorWarningLabel.setText("")
             return
 
-        self.selected = s
         self.selectedActuatorIdLabel.setText(str(s.id))
         self.selectedActuatorValueLabel.setText(str(s.data))
         QTHelpers.setWarningLabel(self.selectedActuatorWarningLabel, s.warning)
