@@ -79,7 +79,7 @@ class Gauge(QWidget):
 
 
         for x in range(0, sheight):
-            painter.setPen(QColor.fromHsvF((x / sheight) * 0.7, 1, 1))
+            painter.setPen(QColor.fromHsvF((x / sheight) * 0.7, min(1, 1.5 - (x / sheight)), 1))
             painter.drawLine(0, x, swidth, x)
 
         painter.setPen(Qt.black)

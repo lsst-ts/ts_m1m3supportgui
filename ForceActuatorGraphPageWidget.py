@@ -3,9 +3,16 @@ import copy
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import Topics
-from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QListWidget
+from PySide2.QtWidgets import (
+    QWidget,
+    QLabel,
+    QPushButton,
+    QHBoxLayout,
+    QVBoxLayout,
+    QGridLayout,
+    QListWidget,
+)
 from ActuatorsDisplay import MirrorWidget, Actuator
-from lsst.ts.salobj import current_tai
 
 
 class ForceActuatorGraphPageWidget(QWidget):
@@ -77,7 +84,7 @@ class ForceActuatorGraphPageWidget(QWidget):
 
     def setPageActive(self, active):
         self.pageActive = active
-        if not(active):
+        if not (active):
             self.topics.changeTopic(None, None)
 
     def selectedTopicChanged(self, current, previous):
@@ -157,39 +164,27 @@ class ForceActuatorGraphPageWidget(QWidget):
                 row[FATABLE_XPOSITION] * 1000,
                 row[FATABLE_YPOSITION] * 1000,
                 values[index],
-                state
+                index,
+                state,
             )
-            # else:
-            #    try:
-            #        self.mirrorWidget.mirrorView.updateActuator(id, values[index], state)
-            #    except KeyError:
-            #        # for the case when list is empty..we need to scale then..
-            #        self.mirrorWidget.mirrorView.addActuator(id, row[FATABLE_XPOSITION] * 1000, row[FATABLE_YPOSITION] * 1000, data[index], state)
-            #        redraw = True
         self.mirrorWidget.setRange(min(values), max(values))
         self.mirrorWidget.mirrorView.resetTransform()
         self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
+        if self.mirrorView.selected is not None:
+            self.selectedActuatorValueLabel.setText(
+                str(values[self.mirrorView.selected.dataIndex])
+            )
+
     def updateSelectedActuator(self, s):
         if s is None:
+            self.selected = None
             self.selectedActuatorIdLabel.setText("not selected")
             self.selectedActuatorValueLabel.setText("")
             self.selectedActuatorWarningLabel.setText("")
             return
 
+        self.selected = s
         self.selectedActuatorIdLabel.setText(str(s.id))
         self.selectedActuatorValueLabel.setText(str(s.data))
         QTHelpers.setWarningLabel(self.selectedActuatorWarningLabel, s.warning)
-
-    def updateLastUpdated(self):
-        topicIndex = self.topicList.currentRow()
-        fieldIndex = self.fieldList.currentRow()
-        if topicIndex < 0 or fieldIndex < 0:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            return
-        topic = self.topics.topics[topicIndex]
-        topicData = topic.data.get()
-        if topicData is None:
-            self.lastUpdatedLabel.setText("UNKNOWN")
-            return
-        self.lastUpdatedLabel.setText("%0.1fs" % (current_tai() - topic.data.timestamp))

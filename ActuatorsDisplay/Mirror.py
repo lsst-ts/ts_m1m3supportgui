@@ -49,7 +49,7 @@ class Mirror(QGraphicsScene):
         for a in self.items():
             a.setRange(minValue, maxValue)
 
-    def addActuator(self, id, x, y, data, state, selected):
+    def addActuator(self, id, x, y, data, dataIndex, state, selected):
         """Adds actuator to the list.
 
         Parameters
@@ -62,6 +62,8 @@ class Mirror(QGraphicsScene):
             Actuator y position (in mm).
         data : `float`
             Actuator value.
+        dataIndex : `int`
+            Actuator value index.
         state : `int`
             Actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID or
             Actuator.STATE_WARNING.
@@ -69,7 +71,7 @@ class Mirror(QGraphicsScene):
             If the actuator shall be selected.
 
         """
-        self.addItem(Actuator(id, x, y, data, state, selected))
+        self.addItem(Actuator(id, x, y, data, dataIndex, state, selected))
 
     def getActuator(self, id):
         """Returns actuator with given ID.

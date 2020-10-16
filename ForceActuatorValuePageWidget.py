@@ -1,9 +1,15 @@
 from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import Topics
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QHBoxLayout, QListWidget
+from PySide2.QtWidgets import (
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QGridLayout,
+    QHBoxLayout,
+    QListWidget,
+)
 from PySide2.QtCore import Slot
-from lsst.ts.salobj import current_tai
 
 
 class ForceActuatorValuePageWidget(QWidget):
@@ -257,7 +263,7 @@ class ForceActuatorValuePageWidget(QWidget):
         self.updateData(data)
         if self.topics.lastCallBack is not None:
             self.topics.lastCallBack(data)
-          
+
     def updateData(self, data):
         # warningData = self.dataEventForceActuatorWarning.get()
         i = -1
@@ -268,7 +274,9 @@ class ForceActuatorValuePageWidget(QWidget):
             # if self.actuatorWarningData is not None:
             #    warning = self.actuatorWarningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
             if index != -1 and data is not None:
-                self.forceActuatorLabels[i].setText("%0.1f" % self.fieldGetter(data)[index])
+                self.forceActuatorLabels[i].setText(
+                    "%0.1f" % self.fieldGetter(data)[index]
+                )
             elif index != -1:
                 self.forceActuatorLabels[i].setText("UNKNOWN")
             else:

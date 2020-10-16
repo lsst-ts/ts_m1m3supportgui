@@ -45,6 +45,8 @@ class Actuator(QGraphicsItem):
          Actuator Y coordinate (in mm).
     data : `float`
          Data associated with the actuator (actual force, calculated force, ..).
+    dataIndex : `int`
+         Index in value arrays. Points to selected actuator value.
     state : `int`
          Actuator state. 0 for inactive/unused, 1 for active OK, 2 for active
          warning.
@@ -64,13 +66,14 @@ class Actuator(QGraphicsItem):
     """Actuator is active, but the value / actuator has some warning attached (`int`).
     """
 
-    def __init__(self, id, x, y, data, state, selected):
+    def __init__(self, id, x, y, data, dataIndex, state, selected):
         super().__init__()
         self.id = id
         # actuator position
         self._center = QPointF(x, y)
         # actuator data
         self._data = data
+        self.dataIndex = dataIndex
         self._selected = selected
         self._state = state
         # minimum and maximum values. Used for translating value into color code
@@ -174,8 +177,8 @@ class Actuator(QGraphicsItem):
             painter.setBrush(brush)
         # draw using value as index into possible colors in HSV model
         else:
-            hue = (self._data - self._min) / (self._max - self._min)
-            painter.setBrush(QColor.fromHsvF((1 - hue) * 0.7, 1, 1))
+            hue = 1 - (self._data - self._min) / (self._max - self._min)
+            painter.setBrush(QColor.fromHsvF(hue * 0.7, min(1, 1.5 - hue), 1))
         # draw actuator, write value
         painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
 

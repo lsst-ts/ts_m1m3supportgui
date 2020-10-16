@@ -85,7 +85,7 @@ class MirrorView(QGraphicsView):
         s = min(self.width() / 8600, self.height() / 8600)
         return (s, s)
 
-    def addActuator(self, id, x, y, data, state):
+    def addActuator(self, id, x, y, data, dataIndex, state):
         """Adds actuator.
 
         Parameters
@@ -98,11 +98,13 @@ class MirrorView(QGraphicsView):
             Actuator y position (in mm).
         data : `float`
             Actuator value.
+        dataIndex : `int`
+            Actuator value index.
         state : `int`
             Actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID or
             Actuator.STATE_WARNING.
         """
-        self._mirror.addActuator(id, x, y, data, state, id == self._selectedId)
+        self._mirror.addActuator(id, x, y, data, dataIndex, state, id == self._selectedId)
 
     def updateActuator(self, id, data, state):
         """Update actuator value and state.
