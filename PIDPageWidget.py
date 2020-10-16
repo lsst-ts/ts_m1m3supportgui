@@ -422,9 +422,14 @@ class PIDPageWidget(QWidget):
         self.mzControlT1Label.setText("%0.3f" % data.controlT1[5])
         self.mzControlT2Label.setText("%0.3f" % data.controlT2[5])
 
-        self.chart.append("Command", "Fx", [(data.timestamp, data.control[0])])
-        self.chart.append("Command", "Fy", [(data.timestamp, data.control[1])])
-        self.chart.append("Command", "Fz", [(data.timestamp, data.control[2])])
-        self.chart.append("Command", "Mx", [(data.timestamp, data.control[3])])
-        self.chart.append("Command", "My", [(data.timestamp, data.control[4])])
-        self.chart.append("Command", "Mz", [(data.timestamp, data.control[5])])
+        self.chart.append(
+            data.timestamp,
+            [
+                ("Command", "Fx", data.control[0]),
+                self.chart.append("Command", "Fy", data.control[1]),
+                self.chart.append("Command", "Fz", data.control[2]),
+                self.chart.append("Command", "Mx", data.control[3]),
+                self.chart.append("Command", "My", data.control[4]),
+                self.chart.append("Command", "Mz", data.control[5]),
+            ],
+        )

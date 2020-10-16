@@ -78,7 +78,7 @@ class GyroPageWidget(QWidget):
         self.gcbADCCommsWarningLabel = QLabel("UNKNOWN")
         self.mSYNCExternalTimingWarningLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart(50 * 30)  # 50Hz * 30slot = pg.PlotWidget()
+        self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -345,11 +345,10 @@ class GyroPageWidget(QWidget):
         self.temperatureLabel.setText("%0.3f" % (data.temperature))
 
         self.chart.append(
-            "Angular Velocity (rad/s)", "X", [(data.timestamp, data.angularVelocityX)]
-        )
-        self.chart.append(
-            "Angular Velocity (rad/s)", "Y", [(data.timestamp, data.angularVelocityY)]
-        )
-        self.chart.append(
-            "Angular Velocity (rad/s)", "Z", [(data.timestamp, data.angularVelocityZ)]
+            data.timestamp,
+            [
+                ("Angular Velocity (rad/s)", "X", data.angularVelocityX,),
+                ("Angular Velocity (rad/s)", "Y", data.angularVelocityY),
+                ("Angular Velocity (rad/s)", "Z", data.angularVelocityZ),
+            ],
         )

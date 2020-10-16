@@ -176,12 +176,17 @@ class ForceBalanceSystemPageWidget(QWidget):
         self.balanceMzLabel.setText("%0.1f" % data.mz)
         self.balanceMagLabel.setText("%0.1f" % data.forceMagnitude)
 
-        self.balanceChart.append("Balance Force (N)", "Fx", [(data.timestamp, data.fx)])
-        self.balanceChart.append("Balance Force (N)", "Fy", [(data.timestamp, data.fy)])
-        self.balanceChart.append("Balance Force (N)", "Fz", [(data.timestamp, data.fz)])
-        self.balanceChart.append("Balance Force (N)", "Mx", [(data.timestamp, data.mx)])
-        self.balanceChart.append("Balance Force (N)", "My", [(data.timestamp, data.my)])
-        self.balanceChart.append("Balance Force (N)", "Mz", [(data.timestamp, data.mz)])
+        self.balanceChart.append(
+            data.timestamp,
+            [
+                ("Balance Force (N)", "Fx", data.fx),
+                ("Balance Force (N)", "Fy", data.fy),
+                ("Balance Force (N)", "Fz", data.fz),
+                ("Balance Force (N)", "Mx", data.mx),
+                ("Balance Force (N)", "My", data.my),
+                ("Balance Force (N)", "Mz", data.mz),
+            ],
+        )
 
         self._balanceData = data
         self._setTotalForces()

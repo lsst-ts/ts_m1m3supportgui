@@ -21,8 +21,6 @@ class IMSPageWidget(QWidget):
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
 
-        self.maxPlotSize = 50 * 30  # 50Hz * 30s
-
         self.rawPositiveXAxialLabel = QLabel("UNKNOWN")
         self.rawPositiveXTangentLabel = QLabel("UNKNOWN")
         self.rawNegativeYAxialLabel = QLabel("UNKNOWN")
@@ -54,10 +52,10 @@ class IMSPageWidget(QWidget):
         self.unknownCommandLabel = QLabel("UNKNOWN")
         self.unknownProblemLabel = QLabel("UNKNOWN")
 
-        self.rawChart = TimeChart.TimeChart()
+        self.rawChart = TimeChart.TimeChart(50 * 5)
         self.rawChartView = TimeChart.TimeChartView(self.rawChart)
 
-        self.posChart = TimeChart.TimeChart()
+        self.posChart = TimeChart.TimeChart(50 * 5)
         self.posChartView = TimeChart.TimeChartView(self.posChart)
 
         row = 0
@@ -216,50 +214,27 @@ class IMSPageWidget(QWidget):
         self.zRotationLabel.setText("%0.3f" % (data.zRotation))
 
         self.rawChart.append(
-            "Displacement (mm)",
-            "+X Axial",
-            [(data.timestamp, data.rawSensorData[0] / 1000)],
-        )
-        self.rawChart.append(
-            "Displacement (mm)",
-            "+X Tangent",
-            [(data.timestamp, data.rawSensorData[1] / 1000)],
-        )
-        self.rawChart.append(
-            "Displacement (mm)",
-            "-Y Axial",
-            [(data.timestamp, data.rawSensorData[2] / 1000)],
-        )
-        self.rawChart.append(
-            "Displacement (mm)",
-            "-Y Tangent",
-            [(data.timestamp, data.rawSensorData[3] / 1000)],
-        )
-        self.rawChart.append(
-            "Displacement (mm)",
-            "-X Axial",
-            [(data.timestamp, data.rawSensorData[4] / 1000)],
-        )
-        self.rawChart.append(
-            "Displacement (mm)",
-            "-X Tangent",
-            [(data.timestamp, data.rawSensorData[5] / 1000)],
-        )
-        self.rawChart.append(
-            "Displacement (mm)",
-            "-Y Axial",
-            [(data.timestamp, data.rawSensorData[6] / 1000)],
-        )
-        self.rawChart.append(
-            "Displacement (mm)",
-            "-Y Tangent",
-            [(data.timestamp, data.rawSensorData[7] / 1000)],
+            data.timestamp,
+            [
+                ("Displacement (mm)", "+X Axial", data.rawSensorData[0] / 1000,),
+                ("Displacement (mm)", "+X Tangent", data.rawSensorData[1] / 1000,),
+                ("Displacement (mm)", "-Y Axial", data.rawSensorData[2] / 1000,),
+                ("Displacement (mm)", "-Y Tangent", data.rawSensorData[3] / 1000,),
+                ("Displacement (mm)", "-X Axial", data.rawSensorData[4] / 1000,),
+                ("Displacement (mm)", "-X Tangent", data.rawSensorData[5] / 1000,),
+                ("Displacement (mm)", "-Y Axial", data.rawSensorData[6] / 1000,),
+                ("Displacement (mm)", "-Y Tangent", data.rawSensorData[7] / 1000,),
+            ],
         )
 
-        self.posChart.append("Position (m)", "X", [(data.timestamp, data.xPosition)])
-
-        self.posChart.append("Position (m)", "Y", [(data.timestamp, data.yPosition)])
-        self.posChart.append("Position (m)", "Z", [(data.timestamp, data.zPosition)])
-        self.posChart.append("Rotation (rad)", "X", [(data.timestamp, data.xRotation)])
-        self.posChart.append("Rotation (rad)", "Y", [(data.timestamp, data.yRotation)])
-        self.posChart.append("Rotation (rad)", "Z", [(data.timestamp, data.zRotation)])
+        self.posChart.append(
+            data.timestamp,
+            [
+                ("Position (m)", "X", data.xPosition),
+                ("Position (m)", "Y", data.yPosition),
+                ("Position (m)", "Z", data.zPosition),
+                ("Rotation (rad)", "X", data.xRotation),
+                ("Rotation (rad)", "Y", data.yRotation),
+                ("Rotation (rad)", "Z", data.zRotation),
+            ],
+        )

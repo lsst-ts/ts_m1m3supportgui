@@ -44,7 +44,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.responseTimeoutLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart(50 * 30)  # 50Hz * 30s
+        self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -142,17 +142,22 @@ class DCAccelerometerPageWidget(QWidget):
         self.angularAccelerationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
 
         self.chart.append(
-            "Angular Acceleration (rad/s<sup>2</sup>)",
-            "X",
-            [(data.timestamp, data.angularAccelerationX)],
-        )
-        self.chart.append(
-            "Angular Acceleration (rad/s<sup>2</sup>)",
-            "Y",
-            [(data.timestamp, data.angularAccelerationY)],
-        )
-        self.chart.append(
-            "Angular Acceleration (rad/s<sup>2</sup>)",
-            "Z",
-            [(data.timestamp, data.angularAccelerationZ)],
+            data.timestamp,
+            [
+                (
+                    "Angular Acceleration (rad/s<sup>2</sup>)",
+                    "X",
+                    data.angularAccelerationX,
+                ),
+                (
+                    "Angular Acceleration (rad/s<sup>2</sup>)",
+                    "Y",
+                    data.angularAccelerationY,
+                ),
+                (
+                    "Angular Acceleration (rad/s<sup>2</sup>)",
+                    "Z",
+                    data.angularAccelerationZ,
+                ),
+            ],
         )

@@ -378,24 +378,15 @@ class PowerPageWidget(QWidget):
         )
 
         self.chart.append(
-            "Current (A)", "A", [(data.timestamp, data.powerNetworkACurrent)]
-        )
-        self.chart.append(
-            "Current (A)", "B", [(data.timestamp, data.powerNetworkBCurrent)]
-        )
-        self.chart.append(
-            "Current (A)", "C", [(data.timestamp, data.powerNetworkCCurrent)]
-        )
-        self.chart.append(
-            "Current (A)", "D", [(data.timestamp, data.powerNetworkDCurrent)]
-        )
-        self.chart.append(
-            "Current (A)", "Lights", [(data.timestamp, data.lightPowerNetworkCurrent)]
-        )
-        self.chart.append(
-            "Current (A)",
-            "Controls",
-            [(data.timestamp, data.controlsPowerNetworkCurrent)],
+            data.timestamp,
+            [
+                ("Current (A)", "A", data.powerNetworkACurrent),
+                ("Current (A)", "B", data.powerNetworkBCurrent),
+                ("Current (A)", "C", data.powerNetworkCCurrent),
+                ("Current (A)", "D", data.powerNetworkDCurrent),
+                ("Current (A)", "Lights", data.lightPowerNetworkCurrent),
+                ("Current (A)", "Controls", data.controlsPowerNetworkCurrent,),
+            ],
         )
 
     @asyncSlot()

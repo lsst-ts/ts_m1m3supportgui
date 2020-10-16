@@ -107,7 +107,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.velocityMzLabel = QLabel("UNKNOWN")
         self.velocityMagLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart(50 * 30)  # 50Hz * 30s
+        self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -343,7 +343,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.totalCommandedMagLabel.setText("%0.1f" % data.forceMagnitude)
 
         self.chart.append(
-            "Force (N)", "Total Mag", [(data.timestamp, data.forceMagnitude)]
+            data.timestamp, [("Force (N)", "Total Mag", data.forceMagnitude)]
         )
 
     @Slot(map)
