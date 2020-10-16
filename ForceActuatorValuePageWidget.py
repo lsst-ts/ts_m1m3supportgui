@@ -251,13 +251,16 @@ class ForceActuatorValuePageWidget(QWidget):
         field = topic.fields[fieldIndex]
         self.fieldGetter = field[1]
         self.fieldDataIndex = field[2]()
-        data = topic.data.get()
-        if data is None:
-            self.setUnknown()
-            return
+        try:
+            data = topic.data.get()
+            if data is None:
+                self.setUnknown()
+                return
 
-        self.updateData(data)
-        self.topics.changeTopic(topicIndex, self.dataCallback)
+            self.updateData(data)
+            self.topics.changeTopic(topicIndex, self.dataCallback)
+        except RuntimeError:
+            pass
 
     def dataCallback(self, data):
         self.updateData(data)
