@@ -1,10 +1,15 @@
+from PySide2.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QStackedLayout,
+    QListWidget,
+)
 
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStackedLayout, QListWidget
 
 class ApplicationPaginationWidget(QWidget):
-    def __init__(self, MTM1M3):
-        QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+    def __init__(self):
+        super().__init__()
         self.layout = QHBoxLayout()
         self.listLayout = QVBoxLayout()
         self.pageLayout = QStackedLayout()

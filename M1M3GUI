@@ -4,8 +4,7 @@
 import sys
 import time
 
-from MTM1M3Remote import MTM1M3Remote
-from UpdateDisplay import UpdateDisplay
+from SALComm import SALComm
 
 from ApplicationControlWidget import ApplicationControlWidget
 from ApplicationStatusWidget import ApplicationStatusWidget
@@ -26,49 +25,51 @@ from OverviewPageWidget import OverviewPageWidget
 from PIDPageWidget import PIDPageWidget
 from PowerPageWidget import PowerPageWidget
 
-from PySide2.QtCore import QTimer
 from PySide2.QtWidgets import (QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel)
 from PySide2.QtGui import QFont
 
+from asyncqt import QEventLoop
+
 class EUI(QDialog):
-    def __init__(self, MTM1M3, parent=None):
+    def __init__(self, parent=None):
         super(EUI, self).__init__(parent)
-        self.MTM1M3 = MTM1M3
-        self.updateDisplay = UpdateDisplay()
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
+
+        self.comm = SALComm()
         
         self.applicationControlLayout = QVBoxLayout()
-        self.applicationControl = ApplicationControlWidget(MTM1M3)
+        self.applicationControl = ApplicationControlWidget(self.comm)
         self.applicationControl.setFixedSize(256, 175)
         self.applicationControlLayout.addWidget(QLabel("Application Control"))
         self.applicationControlLayout.addWidget(self.applicationControl)
         self.topLayerLayout.addLayout(self.applicationControlLayout)
 
         self.applicationStatusLayout = QVBoxLayout()
-        self.applicationStatus = ApplicationStatusWidget(MTM1M3)
+        self.applicationStatus = ApplicationStatusWidget(self.comm)
         self.applicationStatus.setFixedHeight(175)
         self.applicationStatusLayout.addWidget(QLabel("Application Status"))
         self.applicationStatusLayout.addWidget(self.applicationStatus)
         self.topLayerLayout.addLayout(self.applicationStatusLayout)
-        
+
         self.middleLayerLayout = QHBoxLayout()
-        self.applicationPagination = ApplicationPaginationWidget(MTM1M3)
+        self.applicationPagination = ApplicationPaginationWidget()
         self.applicationPagination.setPageListWidth(238)
-        self.addPage("Overview", OverviewPageWidget(MTM1M3))
-        self.addPage("Actuator Overview", ActuatorOverviewPageWidget(MTM1M3))
-        self.addPage("DC Accelerometers", DCAccelerometerPageWidget(MTM1M3))
-        self.addPage("Gyro", GyroPageWidget(MTM1M3))
-        self.addPage("IMS", IMSPageWidget(MTM1M3))
-        self.addPage("Inclinometer", InclinometerPageWidget(MTM1M3))
-        self.addPage("Interlock", InterlockPageWidget(MTM1M3))
-        self.addPage("Lights", CellLightPageWidget(MTM1M3))
-        self.addPage("Air", AirPageWidget(MTM1M3))
-        self.addPage("Power", PowerPageWidget(MTM1M3))
-        self.addPage("PID", PIDPageWidget(MTM1M3))
-        self.addPage("Force Balance System", ForceBalanceSystemPageWidget(MTM1M3))
-        self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(MTM1M3))
-        self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(MTM1M3))
+
+        self.addPage("Overview", OverviewPageWidget(self.comm))
+        self.addPage("Actuator Overview", ActuatorOverviewPageWidget(self.comm))
+        self.addPage("DC Accelerometers", DCAccelerometerPageWidget(self.comm))
+        self.addPage("Gyro", GyroPageWidget(self.comm))
+        self.addPage("IMS", IMSPageWidget(self.comm))
+        self.addPage("Inclinometer", InclinometerPageWidget(self.comm))
+        self.addPage("Interlock", InterlockPageWidget(self.comm))
+        self.addPage("Lights", CellLightPageWidget(self.comm))
+        self.addPage("Air", AirPageWidget(self.comm))
+        self.addPage("Power", PowerPageWidget(self.comm))
+        self.addPage("PID", PIDPageWidget(self.comm))
+        self.addPage("Force Balance System", ForceBalanceSystemPageWidget(self.comm))
+        self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
+        self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.comm))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
         self.layout.addLayout(self.topLayerLayout)
@@ -82,27 +83,20 @@ class EUI(QDialog):
         self.setFont(font)
 
     def addPage(self, name, widget):
-        self.updateDisplay.add(widget.updatePage)
         self.applicationPagination.addPage(name, widget)
-
-    def updateDisplays(self):
-        self.MTM1M3.runSubscriberChecks()
-        self.updateDisplay.update()
 
 if __name__ == '__main__':
     # Create the Qt Application
     app = QApplication(sys.argv)
+    loop = QEventLoop(app)
+
     # Create EUI
-    MTM1M3 = MTM1M3Remote()
-    eui = EUI(MTM1M3)
+    eui = EUI()
     eui.show()
-    # Create MTM1M3 Telemetry & Event Loop & Display update
-    telemetryEventLoopTimer = QTimer()
-    telemetryEventLoopTimer.timeout.connect(eui.updateDisplays)
-    telemetryEventLoopTimer.start(500)
+
     # Run the main Qt loop
-    app.exec_()
-    # Clean up MTM1M3 Telemetry & Event Loop
-    telemetryEventLoopTimer.stop()
+    with loop:
+        loop.run_forever()
+
     # Close application
     sys.exit()

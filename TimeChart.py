@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtCore import Qt, QDateTime
+from PySide2.QtCore import Qt, QDateTime, QPointF
 from PySide2.QtGui import QPainter
 from PySide2.QtCharts import QtCharts
 
@@ -39,18 +39,21 @@ class TimeChart(QtCharts.QChart):
     maxItems : `int`, optional
         Number of items to keep in graph. When series grows above the specified
         number of points, oldest points are removed. Defaults to 50 * 30 = 50Hz * 30s
+    redrawAfter : `int`, optional
+        Redraw axis after adding this number of points.
     """
 
-    def __init__(self, maxItems=50*30):
+    def __init__(self, maxItems=50 * 30, redrawAfter=50):
         super().__init__()
         self.maxItems = maxItems
         self.timeAxis = QtCharts.QDateTimeAxis()
         self.timeAxis.setReverse(True)
-        self.timeAxis.setTickCount(10)
+        self.timeAxis.setTickCount(5)
         self.timeAxis.setTitleText("Time (UTC)")
         self.timeAxis.setFormat("h:mm:ss.zzz")
 
         self._storedSeries = {}
+        self._redrawAfter = redrawAfter
 
     def _findSerie(self, axis, serie):
         """
@@ -76,69 +79,68 @@ class TimeChart(QtCharts.QChart):
             self._storedSeries[axis] = (a, {serie: s})
         return a, s
 
-    def autoRange(self, axis, yClip=0.05):
-        a = self._storedSeries[axis][0]
-        t_range = [None] * 2
-        y_range = [None] * 2
-        for s in self._storedSeries[axis][1].values():
-            points = s.pointsVector()
-            if len(points) == 0:
-                continue
-
-            if t_range[0] is None:
-                t_range = [points[0].x()] * 2
-                y_range = [points[0].y()] * 2
-                points = points[1:]
-
-            for p in points:
-                x = p.x()
-                t_range = [min(x, t_range[0]), max(x, t_range[1])]
-                y = p.y()
-                y_range = [min(y, y_range[0]), max(y, y_range[1])]
-
-        self.timeAxis.setRange(
-            *(map(lambda i: QDateTime().fromMSecsSinceEpoch(i), t_range))
-        )
-
-        if y_range[0] == y_range[1]:
-            clip = 1.5
-        else:
-            clip = (y_range[1] - y_range[0]) * yClip
-        y_range = [y_range[0] - clip, y_range[1] + clip]
-        a.setRange(*y_range)
-
-    def append(self, axis, serie, data):
-        """Add data to a serie. Creates axis and serie if needed.
+    def append(self, timestamp, series):
+        """Add data to a serie. Creates axis and serie if needed. Shrink if more than expected elements are stored.
 
         Parameters
         ----------
-        axis : `str`
-            Asis label. This will be visible on right/left graph side
-        serie : `str`
-            Serie name. Will be shown as data label.
-        data : matrix
-            Float matrix 2xn. First element is timestamp, second is the value.
+        timestamp : `float`
+            Values timestamp.
+        series : [(`str`, `str`, data)]
+            Axis name, serie name and data. Serie name will be shown as data label.
         """
-        try:
-            a, s = self._findSerie(axis, serie)
-            s.detachAxis(self.timeAxis)
-            s.detachAxis(a)
-            self.removeSeries(s)
-        except KeyError:
-            a, s = self._addSerie(axis, serie)
 
-        for (i, d) in data:
-            s.append(i * 1000.0, d)
+        y_ranges = {}
+        t_range = None
 
-        if s.count() > self.maxItems:
-            s.removePoints(0, s.count() - self.maxItems)
+        for d in series:
+            forceUpdate = False
 
-        self.autoRange(axis)
-        a.applyNiceNumbers()
-        self.addSeries(s)
+            axis, serie, data = d
+            try:
+                a, s = self._findSerie(axis, serie)
+            except KeyError:
+                a, s = self._addSerie(axis, serie)
+                forceUpdate = True
 
-        s.attachAxis(self.timeAxis)
-        s.attachAxis(a)
+            points = s.pointsVector()
+            points.append(QPointF(timestamp * 1000.0, data))
+            if len(points) > self.maxItems:
+                points = points[-self.maxItems :]
+
+            values = [p.y() for p in points]
+            y_range = [min(values), max(values)]
+            if y_range[0] == y_range[1]:
+                clip = 1.5
+            else:
+                clip = (y_range[1] - y_range[0]) * 0.05
+            y_range = [y_range[0] - clip, y_range[1] + clip]
+
+            try:
+                y_ranges[a] = [
+                    min(y_range[0], y_ranges[a][0]),
+                    max(y_range[1], y_ranges[a][1]),
+                ]
+            except KeyError:
+                y_ranges[a] = y_range
+
+            if t_range is None:
+                t_values = [p.x() for p in points]
+                t_range = [min(t_values), max(t_values)]
+                self.timeAxis.setRange(
+                    *(map(lambda i: QDateTime().fromMSecsSinceEpoch(i), t_range))
+                )
+
+            s.replace(points)
+
+            if forceUpdate:
+                a.applyNiceNumbers()
+                self.addSeries(s)
+                s.attachAxis(self.timeAxis)
+                s.attachAxis(a)
+
+        for a, y_range in y_ranges.items():
+            a.setRange(*y_range)
 
 
 class TimeChartView(QtCharts.QChartView):

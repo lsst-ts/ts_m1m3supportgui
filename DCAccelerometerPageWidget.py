@@ -1,13 +1,16 @@
 import QTHelpers
 import TimeChart
-from DataCache import DataCache
 from BitHelper import BitHelper
-from PySide2.QtWidgets import (QWidget, QLabel, QVBoxLayout, QGridLayout, QSpacerItem)
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QSpacerItem
+from PySide2.QtCore import Slot
+
 
 class DCAccelerometerPageWidget(QWidget):
-    def __init__(self, MTM1M3):
-        QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+    def __init__(self, comm):
+        super().__init__()
+        self.comm = comm
+        self.pageActive = False
+
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
         self.warningLayout = QGridLayout()
@@ -17,7 +20,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.layout.addLayout(self.warningLayout)
         self.layout.addLayout(self.plotLayout)
         self.setLayout(self.layout)
-        
+
         self.rawAccelerometer1XLabel = QLabel("UNKNOWN")
         self.rawAccelerometer1YLabel = QLabel("UNKNOWN")
         self.rawAccelerometer2XLabel = QLabel("UNKNOWN")
@@ -41,7 +44,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.responseTimeoutLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart(50 * 30) # 50Hz * 30s
+        self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -50,7 +53,9 @@ class DCAccelerometerPageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
         self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
         row += 1
-        self.dataLayout.addWidget(QLabel("Angular Acceleration (rad/s<sup>2</sup>)"), row, col)
+        self.dataLayout.addWidget(
+            QLabel("Angular Acceleration (rad/s<sup>2</sup>)"), row, col
+        )
         self.dataLayout.addWidget(self.angularAccelerationXLabel, row, col + 1)
         self.dataLayout.addWidget(self.angularAccelerationYLabel, row, col + 2)
         self.dataLayout.addWidget(self.angularAccelerationZLabel, row, col + 3)
@@ -85,7 +90,7 @@ class DCAccelerometerPageWidget(QWidget):
         self.dataLayout.addWidget(self.accelerometer3YLabel, row, col + 6)
         self.dataLayout.addWidget(self.accelerometer4XLabel, row, col + 7)
         self.dataLayout.addWidget(self.accelerometer4YLabel, row, col + 8)
-        
+
         row = 0
         col = 0
         self.warningLayout.addWidget(QLabel("Any Warnings"), row, col)
@@ -96,53 +101,63 @@ class DCAccelerometerPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chart_view)
 
-        self.dataEventAccelerometerWarning = DataCache()
-        self.dataTelemetryAccelerometerData = DataCache()
-
-        self.MTM1M3.subscribeEvent_accelerometerWarning(self.processEventAccelerometerWarning)
-        self.MTM1M3.subscribeTelemetry_accelerometerData(self.processTelemetryAccelerometerData)
-
     def setPageActive(self, active):
+        if self.pageActive == active:
+            return
+
+        if active:
+            self.comm.accelerometerWarning.connect(self.accelerometerWarning)
+            self.comm.accelerometerData.connect(self.accelerometerData)
+        else:
+            self.comm.accelerometerWarning.disconnect(self.accelerometerWarning)
+            self.comm.accelerometerData.disconnect(self.accelerometerData)
+
         self.pageActive = active
-        if self.pageActive:
-            self.updatePage()
 
-    def updatePage(self):
-        if not self.pageActive:
-            return 
+    @Slot(map)
+    def accelerometerWarning(self, data):
+        QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
+        # TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.accelerometerFlags, AccelerometerFlags.ResponseTimeout))
 
-        if self.dataEventAccelerometerWarning.hasBeenUpdated():
-            data = self.dataEventAccelerometerWarning.get()
-            QTHelpers.setWarningLabel(self.anyWarningLabel, data.anyWarning)
-            #TODO QTHelpers.setWarningLabel(self.responseTimeoutLabel, BitHelper.get(data.accelerometerFlags, AccelerometerFlags.ResponseTimeout))
+    @Slot(map)
+    def accelerometerData(self, data):
+        self.rawAccelerometer1XLabel.setText("%0.3f" % (data.rawAccelerometer[0]))
+        self.rawAccelerometer1YLabel.setText("%0.3f" % (data.rawAccelerometer[1]))
+        self.rawAccelerometer2XLabel.setText("%0.3f" % (data.rawAccelerometer[2]))
+        self.rawAccelerometer2YLabel.setText("%0.3f" % (data.rawAccelerometer[3]))
+        self.rawAccelerometer3XLabel.setText("%0.3f" % (data.rawAccelerometer[4]))
+        self.rawAccelerometer3YLabel.setText("%0.3f" % (data.rawAccelerometer[5]))
+        self.rawAccelerometer4XLabel.setText("%0.3f" % (data.rawAccelerometer[6]))
+        self.rawAccelerometer4YLabel.setText("%0.3f" % (data.rawAccelerometer[7]))
+        self.accelerometer1XLabel.setText("%0.3f" % (data.accelerometer[0]))
+        self.accelerometer1YLabel.setText("%0.3f" % (data.accelerometer[1]))
+        self.accelerometer2XLabel.setText("%0.3f" % (data.accelerometer[2]))
+        self.accelerometer2YLabel.setText("%0.3f" % (data.accelerometer[3]))
+        self.accelerometer3XLabel.setText("%0.3f" % (data.accelerometer[4]))
+        self.accelerometer3YLabel.setText("%0.3f" % (data.accelerometer[5]))
+        self.accelerometer4XLabel.setText("%0.3f" % (data.accelerometer[6]))
+        self.accelerometer4YLabel.setText("%0.3f" % (data.accelerometer[7]))
+        self.angularAccelerationXLabel.setText("%0.3f" % (data.angularAccelerationX))
+        self.angularAccelerationYLabel.setText("%0.3f" % (data.angularAccelerationY))
+        self.angularAccelerationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
 
-        if self.dataTelemetryAccelerometerData.hasBeenUpdated():
-            data = self.dataTelemetryAccelerometerData.get()
-            self.rawAccelerometer1XLabel.setText("%0.3f" % (data.rawAccelerometer[0]))
-            self.rawAccelerometer1YLabel.setText("%0.3f" % (data.rawAccelerometer[1]))
-            self.rawAccelerometer2XLabel.setText("%0.3f" % (data.rawAccelerometer[2]))
-            self.rawAccelerometer2YLabel.setText("%0.3f" % (data.rawAccelerometer[3]))
-            self.rawAccelerometer3XLabel.setText("%0.3f" % (data.rawAccelerometer[4]))
-            self.rawAccelerometer3YLabel.setText("%0.3f" % (data.rawAccelerometer[5]))
-            self.rawAccelerometer4XLabel.setText("%0.3f" % (data.rawAccelerometer[6]))
-            self.rawAccelerometer4YLabel.setText("%0.3f" % (data.rawAccelerometer[7]))
-            self.accelerometer1XLabel.setText("%0.3f" % (data.accelerometer[0]))
-            self.accelerometer1YLabel.setText("%0.3f" % (data.accelerometer[1]))
-            self.accelerometer2XLabel.setText("%0.3f" % (data.accelerometer[2]))
-            self.accelerometer2YLabel.setText("%0.3f" % (data.accelerometer[3]))
-            self.accelerometer3XLabel.setText("%0.3f" % (data.accelerometer[4]))
-            self.accelerometer3YLabel.setText("%0.3f" % (data.accelerometer[5]))
-            self.accelerometer4XLabel.setText("%0.3f" % (data.accelerometer[6]))
-            self.accelerometer4YLabel.setText("%0.3f" % (data.accelerometer[7]))
-            self.angularAccelerationXLabel.setText("%0.3f" % (data.angularAccelerationX))
-            self.angularAccelerationYLabel.setText("%0.3f" % (data.angularAccelerationY))
-            self.angularAccelerationZLabel.setText("%0.3f" % (data.angularAccelerationZ))
-    
-    def processEventAccelerometerWarning(self, data):
-        self.dataEventAccelerometerWarning.set(data[-1])
-        
-    def processTelemetryAccelerometerData(self, data):
-        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','X', [(x.timestamp, x.angularAccelerationX) for x in data])
-        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','Y', [(x.timestamp, x.angularAccelerationY) for x in data])
-        self.chart.append('Angular Acceleration (rad/s<sup>2</sup>)','Z', [(x.timestamp, x.angularAccelerationZ) for x in data])
-        self.dataTelemetryAccelerometerData.set(data[-1])
+        self.chart.append(
+            data.timestamp,
+            [
+                (
+                    "Angular Acceleration (rad/s<sup>2</sup>)",
+                    "X",
+                    data.angularAccelerationX,
+                ),
+                (
+                    "Angular Acceleration (rad/s<sup>2</sup>)",
+                    "Y",
+                    data.angularAccelerationY,
+                ),
+                (
+                    "Angular Acceleration (rad/s<sup>2</sup>)",
+                    "Z",
+                    data.angularAccelerationZ,
+                ),
+            ],
+        )

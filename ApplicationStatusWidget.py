@@ -1,11 +1,13 @@
-
-from MTM1M3Enumerations import SummaryStates, DetailedStates
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
+from PySide2.QtCore import Slot
+from lsst.ts.salobj import State
+from SALComm import SALComm
+
 
 class ApplicationStatusWidget(QWidget):
-    def __init__(self, MTM1M3):
-        QWidget.__init__(self)
-        self.MTM1M3 = MTM1M3
+    def __init__(self, comm):
+        super().__init__()
+        self.comm = comm
         self.layout = QVBoxLayout()
         self.statusLayout = QGridLayout()
         self.layout.addLayout(self.statusLayout)
@@ -25,67 +27,67 @@ class ApplicationStatusWidget(QWidget):
         row += 1
         self.statusLayout.addWidget(QLabel("Mirror State"), row, col)
         self.statusLayout.addWidget(self.mirrorStateLabel, row, col + 1)
-        
-        self.MTM1M3.subscribeEvent_summaryState(self.processEventSummaryState)
-        self.MTM1M3.subscribeEvent_detailedState(self.processEventDetailedState)
 
+        self.comm.summaryState.connect(self.processEventSummaryState)
+        self.comm.detailedState.connect(self.processEventDetailedState)
+
+    @Slot(map)
     def processEventSummaryState(self, data):
-        summaryState = data[-1].summaryState
         summaryStateText = "Unknown"
-        if summaryState == SummaryStates.DisabledState:
+        if data.summaryState == State.DISABLED:
             summaryStateText = "Disabled"
-        elif summaryState == SummaryStates.EnabledState:
+        elif data.summaryState == State.ENABLED:
             summaryStateText = "Enabled"
-        elif summaryState == SummaryStates.FaultState:
+        elif data.summaryState == State.FAULT:
             summaryStateText = "Fault"
-        elif summaryState == SummaryStates.OfflineState:
+        elif data.summaryState == State.OFFLINE:
             summaryStateText = "Offline"
-        elif summaryState == SummaryStates.StandbyState:
+        elif data.summaryState == State.STANDBY:
             summaryStateText = "Standby"
 
         self.summaryStateLabel.setText(summaryStateText)
 
+    @Slot(map)
     def processEventDetailedState(self, data):
-        detailedState = data[-1].detailedState
         modeStateText = "Unknown"
         mirrorStateText = "Unknown"
-        if detailedState == DetailedStates.DisabledState:
+        if data.detailedState == 1:  # DetailedStates.DisabledState:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        elif detailedState == DetailedStates.FaultState:
+        elif data.detailedState == 13:  # DetailedStates.FaultState:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        elif detailedState == DetailedStates.OfflineState:
-            modeStateText = "Offline"
-            mirrorStateText = "Parked"
-        elif detailedState == DetailedStates.StandbyState:
+        # elif data.detailedState == DetailedStates.OfflineState:
+        #    modeStateText = "Offline"
+        #    mirrorStateText = "Parked"
+        elif data.detailedState == 4:  # DetailedStates.StandbyState:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        elif detailedState == DetailedStates.ParkedState:
+        elif data.detailedState == 5:  # DetailedStates.ParkedState:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        elif detailedState == DetailedStates.RaisingState:
+        elif data.detailedState == 6:  # DetailedStates.RaisingState:
             modeStateText = "Automatic"
             mirrorStateText = "Raising"
-        elif detailedState == DetailedStates.ActiveState:
+        elif data.detailedState == 7:  # DetailedStates.ActiveState:
             modeStateText = "Automatic"
             mirrorStateText = "Active"
-        elif detailedState == DetailedStates.LoweringState:
+        elif data.detailedState == 8:  # DetailedStates.LoweringState:
             modeStateText = "Automatic"
             mirrorStateText = "Lowering"
-        elif detailedState == DetailedStates.ParkedEngineeringState:
+        elif data.detailedState == 9:  # DetailedStates.ParkedEngineeringState:
             modeStateText = "Manual"
             mirrorStateText = "Parked"
-        elif detailedState == DetailedStates.RaisingEngineeringState:
+        elif data.detailedState == 10:  # DetailedStates.RaisingEngineeringState:
             modeStateText = "Manual"
             mirrorStateText = "Raising"
-        elif detailedState == DetailedStates.ActiveEngineeringState:
+        elif data.detailedState == 11:  # DetailedStates.ActiveEngineeringState:
             modeStateText = "Manual"
             mirrorStateText = "Active"
-        elif detailedState == DetailedStates.LoweringEngineeringState:
+        elif data.detailedState == 12:  # DetailedStates.LoweringEngineeringState:
             modeStateText = "Manual"
             mirrorStateText = "Lowering"
-        elif detailedState == DetailedStates.LoweringFaultState:
+        elif data.detailedState == 13:  # DetailedStates.LoweringFaultState:
             modeStateText = "Automatic"
             mirrorStateText = "Lowering"
 

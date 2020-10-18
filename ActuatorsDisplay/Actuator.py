@@ -45,6 +45,8 @@ class Actuator(QGraphicsItem):
          Actuator Y coordinate (in mm).
     data : `float`
          Data associated with the actuator (actual force, calculated force, ..).
+    dataIndex : `int`
+         Index in value arrays. Points to selected actuator value.
     state : `int`
          Actuator state. 0 for inactive/unused, 1 for active OK, 2 for active
          warning.
@@ -64,13 +66,14 @@ class Actuator(QGraphicsItem):
     """Actuator is active, but the value / actuator has some warning attached (`int`).
     """
 
-    def __init__(self, id, x, y, data, state, selected):
+    def __init__(self, id, x, y, data, dataIndex, state, selected):
         super().__init__()
         self.id = id
         # actuator position
         self._center = QPointF(x, y)
         # actuator data
         self._data = data
+        self.dataIndex = dataIndex
         self._selected = selected
         self._state = state
         # minimum and maximum values. Used for translating value into color code
@@ -127,11 +130,11 @@ class Actuator(QGraphicsItem):
         """
         return not (self._state == self.STATE_INACTIVE)
 
-    def setRange(self, min, max):
+    def setRange(self, minValue, maxValue):
         """Set actuator range. This is used for setting display color.
         """
-        self._min = min
-        self._max = max
+        self._min = minValue
+        self._max = maxValue
         self.update()
 
     def boundingRect(self):
@@ -147,25 +150,26 @@ class Actuator(QGraphicsItem):
     def paint(self, painter, option, widget):
         """Paint actuator. Overridden method.
         """
+        # if range isn't set, don't draw
+        if self._min is None or self._max is None:
+            return
+
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         # paint grayed circle for actuators not providing the selected value
         if self._state == self.STATE_INACTIVE:
-            painter.setPen(QPen(Qt.gray, 2 * self._scale, Qt.DotLine))
+            painter.setPen(QPen(Qt.gray, self._scale, Qt.DotLine))
             painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
             return
         # draw rectangle around selected actuator
         if self._selected:
-            painter.setPen(QPen(Qt.black, 2 * self._scale))
+            painter.setPen(QPen(Qt.black, self._scale))
             painter.drawRect(self.boundingRect())
         else:
-            painter.setPen(QPen(Qt.red, 2 * self._scale))
+            painter.setPen(QPen(Qt.red, self._scale))
 
         # draw selected actuator in red color
         if self._state == self.STATE_WARNING:
             painter.setBrush(Qt.red)
-        # if range isn't set, draw in yellow
-        elif self._min is None or self._max is None:
-            painter.setBrush(Qt.yellow)
         # if range span is 0, fill with dotted pattern
         elif self._min == self._max:
             brush = QBrush(Qt.red, Qt.DiagCrossPattern)
@@ -173,13 +177,8 @@ class Actuator(QGraphicsItem):
             painter.setBrush(brush)
         # draw using value as index into possible colors in HSV model
         else:
-            painter.setBrush(
-                QColor.fromHsvF(
-                    ((self._data - self._min) / (self._max - self._min)) * 179 / 255,
-                    1,
-                    1,
-                )
-            )
+            hue = 1 - (self._data - self._min) / (self._max - self._min)
+            painter.setBrush(QColor.fromHsvF(hue * 0.7, min(1, 1.5 - hue), 1))
         # draw actuator, write value
         painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
 
@@ -198,6 +197,12 @@ class Actuator(QGraphicsItem):
             str(self.id),
         )
 
+        vstr = f"{self.data:.2f}"
+        if len(vstr) > 6:
+            font.setPixelSize(3.5 * self._scale)
+        elif len(vstr) > 3:
+            font.setPixelSize(4.5 * self._scale)
+
         font.setItalic(False)
         font.setBold(True)
         painter.setFont(font)
@@ -208,5 +213,5 @@ class Actuator(QGraphicsItem):
             20 * self._scale,
             10 * self._scale,
             Qt.AlignTop | Qt.AlignHCenter,
-            str(self.data),
+            vstr
         )
