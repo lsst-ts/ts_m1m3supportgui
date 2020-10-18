@@ -10,6 +10,7 @@ from PySide2.QtWidgets import (
     QListWidget,
 )
 from PySide2.QtCore import Slot
+from TimeDeltaLabel import TimeDeltaLabel
 
 
 class ForceActuatorValuePageWidget(QWidget):
@@ -35,7 +36,7 @@ class ForceActuatorValuePageWidget(QWidget):
         for i in range(156):
             self.forceActuatorLabels.append(QLabel("UNKNOWN"))
 
-        self.lastUpdatedLabel = QLabel("UNKNOWN")
+        self.lastUpdatedLabel = TimeDeltaLabel()
 
         self.topicList = QListWidget()
         self.topicList.setFixedWidth(256)
@@ -242,9 +243,7 @@ class ForceActuatorValuePageWidget(QWidget):
         self.topics.topics[topicIndex].selectedField = fieldIndex
 
     def setUnknown(self):
-        self.lastUpdatedLabel.setText("UNKNOWN")
-        for label in self.forceActuatorLabels:
-            label.setText("UNKNOWN")
+        self.lastUpdatedLabel.setUnknown()
 
     def changePlot(self, topicIndex, fieldIndex):
         topic = self.topics.topics[topicIndex]
@@ -284,3 +283,4 @@ class ForceActuatorValuePageWidget(QWidget):
                 self.forceActuatorLabels[i].setText("UNKNOWN")
             else:
                 self.forceActuatorLabels[i].setText("")
+        self.lastUpdatedLabel.setTime(data.timestamp)
