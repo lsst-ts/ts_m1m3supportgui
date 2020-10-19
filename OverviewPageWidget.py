@@ -249,8 +249,8 @@ class OverviewPageWidget(QWidget):
             self.comm.imsData.connect(self.imsData)
             self.comm.inclinometerData.connect(self.inclinometerData)
 
-            self.comm.azimuth.connect(self.azimuth)
-            self.comm.elevation.connect(self.elevation)
+            self.comm.Azimuth.connect(self.azimuth)
+            self.comm.Elevation.connect(self.elevation)
         else:
             self.comm.accelerometerWarning.disconnect(self.accelerometerWarning)
             self.comm.airSupplyWarning.disconnect(self.airSupplyWarning)
@@ -278,8 +278,8 @@ class OverviewPageWidget(QWidget):
             self.comm.imsData.disconnect(self.imsData)
             self.comm.inclinometerData.disconnect(self.inclinometerData)
 
-            self.comm.azimuth.disconnect(self.azimuth)
-            self.comm.elevation.disconnect(self.elevation)
+            self.comm.Azimuth.disconnect(self.azimuth)
+            self.comm.Elevation.disconnect(self.elevation)
 
         self.pageActive = active
 
