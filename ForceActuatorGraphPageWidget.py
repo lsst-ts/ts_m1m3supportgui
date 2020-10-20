@@ -13,6 +13,7 @@ from PySide2.QtWidgets import (
     QListWidget,
 )
 from ActuatorsDisplay import MirrorWidget, Actuator
+from TimeDeltaLabel import TimeDeltaLabel
 
 
 class ForceActuatorGraphPageWidget(QWidget):
@@ -44,7 +45,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.selectedActuatorIdLabel = QLabel("")
         self.selectedActuatorValueLabel = QLabel("")
         self.selectedActuatorWarningLabel = QLabel("")
-        self.lastUpdatedLabel = QLabel("UNKNOWN")
+        self.lastUpdatedLabel = TimeDeltaLabel()
 
         self.topicList = QListWidget()
         self.topicList.setFixedWidth(256)
@@ -115,7 +116,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.topics.topics[topicIndex].selectedField = fieldIndex
 
     def setUnknown(self):
-        self.lastUpdatedLabel.setText("UNKNOWN")
+        self.lastUpdatedLabel.setUnknown()
 
     def changePlot(self, topicIndex, fieldIndex):
         """
@@ -178,6 +179,7 @@ class ForceActuatorGraphPageWidget(QWidget):
             self.selectedActuatorValueLabel.setText(
                 str(values[self.mirrorWidget.mirrorView.selected.dataIndex])
             )
+        self.lastUpdatedLabel.setTime(data.timestamp)
 
     def updateSelectedActuator(self, s):
         if s is None:
