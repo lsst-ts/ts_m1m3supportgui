@@ -90,6 +90,9 @@ class ApplicationStatusWidget(QWidget):
         elif data.detailedState == 13:  # DetailedStates.LoweringFaultState:
             modeStateText = "Automatic"
             mirrorStateText = "Lowering"
+        elif data.detailedState == 15:  # DetailedStates.BumpTestState:
+            modeStateText = "Manual bump testing"
+            mirrorStateLabel = "Parked"
 
         self.modeStateLabel.setText(modeStateText)
         self.mirrorStateLabel.setText(mirrorStateText)

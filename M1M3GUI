@@ -17,6 +17,7 @@ from DCAccelerometerPageWidget import DCAccelerometerPageWidget
 from ForceActuatorGraphPageWidget import ForceActuatorGraphPageWidget
 from ForceActuatorValuePageWidget import ForceActuatorValuePageWidget
 from ForceBalanceSystemPageWidget import ForceBalanceSystemPageWidget
+from ForceActuatorBumpTestPageWidget import ForceActuatorBumpTestPageWidget
 from GyroPageWidget import GyroPageWidget
 from IMSPageWidget import IMSPageWidget
 from InclinometerPageWidget import InclinometerPageWidget
@@ -68,6 +69,7 @@ class EUI(QDialog):
         self.addPage("Power", PowerPageWidget(self.comm))
         self.addPage("PID", PIDPageWidget(self.comm))
         self.addPage("Force Balance System", ForceBalanceSystemPageWidget(self.comm))
+        self.addPage("Force Actuator Bump Test", ForceActuatorBumpTestPageWidget(self.comm))
         self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
         self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.comm))
         self.middleLayerLayout.addWidget(self.applicationPagination)
