@@ -236,6 +236,37 @@ class Topics:
                 comm.MTM1M3.evt_preclippedVelocityForces,
             ),
             TopicData(
+                "Measured forces",
+                [
+                    [
+                        "Primary Cylinder Forces",
+                        lambda x: [i / 1000.0 for i in x.primaryCylinderForce],
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Secondary Cylinder Forces",
+                        lambda x: [i / 1000.0 for i in x.secondaryCylinderForce],
+                        lambda: FATABLE_SINDEX,
+                    ],
+                    [
+                        "Z Forces",
+                        lambda x: [i / 1000.0 for i in x.zForce],
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Y Forces",
+                        lambda x: [i / 1000.0 for i in x.yForce],
+                        lambda: FATABLE_YINDEX,
+                    ],
+                    [
+                        "X Forces",
+                        lambda x: [i / 1000.0 for i in x.xForce],
+                        lambda: FATABLE_XINDEX,
+                    ],
+                ],
+                comm.MTM1M3.tel_forceActuatorData,
+            ),
+            TopicData(
                 "Force Actuator ILC Info",
                 [
                     ["Subnet", lambda x: x.modbusSubnet, lambda: FATABLE_ZINDEX],

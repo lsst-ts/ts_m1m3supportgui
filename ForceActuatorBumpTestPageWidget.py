@@ -28,6 +28,8 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         for f in FATABLE:
             self.actuatorId.addItem(str(f[FATABLE_ID]))
         self.formLayout.addRow("Actuator:", self.actuatorId)
+        self.primaryTest = QLabel("Yes")
+        self.formLayout.addRow("Primar: ", self.primaryTest)
 
         self.bumpTestButton = QPushButton("Run bump test")
         self.bumpTestButton.clicked.connect(self.issueCommandBumpTest)
