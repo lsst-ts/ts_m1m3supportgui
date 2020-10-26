@@ -422,6 +422,14 @@ class Topics:
                 [["Any Warning", lambda x: x.anyWarning, lambda: FATABLE_ZINDEX]],
                 comm.MTM1M3.evt_forceActuatorWarning,
             ),  # , ["ILC Major Fault", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX], ["Broadcast Counter Mismatch", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX]]),
+            TopicData(
+                "FA Bump Test",
+                [
+                    ["Primary Test", lambda x: x.primaryTest, lambda: FATABLE_ZINDEX],
+                    ["Secondary Test", lambda x: x.secondaryTest, lambda: FATABLE_SINDEX],
+                ],
+                comm.MTM1M3.evt_forceActuatorBumpTestStatus,
+            ),
         ]
 
     def changeTopic(self, index, callback):
