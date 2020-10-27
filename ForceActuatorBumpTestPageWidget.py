@@ -4,9 +4,9 @@ from FATABLE import *
 from PySide2.QtCore import Slot
 from PySide2.QtWidgets import (
     QWidget,
-    QLabel,
     QPushButton,
     QListWidget,
+    QCheckBox,
     QFormLayout,
     QVBoxLayout,
     QHBoxLayout,
@@ -32,8 +32,10 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         for f in FATABLE:
             self.actuatorId.addItem(str(f[FATABLE_ID]))
         self.formLayout.addRow("Actuator:", self.actuatorId)
-        self.primaryTest = QLabel("Yes")
-        self.formLayout.addRow("Primar: ", self.primaryTest)
+        self.primaryTest = QCheckBox()
+        self.formLayout.addRow("Primary Cylinder: ", self.primaryTest)
+        self.secondaryTest = QCheckBox()
+        self.formLayout.addRow("Secondary Cylinder: ", self.secondaryTest)
 
         self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
@@ -68,7 +70,9 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.zIndex = FATABLE[self.index][FATABLE_ZINDEX]
 
         await self.comm.MTM1M3.cmd_forceActuatorBumpTest.set_start(
-            actuatorId=actuatorId, testPrimary=True, testSecondary=True
+            actuatorId=actuatorId,
+            testPrimary=self.primaryTest.isChecked(),
+            testSecondary=self.secondaryTest.isChecked(),
         )
 
     @asyncSlot()
