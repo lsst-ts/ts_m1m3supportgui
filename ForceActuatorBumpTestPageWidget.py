@@ -24,8 +24,8 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.comm = comm
         self.pageActive = False
 
-        self.xIndex = self.yIndex = self.zIndex = self.secondaryIndex = None
-        self._chartConnected = False
+        self.xIndex = self.yIndex = self.zIndex = None
+        self._testRunning = False
 
         self.formLayout = QFormLayout()
         self.actuatorId = QListWidget()
@@ -58,7 +58,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     def setPageActive(self, active):
         self.pageActive = active
 
-
     @asyncSlot()
     async def issueCommandBumpTest(self):
         actuatorId = int(self.actuatorId.currentItem().text())
@@ -67,7 +66,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.xIndex = FATABLE[self.index][FATABLE_XINDEX]
         self.yIndex = FATABLE[self.index][FATABLE_YINDEX]
         self.zIndex = FATABLE[self.index][FATABLE_ZINDEX]
-        self.secondaryIndex = FATABLE[self.index][FATABLE_SINDEX]
 
         await self.comm.MTM1M3.cmd_forceActuatorBumpTest.set_start(
             actuatorId=actuatorId, testPrimary=True, testSecondary=True
@@ -82,7 +80,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         if data.detailedState == 9:  # DetailedStates.ParkedEngineeringState
             self.bumpTestButton.setEnabled(True)
             self.killBumpTestButton.setEnabled(False)
-            self.xIndex = self.yIndex = self.zIndex = self.secondaryIndex = None
+            self.xIndex = self.yIndex = self.zIndex = None
         else:
             self.bumpTestButton.setEnabled(False)
             self.killBumpTestButton.setEnabled(False)
@@ -102,19 +100,12 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     @Slot(map)
     def forceActuatorData(self, data):
         chartData = []
+        if self.xIndex is not None:
+            chartData.append(("Force (N)", "Measured X", data.xForce[self.xIndex],))
+        if self.yIndex is not None:
+            chartData.append(("Force (N)", "Measured Y", data.yForce[self.yIndex],))
         if self.zIndex is not None:
-            chartData.append(
-                ("Force (N)", "Measured Primary", data.zForce[self.zIndex])
-            )
-
-        if self.secondaryIndex is not None:
-            chartData.append(
-                (
-                    "Force (N)",
-                    "Measured Secondary",
-                    data.secondaryCylinderForce[self.secondaryIndex],
-                )
-            )
+            chartData.append(("Force (N)", "Measured Z", data.zForce[self.zIndex]))
 
         self.chart.append(data.timestamp, chartData)
 
@@ -125,27 +116,18 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         """
 
         if data.actuatorId < 0:
-            self.bumpTestButton.setEnabled(True)
-            self.killBumpTestButton.setEnabled(False)
-            self.xIndex = self.yIndex = self.zIndex = self.secondaryIndex = None
-            self._disconnectChart()
-        else:
+            if self._testRunning == True:
+                self.bumpTestButton.setEnabled(True)
+                self.killBumpTestButton.setEnabled(False)
+                self.xIndex = self.yIndex = self.zIndex = None
+                self.comm.appliedForces.disconnect(self.appliedForces)
+                self.comm.forceActuatorData.disconnect(self.forceActuatorData)
+                self._testRunning = False
+
+        elif self._testRunning == False:
+            self.chart.clearData()
             self.bumpTestButton.setEnabled(False)
             self.killBumpTestButton.setEnabled(True)
-            self._connectChart()
-
-    def _connectChart(self):
-        if self._chartConnected:
-            return
-
-        self.comm.appliedForces.connect(self.appliedForces)
-        self.comm.forceActuatorData.connect(self.forceActuatorData)
-        self._chartConnected = True
-
-    def _disconnectChart(self):
-        if not self._chartConnected:
-            return
-
-        self.comm.appliedForces.connect(self.appliedForces)
-        self.comm.forceActuatorData.connect(self.forceActuatorData)
-        self._chartConnected = False
+            self.comm.appliedForces.connect(self.appliedForces)
+            self.comm.forceActuatorData.connect(self.forceActuatorData)
+            self._testRunning = True
