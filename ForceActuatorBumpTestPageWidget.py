@@ -1,4 +1,24 @@
-import QTHelpers
+# This file is part of M1M3 SS GUI.
+#
+# Developed for the LSST Telescope and Site Systems.
+# This product includes software developed by the LSST Project
+# (https: //www.lsst.org).
+# See the COPYRIGHT file at the top - level directory of this distribution
+# for details of code ownership.
+#
+# This program is free software : you can redistribute it and / or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.If not, see < https:  // www.gnu.org/licenses/>.
+
 import TimeChart
 from FATABLE import *
 from PySide2.QtCore import Slot
@@ -17,7 +37,15 @@ from asyncqt import asyncSlot
 
 class ForceActuatorBumpTestPageWidget(QWidget):
     """
-    Enable user to select actuator for bump test. Show graphs depicting actual demand and measured forces.
+    Enable user to select actuator for bump test. Show graphs depicting actual
+    demand and measured forces. Shows button to run a bump test and stop any
+    running bump test.
+
+    Parameters
+    ----------
+
+    comm : `SALComm object`
+        SALComm communication object.
     """
 
     def __init__(self, comm):
@@ -73,6 +101,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.pageActive = active
 
     def selectedActuator(self, current, previous):
+        """Called when an actuator is selected from the list."""
         item = self.actuatorId.currentItem()
         if item is None:
             self.bumpTestButton.setEnabled(False)
@@ -83,15 +112,17 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
         self.secondaryTest.setEnabled(FATABLE[index][FATABLE_SINDEX] is not None)
 
-        self.bumpTestButton.setEnabled(self._anyCylinder())
+        self.bumpTestButton.setEnabled(self._anyCylinderNotRunning())
 
     def toggledTest(self, toggled):
+        """Called when primary or secondary tests check box are toggled."""
         self.bumpTestButton.setEnabled(
-            self.actuatorId.currentItem() is not None and self._anyCylinder()
+             self.actuatorId.currentItem() is not None and self._anyCylinderNotRunning()
         )
 
     @asyncSlot()
     async def issueCommandBumpTest(self):
+        """Call M1M3 bump test command."""
         actuatorId = int(self.actuatorId.currentItem().text())
         self.index = actuatorIDToIndex(actuatorId)
 
@@ -109,10 +140,12 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
     @asyncSlot()
     async def issueCommandKillBumpTest(self):
+        """Kill bump test."""
         await self.comm.MTM1M3.cmd_killForceActuatorBumpTest.start()
 
     @Slot(map)
     def detailedState(self, data):
+        """Called when detailedState event is received. Intercept to enable/disable form buttons."""
         if data.detailedState == 9:  # DetailedStates.ParkedEngineeringState
             self.bumpTestButton.setEnabled(self.actuatorId.currentItem() is not None)
             self.killBumpTestButton.setEnabled(False)
@@ -123,6 +156,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
     @Slot(map)
     def appliedForces(self, data):
+        """Adds applied forces to graph."""
         chartData = []
         if self.xIndex is not None:
             chartData.append(("Force (N)", "Applied X", data.xForces[self.xIndex]))
@@ -135,6 +169,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
     @Slot(map)
     def forceActuatorData(self, data):
+        """Adds measured forces to graph."""
         chartData = []
         if self.xIndex is not None:
             chartData.append(("Force (N)", "Measured X", data.xForce[self.xIndex],))
@@ -147,9 +182,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
     @Slot(map)
     def forceActuatorBumpTestStatus(self, data):
-        """
-        Redraw actuators with values.
-        """
+        """Received when an actuator finish/start running bump tests or the actuator reports progress of the bump test."""
 
         if data.actuatorId < 0:
             if self._testRunning == True:
@@ -169,6 +202,10 @@ class ForceActuatorBumpTestPageWidget(QWidget):
             self.comm.appliedForces.connect(self.appliedForces)
             self.comm.forceActuatorData.connect(self.forceActuatorData)
             self._testRunning = True
+
+    # helper functions. Helps correctly enable/disable Run bump test button.
+    def _anyCylinderNotRunning(self):
+        return self.zIndex is None and self._anyCylinder()
 
     def _anyCylinder(self):
         return self.primaryTest.isChecked() or (
