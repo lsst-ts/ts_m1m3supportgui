@@ -32,12 +32,17 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.actuatorId = QListWidget()
         for f in FATABLE:
             self.actuatorId.addItem(str(f[FATABLE_ID]))
+        self.actuatorId.currentItemChanged.connect(self.selectedActuator)
         self.formLayoutLeft.addRow("Actuator:", self.actuatorId)
 
         self.formLayoutRight = QFormLayout()
         self.primaryTest = QCheckBox()
+        self.primaryTest.setChecked(True)
+        self.primaryTest.toggled.connect(self.toggledTest)
         self.formLayoutRight.addRow("Primary Cylinder: ", self.primaryTest)
         self.secondaryTest = QCheckBox()
+        self.secondaryTest.setChecked(True)
+        self.secondaryTest.toggled.connect(self.toggledTest)
         self.formLayoutRight.addRow("Secondary Cylinder: ", self.secondaryTest)
 
         self.chart = TimeChart.TimeChart()
@@ -67,6 +72,24 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     def setPageActive(self, active):
         self.pageActive = active
 
+    def selectedActuator(self, current, previous):
+        item = self.actuatorId.currentItem()
+        if item is None:
+            self.bumpTestButton.setEnabled(False)
+            return
+
+        actuatorId = int(item.text())
+        index = actuatorIDToIndex(actuatorId)
+
+        self.secondaryTest.setEnabled(FATABLE[index][FATABLE_SINDEX] is not None)
+
+        self.bumpTestButton.setEnabled(self._anyCylinder())
+
+    def toggledTest(self, toggled):
+        self.bumpTestButton.setEnabled(
+            self.actuatorId.currentItem() is not None and self._anyCylinder()
+        )
+
     @asyncSlot()
     async def issueCommandBumpTest(self):
         actuatorId = int(self.actuatorId.currentItem().text())
@@ -79,7 +102,9 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         await self.comm.MTM1M3.cmd_forceActuatorBumpTest.set_start(
             actuatorId=actuatorId,
             testPrimary=self.primaryTest.isChecked(),
-            testSecondary=self.secondaryTest.isChecked(),
+            testSecondary=(
+                self.secondaryTest.isEnabled() and self.secondaryTest.isChecked()
+            ),
         )
 
     @asyncSlot()
@@ -89,7 +114,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     @Slot(map)
     def detailedState(self, data):
         if data.detailedState == 9:  # DetailedStates.ParkedEngineeringState
-            self.bumpTestButton.setEnabled(True)
+            self.bumpTestButton.setEnabled(self.actuatorId.currentItem() is not None)
             self.killBumpTestButton.setEnabled(False)
             self.xIndex = self.yIndex = self.zIndex = None
         else:
@@ -128,7 +153,9 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
         if data.actuatorId < 0:
             if self._testRunning == True:
-                self.bumpTestButton.setEnabled(True)
+                self.bumpTestButton.setEnabled(
+                    self.actuatorId.currentItem() is not None and self._anyCylinder()
+                )
                 self.killBumpTestButton.setEnabled(False)
                 self.xIndex = self.yIndex = self.zIndex = None
                 self.comm.appliedForces.disconnect(self.appliedForces)
@@ -142,3 +169,8 @@ class ForceActuatorBumpTestPageWidget(QWidget):
             self.comm.appliedForces.connect(self.appliedForces)
             self.comm.forceActuatorData.connect(self.forceActuatorData)
             self._testRunning = True
+
+    def _anyCylinder(self):
+        return self.primaryTest.isChecked() or (
+            self.secondaryTest.isEnabled() and self.secondaryTest.isChecked()
+        )
