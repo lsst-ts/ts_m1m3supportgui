@@ -31,6 +31,7 @@ from PySide2.QtWidgets import (
     QFormLayout,
     QVBoxLayout,
     QHBoxLayout,
+    QGroupBox,
 )
 from asyncqt import asyncSlot
 
@@ -56,22 +57,29 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.xIndex = self.yIndex = self.zIndex = None
         self._testRunning = False
 
-        self.formLayoutLeft = QFormLayout()
+        actuatorBox = QGroupBox("Actuator")
         self.actuatorId = QListWidget()
         for f in FATABLE:
             self.actuatorId.addItem(str(f[FATABLE_ID]))
         self.actuatorId.currentItemChanged.connect(self.selectedActuator)
-        self.formLayoutLeft.addRow("Actuator:", self.actuatorId)
+        self.actuatorId.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.MinimumExpanding)
+        actuatorLayout = QVBoxLayout()
+        actuatorLayout.addWidget(self.actuatorId)
+        actuatorBox.setLayout(actuatorLayout)
 
-        self.formLayoutRight = QFormLayout()
-        self.primaryTest = QCheckBox()
+        self.primaryTest = QCheckBox("Primary (Z)")
         self.primaryTest.setChecked(True)
         self.primaryTest.toggled.connect(self.toggledTest)
-        self.formLayoutRight.addRow("Primary Cylinder: ", self.primaryTest)
-        self.secondaryTest = QCheckBox()
+        self.secondaryTest = QCheckBox("Secondary (X or Y)")
         self.secondaryTest.setChecked(True)
         self.secondaryTest.toggled.connect(self.toggledTest)
-        self.formLayoutRight.addRow("Secondary Cylinder: ", self.secondaryTest)
+
+        cylinders = QGroupBox("Cylinders")
+        cylinderLayout = QVBoxLayout()
+        cylinderLayout.addWidget(self.primaryTest)
+        cylinderLayout.addWidget(self.secondaryTest)
+        cylinderLayout.addStretch(1)
+        cylinders.setLayout(cylinderLayout)
 
         self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
@@ -87,8 +95,10 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
         self.layout = QVBoxLayout()
         self.forms = QHBoxLayout()
-        self.forms.addLayout(self.formLayoutLeft)
-        self.forms.addLayout(self.formLayoutRight)
+        self.forms.addWidget(actuatorBox)
+        self.forms.addSpacing(20)
+        self.forms.addWidget(cylinders)
+        self.forms.addStretch(1)
         self.layout.addLayout(self.forms)
         self.layout.addWidget(self.chart_view)
         self.layout.addLayout(self.buttonLayout)
@@ -205,7 +215,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
     # helper functions. Helps correctly enable/disable Run bump test button.
     def _anyCylinderNotRunning(self):
-        return self.zIndex is None and self._anyCylinder()
+        return self._testRunning == False and self._anyCylinder()
 
     def _anyCylinder(self):
         return self.primaryTest.isChecked() or (
