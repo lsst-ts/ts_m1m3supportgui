@@ -79,10 +79,6 @@ class EUI(QDialog):
         self.layout.addLayout(self.bottomLayerLayout)
         self.setLayout(self.layout)
         self.setFixedSize(1900, 1000)
-        font = self.font()
-        font.setStyleHint(QFont.Courier)
-        font.setPointSize(13)
-        self.setFont(font)
 
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
