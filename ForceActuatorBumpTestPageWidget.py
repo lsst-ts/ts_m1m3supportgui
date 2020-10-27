@@ -25,6 +25,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.pageActive = False
 
         self.xIndex = self.yIndex = self.zIndex = self.secondaryIndex = None
+        self._chartConnected = False
 
         self.formLayout = QFormLayout()
         self.actuatorId = QListWidget()
@@ -52,12 +53,11 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.setLayout(self.layout)
 
         self.comm.detailedState.connect(self.detailedState)
-
-        self.comm.appliedForces.connect(self.appliedForces)
-        self.comm.forceActuatorData.connect(self.forceActuatorData)
+        self.comm.forceActuatorBumpTestStatus.connect(self.forceActuatorBumpTestStatus)
 
     def setPageActive(self, active):
         self.pageActive = active
+
 
     @asyncSlot()
     async def issueCommandBumpTest(self):
@@ -83,9 +83,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
             self.bumpTestButton.setEnabled(True)
             self.killBumpTestButton.setEnabled(False)
             self.xIndex = self.yIndex = self.zIndex = self.secondaryIndex = None
-        elif data.detailedState == 15:  # DetailedStates.BumpTestState
-            self.bumpTestButton.setEnabled(False)
-            self.killBumpTestButton.setEnabled(True)
         else:
             self.bumpTestButton.setEnabled(False)
             self.killBumpTestButton.setEnabled(False)
@@ -122,21 +119,33 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.chart.append(data.timestamp, chartData)
 
     @Slot(map)
-    def forceAcutatorBumpTestStatus(self, data):
+    def forceActuatorBumpTestStatus(self, data):
         """
         Redraw actuators with values.
         """
-        topic = self.topics.topics[topicIndex]
-        field = topic.fields[fieldIndex]
-        self.fieldGetter = field[1]
-        self.fieldDataIndex = field[2]()
-        try:
-            data = topic.data.get()
-            if data is None:
-                self.setUnknown()
-                return
 
-            self.updateData(data)
-            self.topics.changeTopic(topicIndex, self.dataCallback)
-        except RuntimeError:
-            pass
+        if data.actuatorId < 0:
+            self.bumpTestButton.setEnabled(True)
+            self.killBumpTestButton.setEnabled(False)
+            self.xIndex = self.yIndex = self.zIndex = self.secondaryIndex = None
+            self._disconnectChart()
+        else:
+            self.bumpTestButton.setEnabled(False)
+            self.killBumpTestButton.setEnabled(True)
+            self._connectChart()
+
+    def _connectChart(self):
+        if self._chartConnected:
+            return
+
+        self.comm.appliedForces.connect(self.appliedForces)
+        self.comm.forceActuatorData.connect(self.forceActuatorData)
+        self._chartConnected = True
+
+    def _disconnectChart(self):
+        if not self._chartConnected:
+            return
+
+        self.comm.appliedForces.connect(self.appliedForces)
+        self.comm.forceActuatorData.connect(self.forceActuatorData)
+        self._chartConnected = False

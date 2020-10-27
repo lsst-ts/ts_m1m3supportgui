@@ -172,10 +172,5 @@ class ApplicationControlWidget(QWidget):
             QTHelpers.hideButton(self.button2)
             QTHelpers.hideButton(self.button3)
             QTHelpers.hideButton(self.button4)
-        elif data.detailedState == 15: # DetailedStates.BumpTestState
-            QTHelpers.updateButton(self.button1, "Stop Bump Test", self.issueCommandKillForceActuatorBumpTest)
-            QTHelpers.hideButton(self.button2)
-            QTHelpers.hideButton(self.button3)
-            QTHelpers.hideButton(self.button4)
         else:
             print(f"Unhandled detailed state {data.detailedState}")
