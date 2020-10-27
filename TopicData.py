@@ -426,7 +426,21 @@ class Topics:
                 "FA Bump Test",
                 [
                     ["Primary Test", lambda x: x.primaryTest, lambda: FATABLE_ZINDEX],
-                    ["Secondary Test", lambda x: x.secondaryTest, lambda: FATABLE_SINDEX],
+                    [
+                        "Secondary Test",
+                        lambda x: x.secondaryTest,
+                        lambda: FATABLE_SINDEX,
+                    ],
+                    [
+                        "Primary Timestamps",
+                        lambda x: x.primaryTestTimestamps,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Secondary Timestamps",
+                        lambda x: x.secondaryTestTimestamps,
+                        lambda: FATABLE_SINDEX,
+                    ],
                 ],
                 comm.MTM1M3.evt_forceActuatorBumpTestStatus,
             ),
