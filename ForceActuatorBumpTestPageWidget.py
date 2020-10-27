@@ -7,6 +7,7 @@ from PySide2.QtWidgets import (
     QPushButton,
     QListWidget,
     QCheckBox,
+    QSizePolicy,
     QFormLayout,
     QVBoxLayout,
     QHBoxLayout,
@@ -27,18 +28,21 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.xIndex = self.yIndex = self.zIndex = None
         self._testRunning = False
 
-        self.formLayout = QFormLayout()
+        self.formLayoutLeft = QFormLayout()
         self.actuatorId = QListWidget()
         for f in FATABLE:
             self.actuatorId.addItem(str(f[FATABLE_ID]))
-        self.formLayout.addRow("Actuator:", self.actuatorId)
+        self.formLayoutLeft.addRow("Actuator:", self.actuatorId)
+
+        self.formLayoutRight = QFormLayout()
         self.primaryTest = QCheckBox()
-        self.formLayout.addRow("Primary Cylinder: ", self.primaryTest)
+        self.formLayoutRight.addRow("Primary Cylinder: ", self.primaryTest)
         self.secondaryTest = QCheckBox()
-        self.formLayout.addRow("Secondary Cylinder: ", self.secondaryTest)
+        self.formLayoutRight.addRow("Secondary Cylinder: ", self.secondaryTest)
 
         self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
+        self.chart_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.bumpTestButton = QPushButton("Run bump test")
         self.bumpTestButton.clicked.connect(self.issueCommandBumpTest)
@@ -49,7 +53,10 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.buttonLayout.addWidget(self.killBumpTestButton)
 
         self.layout = QVBoxLayout()
-        self.layout.addLayout(self.formLayout)
+        self.forms = QHBoxLayout()
+        self.forms.addLayout(self.formLayoutLeft)
+        self.forms.addLayout(self.formLayoutRight)
+        self.layout.addLayout(self.forms)
         self.layout.addWidget(self.chart_view)
         self.layout.addLayout(self.buttonLayout)
         self.setLayout(self.layout)
