@@ -213,5 +213,5 @@ class Actuator(QGraphicsItem):
             20 * self._scale,
             10 * self._scale,
             Qt.AlignTop | Qt.AlignHCenter,
-            vstr
+            vstr,
         )

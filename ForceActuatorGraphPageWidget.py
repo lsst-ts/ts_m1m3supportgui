@@ -134,7 +134,8 @@ class ForceActuatorGraphPageWidget(QWidget):
 
             self.updateData(data)
             self.topics.changeTopic(topicIndex, self.dataCallback)
-        except RuntimeError:
+        except RuntimeError as err:
+            print(err)
             pass
 
     def dataCallback(self, data):
@@ -152,7 +153,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         for row in FATABLE:
             id = row[FATABLE_ID]
             index = row[self.fieldDataIndex]
-            if index < 0:
+            if index is None:
                 state = Actuator.STATE_INACTIVE
             elif warningData is not None:
                 state = (
@@ -167,7 +168,7 @@ class ForceActuatorGraphPageWidget(QWidget):
                 id,
                 row[FATABLE_XPOSITION] * 1000,
                 row[FATABLE_YPOSITION] * 1000,
-                values[index],
+                None if index is None else values[index],
                 index,
                 state,
             )
@@ -175,7 +176,10 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.mirrorWidget.mirrorView.resetTransform()
         self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
-        if self.mirrorWidget.mirrorView.selected is not None:
+        if (
+            self.mirrorWidget.mirrorView.selected is not None
+            and self.mirrorWidget.mirrorView.selected.dataIndex is not None
+        ):
             self.selectedActuatorValueLabel.setText(
                 str(values[self.mirrorWidget.mirrorView.selected.dataIndex])
             )

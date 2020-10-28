@@ -2,22 +2,22 @@
 #
 # Developed for the LSST Telescope and Site Systems.
 # This product includes software developed by the LSST Project
-# (https://www.lsst.org).
-# See the COPYRIGHT file at the top-level directory of this distribution
+# (https: //www.lsst.org).
+# See the COPYRIGHT file at the top - level directory of this distribution
 # for details of code ownership.
 #
-# This program is free software: you can redistribute it and/or modify
+# This program is free software : you can redistribute it and / or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program.If not, see < https:  // www.gnu.org/licenses/>.
 
 from PySide2.QtCore import Qt, QDateTime, QPointF
 from PySide2.QtGui import QPainter
@@ -39,11 +39,9 @@ class TimeChart(QtCharts.QChart):
     maxItems : `int`, optional
         Number of items to keep in graph. When series grows above the specified
         number of points, oldest points are removed. Defaults to 50 * 30 = 50Hz * 30s
-    redrawAfter : `int`, optional
-        Redraw axis after adding this number of points.
     """
 
-    def __init__(self, maxItems=50 * 30, redrawAfter=50):
+    def __init__(self, maxItems=50 * 30):
         super().__init__()
         self.maxItems = maxItems
         self.timeAxis = QtCharts.QDateTimeAxis()
@@ -53,7 +51,6 @@ class TimeChart(QtCharts.QChart):
         self.timeAxis.setFormat("h:mm:ss.zzz")
 
         self._storedSeries = {}
-        self._redrawAfter = redrawAfter
 
     def _findSerie(self, axis, serie):
         """
@@ -141,6 +138,14 @@ class TimeChart(QtCharts.QChart):
 
         for a, y_range in y_ranges.items():
             a.setRange(*y_range)
+
+    def clearData(self):
+        """Removes all data from the chart.
+        """
+        self._storedSeries = {}
+        super().removeAllSeries()
+        for a in self.axes(Qt.Vertical):
+            self.removeAxis(a)
 
 
 class TimeChartView(QtCharts.QChartView):

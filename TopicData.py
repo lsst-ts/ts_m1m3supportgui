@@ -236,6 +236,37 @@ class Topics:
                 comm.MTM1M3.evt_preclippedVelocityForces,
             ),
             TopicData(
+                "Measured forces",
+                [
+                    [
+                        "Primary Cylinder Forces",
+                        lambda x: [i / 1000.0 for i in x.primaryCylinderForce],
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Secondary Cylinder Forces",
+                        lambda x: [i / 1000.0 for i in x.secondaryCylinderForce],
+                        lambda: FATABLE_SINDEX,
+                    ],
+                    [
+                        "Z Forces",
+                        lambda x: [i / 1000.0 for i in x.zForce],
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Y Forces",
+                        lambda x: [i / 1000.0 for i in x.yForce],
+                        lambda: FATABLE_YINDEX,
+                    ],
+                    [
+                        "X Forces",
+                        lambda x: [i / 1000.0 for i in x.xForce],
+                        lambda: FATABLE_XINDEX,
+                    ],
+                ],
+                comm.MTM1M3.tel_forceActuatorData,
+            ),
+            TopicData(
                 "Force Actuator ILC Info",
                 [
                     ["Subnet", lambda x: x.modbusSubnet, lambda: FATABLE_ZINDEX],
@@ -391,6 +422,28 @@ class Topics:
                 [["Any Warning", lambda x: x.anyWarning, lambda: FATABLE_ZINDEX]],
                 comm.MTM1M3.evt_forceActuatorWarning,
             ),  # , ["ILC Major Fault", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX], ["Broadcast Counter Mismatch", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX]]),
+            TopicData(
+                "FA Bump Test",
+                [
+                    ["Primary Test", lambda x: x.primaryTest, lambda: FATABLE_ZINDEX],
+                    [
+                        "Secondary Test",
+                        lambda x: x.secondaryTest,
+                        lambda: FATABLE_SINDEX,
+                    ],
+                    [
+                        "Primary Timestamps",
+                        lambda x: x.primaryTestTimestamps,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Secondary Timestamps",
+                        lambda x: x.secondaryTestTimestamps,
+                        lambda: FATABLE_SINDEX,
+                    ],
+                ],
+                comm.MTM1M3.evt_forceActuatorBumpTestStatus,
+            ),
         ]
 
     def changeTopic(self, index, callback):

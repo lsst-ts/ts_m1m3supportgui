@@ -275,12 +275,12 @@ class ForceActuatorValuePageWidget(QWidget):
             # warning = False
             # if self.actuatorWarningData is not None:
             #    warning = self.actuatorWarningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
-            if index != -1 and data is not None:
+            if index is None:
+                self.forceActuatorLabels[i].setText("UNKNOWN")
+            elif data is not None:
                 self.forceActuatorLabels[i].setText(
                     "%0.1f" % self.fieldGetter(data)[index]
                 )
-            elif index != -1:
-                self.forceActuatorLabels[i].setText("UNKNOWN")
             else:
                 self.forceActuatorLabels[i].setText("")
         self.lastUpdatedLabel.setTime(data.timestamp)

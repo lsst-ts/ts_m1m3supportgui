@@ -50,6 +50,7 @@ class SALComm(QObject):
     commandRejectionWarning = Signal(map)
     detailedState = Signal(map)
     displacementSensorWarning = Signal(map)
+    forceActuatorBumpTestStatus = Signal(map)
     forceActuatorForceWarning = Signal(map)
     forceActuatorInfo = Signal(map)
     forceActuatorState = Signal(map)
@@ -128,6 +129,7 @@ class SALComm(QObject):
         self.MTM1M3.evt_commandRejectionWarning.callback = self.commandRejectionWarning.emit
         self.MTM1M3.evt_detailedState.callback = self.detailedState.emit
         self.MTM1M3.evt_displacementSensorWarning.callback = self.displacementSensorWarning.emit
+        self.MTM1M3.evt_forceActuatorBumpTestStatus.callback = self.forceActuatorBumpTestStatus.emit
         self.MTM1M3.evt_forceActuatorForceWarning.callback = self.forceActuatorForceWarning.emit
         self.MTM1M3.evt_forceActuatorInfo.callback = self.forceActuatorInfo.emit
         self.MTM1M3.evt_forceActuatorState.callback = self.forceActuatorState.emit
