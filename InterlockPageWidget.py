@@ -1,5 +1,4 @@
 import QTHelpers
-from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 

@@ -419,9 +419,173 @@ class Topics:
             ),
             TopicData(
                 "Force Actuator Warning",
-                [["Any Warning", lambda x: x.anyWarning, lambda: FATABLE_ZINDEX]],
+                [
+                    ["Major Fault", lambda x: x.majorFault, lambda: FATABLE_ZINDEX],
+                    ["Minor Fault", lambda x: x.minorFault, lambda: FATABLE_ZINDEX],
+                    [
+                        "Fault Override",
+                        lambda x: x.faultOverride,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Main Calibration Error",
+                        lambda x: x.mainCalibrationError,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Backup Calibration Error",
+                        lambda x: x.backupCalibrationError,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Error",
+                        lambda x: x.MezzanineError,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Bootloader Active",
+                        lambda x: x.mezzanineBootloaderActive,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Unique Id CRC Error",
+                        lambda x: x.uniqueIdCRCError,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Application Type Mismatch",
+                        lambda x: x.applicationTypeMismatch,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Application Missing",
+                        lambda x: x.applicationMissing,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "OneWire Mismatch",
+                        lambda x: x.oneWireMissing,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "OneWire1 Mismatch",
+                        lambda x: x.oneWire1Mismatch,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "OnewWire2 Mismatch",
+                        lambda x: x.oneWire2Mismatch,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Watchdog Reset",
+                        lambda x: x.watchdogReset,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Brownout",
+                        lambda x: x.brownOut,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Event Trap Reset",
+                        lambda x: x.eventTrapReset,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "SSR Power Fault",
+                        lambda x: x.ssrPowerFault,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "AUX Power Fault",
+                        lambda x: x.auxPowerFault,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Power Fault",
+                        lambda x: x.mezzaninePowerFault,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Current Ampl Fault",
+                        lambda x: x.mezzanineCurrentAmp1Fault,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Current Amp2 Fault",
+                        lambda x: x.mezzanineCurrentAmp2Fault,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Unique ID CRC Error",
+                        lambda x: x.mezzanineUniqueIdCRCError,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Main Calibration Error",
+                        lambda x: x.mezzanineMainCalibrationError,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Backup Calibration Error",
+                        lambda x: x.mezzanineBackupCalibrationError,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Event Trap Reset",
+                        lambda x: x.mezzanineEventTrapReset,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Application Missing",
+                        lambda x: x.mezzanineApplicationMissing,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Mezzanine Application CRC Mismatch",
+                        lambda x: x.mezzanineApplicationCRCMismatch,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "ILC Fault",
+                        lambda x: x.ilcFault,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Broadcast Counter Warning",
+                        lambda x: x.broadcastCounterWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                ],
                 comm.MTM1M3.evt_forceActuatorWarning,
-            ),  # , ["ILC Major Fault", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX], ["Broadcast Counter Mismatch", lambda x: [BitHelper.getBit(i, ForceActuatorFlags.ILCMajorFault) for i in x.forceActuatorFlags], lambda: FATABLE_ZINDEX]]),
+            ),
+            TopicData(
+                "Force Actuator Force Warning",
+                [
+                    [
+                        "Primary Axis Measured Force Warning",
+                        lambda x: x.primaryAxisMeasuredForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Secondary Axis Measured Force Warning",
+                        lambda x: x.secondaryAxisMeasuredForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Primary Axis Following Error Warning",
+                        lambda x: x.primaryAxisFollowingErrorWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Secondary Axis Following Error Warning",
+                        lambda x: x.secondaryAxisFollowingErrorWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                ],
+                comm.MTM1M3.evt_forceActuatorForceWarning,
+            ),
             TopicData(
                 "FA Bump Test",
                 [

@@ -1,4 +1,3 @@
-from BitHelper import BitHelper
 from FATABLE import *
 from TopicData import Topics
 from PySide2.QtWidgets import (
