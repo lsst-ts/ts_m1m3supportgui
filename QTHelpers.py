@@ -1,26 +1,3 @@
-def updateButton(button, text, action):
-    button.setVisible(True)
-    button.setText(text)
-    button.clicked.disconnect()
-    button.clicked.connect(action)
-
-
-def doNothing():
-    pass
-
-
-def hideButton(button):
-    button.setVisible(False)
-    button.clicked.disconnect()
-    button.clicked.connect(doNothing)
-
-
-def updateSizePolicy(widget):
-    policy = widget.sizePolicy()
-    policy.setRetainSizeWhenHidden(True)
-    widget.setSizePolicy(policy)
-
-
 def setBoolLabel(label, trueText, falseText, value):
     text = falseText
     if value:

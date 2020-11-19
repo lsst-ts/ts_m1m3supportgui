@@ -30,6 +30,7 @@ from PySide2.QtWidgets import (QApplication, QVBoxLayout, QDialog, QHBoxLayout, 
 from PySide2.QtGui import QFont
 
 from asyncqt import QEventLoop
+import asyncio
 
 class EUI(QDialog):
     def __init__(self, parent=None):
@@ -87,6 +88,7 @@ if __name__ == '__main__':
     # Create the Qt Application
     app = QApplication(sys.argv)
     loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
 
     # Create EUI
     eui = EUI()

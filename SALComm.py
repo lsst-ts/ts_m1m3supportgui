@@ -68,6 +68,7 @@ class SALComm(QObject):
     inclinometerSensorWarning = Signal(map)
     interlockStatus = Signal(map)
     interlockWarning = Signal(map)
+    logMessage = Signal(map)
     modbusResponse = Signal(map)
     pidInfo = Signal(map)
     powerStatus = Signal(map)
@@ -147,6 +148,7 @@ class SALComm(QObject):
         self.MTM1M3.evt_inclinometerSensorWarning.callback = self.inclinometerSensorWarning.emit
         self.MTM1M3.evt_interlockStatus.callback = self.interlockStatus.emit
         self.MTM1M3.evt_interlockWarning.callback = self.interlockWarning.emit
+        self.MTM1M3.evt_logMessage.callback = self.logMessage.emit
         self.MTM1M3.evt_modbusResponse.callback = self.modbusResponse.emit
         self.MTM1M3.evt_pidInfo.callback = self.pidInfo.emit
         self.MTM1M3.evt_powerStatus.callback = self.powerStatus.emit
