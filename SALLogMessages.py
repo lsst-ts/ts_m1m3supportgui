@@ -18,6 +18,7 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 from PySide2.QtCore import Slot
+from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QTextEdit
 
 from datetime import datetime
@@ -39,7 +40,9 @@ class SALLogMessages(QTextEdit):
         super().__init__()
         self.comm = comm
         self.setReadOnly(True)
-        self.setFontFamily("monospace")
+        font = QFont("Monospace")
+        font.setStyleHint(QFont.TypeWriter)
+        self.setFont(font)
 
         self.comm.logMessage.connect(self.logMessage)
 
