@@ -47,6 +47,7 @@ class ApplicationControlWidget(QWidget):
         super().__init__()
 
         self.comm = comm
+        self.lastEnabled = None
         self.commandLayout = QVBoxLayout()
         self.setLayout(self.commandLayout)
 
@@ -72,15 +73,30 @@ class ApplicationControlWidget(QWidget):
         self.commandLayout.addWidget(self.exitButton)
 
         # connect SAL signals
-        self.comm.logMessage.connect(self.logMessage)
         self.comm.detailedState.connect(self.processEventDetailedState)
 
     def disableAllButtons(self):
+        if self.lastEnabled is None:
+            self.lastEnabled = [
+                self.startButton.isEnabled(),
+                self.enableButton.isEnabled(),
+                self.raiseButton.isEnabled(),
+                self.engineeringButton.isEnabled(),
+                self.exitButton.isEnabled(),
+            ]
         self.startButton.setEnabled(False)
         self.enableButton.setEnabled(False)
         self.raiseButton.setEnabled(False)
         self.engineeringButton.setEnabled(False)
         self.exitButton.setEnabled(False)
+
+    def restoreEnabled(self):
+        self.startButton.setEnabled(self.lastEnabled[0])
+        self.enableButton.setEnabled(self.lastEnabled[1])
+        self.raiseButton.setEnabled(self.lastEnabled[2])
+        self.engineeringButton.setEnabled(self.lastEnabled[3])
+        self.exitButton.setEnabled(self.lastEnabled[4])
+        self.lastEnabled = None
 
     async def command(self, button):
         self.disableAllButtons()
@@ -115,7 +131,7 @@ class ApplicationControlWidget(QWidget):
                 f"Error executing {button.text()}",
                 ackE.ackcmd.result,
             )
-            button.setEnabled(True)
+            self.restoreEnabled()
 
     @asyncSlot()
     async def start(self):
@@ -137,17 +153,13 @@ class ApplicationControlWidget(QWidget):
     async def exit(self):
         await self.command(self.exitButton)
 
-    def logMessage(self, data):
-        print(
-            f"{data.level} - {data.message} - {data.private_sndStamp} - {data.filePath} - {data.functionName} - {data.lineNumber}"
-        )
-
     def _setTextEnable(self, button, text):
         button.setText(text)
         button.setEnabled(True)
 
     @Slot(map)
     def processEventDetailedState(self, data):
+        self.lastEnabled = None
         if data.detailedState == DetailedState.DISABLED:
             self.raiseButton.setEnabled(False)
             self.engineeringButton.setEnabled(False)
