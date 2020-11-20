@@ -19,12 +19,12 @@
 
 from PySide2.QtCore import Slot, QPoint
 from PySide2.QtGui import QFont
-from PySide2.QtWidgets import QTextEdit
+from PySide2.QtWidgets import QPlainTextEdit
 
 from datetime import datetime
 
 
-class SALLogMessages(QTextEdit):
+class SALLogMessages(QPlainTextEdit):
     """Displays log messages."""
 
     LEVELS = [
@@ -40,6 +40,7 @@ class SALLogMessages(QTextEdit):
         super().__init__()
         self.comm = comm
         self.setReadOnly(True)
+        self.setLineWrapMode(QPlainTextEdit.NoWrap)
         font = QFont("Monospace")
         font.setStyleHint(QFont.TypeWriter)
         self.setFont(font)

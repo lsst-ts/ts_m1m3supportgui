@@ -18,7 +18,15 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 from PySide2.QtCore import Slot
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+from PySide2.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QComboBox,
+    QSpinBox,
+    QPushButton,
+)
 from SALLogMessages import SALLogMessages
 from asyncqt import asyncSlot
 
@@ -37,7 +45,12 @@ class SALLogWidget(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
+        self.salMessages = SALLogMessages(self.comm)
+
         self.toolbar = QHBoxLayout()
+
+        self.clearButton = QPushButton("Clear")
+        self.clearButton.clicked.connect(self.salMessages.clear)
 
         self.level = QComboBox()
         self.level.addItems(self.LEVELS)
@@ -45,13 +58,21 @@ class SALLogWidget(QWidget):
 
         self.currentLevel = QLabel()
 
+        self.maxBlock = QSpinBox()
+        self.maxBlock.setSingleStep(10)
+        self.maxBlock.valueChanged.connect(self.setMaxBlock)
+        self.maxBlock.setValue(100)
+        self.maxBlock.setMinimumWidth(100)
+        self.maxBlock.setMaximum(1000000)
+
+        self.toolbar.addWidget(self.clearButton)
         self.toolbar.addWidget(QLabel("Level"))
         self.toolbar.addWidget(self.level)
         self.toolbar.addWidget(QLabel("Current"))
         self.toolbar.addWidget(self.currentLevel)
+        self.toolbar.addWidget(QLabel("Max lines"))
+        self.toolbar.addWidget(self.maxBlock)
         self.toolbar.addStretch()
-
-        self.salMessages = SALLogMessages(self.comm)
 
         self.layout.addLayout(self.toolbar)
         self.layout.addWidget(self.salMessages)
@@ -64,14 +85,21 @@ class SALLogWidget(QWidget):
     def setPageActive(self, active):
         if self.pageActive == active:
             return
+        self.pageActive = active
+
+        if self.pageActive:
+            data = self.comm.MTM1M3.evt_logLevel.get()
+            if data is not None:
+                self.logLevel(data)
+                self.level.setCurrentIndex(self._levelToIndex(data.level))
+
+    @Slot()
+    def setMaxBlock(self, i):
+        self.salMessages.setMaximumBlockCount(i)
 
     @Slot()
     def logLevel(self, data):
-        index = self._levelToIndex(data.level)
-        self.currentLevel.setText(self.LEVELS[index])
-        # when item wasn't selected
-        if self.level.currentIndex() < 0:
-            self.level.setCurrentIndex(index)
+        self.currentLevel.setText(self.LEVELS[self._levelToIndex(data.level)])
 
     @asyncSlot()
     async def changeLevel(self, index):
