@@ -43,6 +43,20 @@ class SALLogWidget(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
+        self.toolbar = QHBoxLayout()
+
+        self.level = QComboBox()
+        self.level.addItems(self.LEVELS)
+        self.level.currentIndexChanged.connect(self.changeLevel)
+
+        self.currentLevel = QLabel()
+
+        self.toolbar.addWidget(QLabel("Level"))
+        self.toolbar.addWidget(self.level)
+        self.toolbar.addWidget(QLabel("Current"))
+        self.toolbar.addWidget(self.currentLevel)
+        self.toolbar.addStretch()
+
         self.salMessages = SALLogMessages(self.comm)
 
         self.toolbar = QHBoxLayout()
