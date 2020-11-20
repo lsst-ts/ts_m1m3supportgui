@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtCore import Slot
+from PySide2.QtCore import Slot, QPoint
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import QTextEdit
 
@@ -52,6 +52,6 @@ class SALLogMessages(QTextEdit):
             sep=" ", timespec="milliseconds"
         )
 
-        self.insertHtml(
+        self.cursorForPosition(QPoint(0, 0)).insertHtml(
             f"{date} [<b>{self.LEVELS[min(int(data.level/10),5)]}</b>] <b>{data.message}</b><br>"
         )
