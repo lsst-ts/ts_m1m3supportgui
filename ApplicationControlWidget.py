@@ -1,5 +1,24 @@
+# This file is part of M1M3 SS GUI.
+#
+# Developed for the LSST Telescope and Site Systems.
+# This product includes software developed by the LSST Project
+# (https://www.lsst.org). See the COPYRIGHT file at the top - level directory
+# of this distribution for details of code ownership.
+#
+# This program is free software : you can redistribute it and / or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.If not, see <https://www.gnu.org/licenses/>.
+
 import QTHelpers
-from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
+from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from PySide2.QtCore import Slot
 
 from asyncqt import asyncSlot
@@ -10,8 +29,10 @@ from lsst.ts.idl.enums.MTM1M3 import DetailedState
 
 
 class ApplicationControlWidget(QWidget):
+    """Widget with control buttons for M1M3 operations. Buttons are disabled/enabled and reasonable defaults sets on DetailedState changes."""
 
     TEXT_START = "&Start"
+    """Constants for button titles. Titles are used to select command send to SAL."""
     TEXT_ENABLE = "&Enable"
     TEXT_DISABLE = "&Disable"
     TEXT_STANDBY = "&Standby"
@@ -29,25 +50,20 @@ class ApplicationControlWidget(QWidget):
         self.commandLayout = QVBoxLayout()
         self.setLayout(self.commandLayout)
 
-        self.startButton = QPushButton(self.TEXT_START)
-        self.startButton.setEnabled(False)
-        self.startButton.clicked.connect(self.start)
+        def _addButton(text, onClick, default=False):
+            button = QPushButton(text)
+            button.clicked.connect(onClick)
+            button.setEnabled(False)
+            button.setAutoDefault(default)
+            return button
 
-        self.enableButton = QPushButton(self.TEXT_ENABLE)
-        self.enableButton.setEnabled(False)
-        self.enableButton.clicked.connect(self.enable)
-
-        self.raiseButton = QPushButton(self.TEXT_RAISE)
-        self.raiseButton.setEnabled(False)
-        self.raiseButton.clicked.connect(self.raiseControl)
-
-        self.engineeringButton = QPushButton(self.TEXT_ENTER_ENGINEERING)
-        self.engineeringButton.setEnabled(False)
-        self.engineeringButton.clicked.connect(self.engineering)
-
-        self.exitButton = QPushButton(self.TEXT_STANDBY)
-        self.exitButton.setEnabled(False)
-        self.exitButton.clicked.connect(self.exit)
+        self.startButton = _addButton(self.TEXT_START, self.start, True)
+        self.enableButton = _addButton(self.TEXT_ENABLE, self.enable, True)
+        self.raiseButton = _addButton(self.TEXT_RAISE, self.raiseControl, True)
+        self.engineeringButton = _addButton(
+            self.TEXT_ENTER_ENGINEERING, self.engineering
+        )
+        self.exitButton = _addButton(self.TEXT_STANDBY, self.exit)
 
         self.commandLayout.addWidget(self.startButton)
         self.commandLayout.addWidget(self.enableButton)
@@ -59,8 +75,15 @@ class ApplicationControlWidget(QWidget):
         self.comm.logMessage.connect(self.logMessage)
         self.comm.detailedState.connect(self.processEventDetailedState)
 
+    def disableAllButtons(self):
+        self.startButton.setEnabled(False)
+        self.enableButton.setEnabled(False)
+        self.raiseButton.setEnabled(False)
+        self.engineeringButton.setEnabled(False)
+        self.exitButton.setEnabled(False)
+
     async def command(self, button):
-        button.setEnabled(False)
+        self.disableAllButtons()
         try:
             if button.text() == self.TEXT_START:
                 await self.comm.MTM1M3.cmd_start.set_start(
@@ -87,7 +110,11 @@ class ApplicationControlWidget(QWidget):
             elif button.text() == self.TEXT_STANDBY:
                 await self.comm.MTM1M3.cmd_standby.start()
         except base.AckError as ackE:
-            print(str(ackE))
+            await QTHelpers.warning(
+                self,
+                f"Error executing {button.text()}",
+                ackE.ackcmd.result,
+            )
             button.setEnabled(True)
 
     @asyncSlot()
@@ -126,21 +153,27 @@ class ApplicationControlWidget(QWidget):
             self.engineeringButton.setEnabled(False)
             self._setTextEnable(self.enableButton, self.TEXT_ENABLE)
             self._setTextEnable(self.exitButton, self.TEXT_STANDBY)
+            self.enableButton.setDefault(True)
         elif data.detailedState == DetailedState.FAULT:
             self._setTextEnable(self.startButton, self.TEXT_STANDBY)
+            self.setDefault(self.startButton)
         elif data.detailedState == DetailedState.OFFLINE:
             self.startButton.setEnabled(False)
         elif data.detailedState == DetailedState.STANDBY:
             self.enableButton.setEnabled(False)
             self._setTextEnable(self.startButton, self.TEXT_START)
             self._setTextEnable(self.exitButton, self.TEXT_EXIT_CONTROL)
+            self.startButton.setDefault(True)
         elif data.detailedState == DetailedState.PARKED:
             self._setTextEnable(self.enableButton, self.TEXT_DISABLE)
             self._setTextEnable(self.raiseButton, self.TEXT_RAISE)
             self._setTextEnable(self.engineeringButton, self.TEXT_ENTER_ENGINEERING)
+            self.exitButton.setEnabled(False)
+            self.raiseButton.setDefault(True)
         elif data.detailedState == DetailedState.RAISING:
             self._setTextEnable(self.raiseButton, self.TEXT_ABORT_RAISE)
             self.engineeringButton.setEnabled(False)
+            self.raiseButton.setDefault(True)
         elif data.detailedState == DetailedState.ACTIVE:
             self._setTextEnable(self.raiseButton, self.TEXT_LOWER)
             self.engineeringButton.setEnabled(True)
