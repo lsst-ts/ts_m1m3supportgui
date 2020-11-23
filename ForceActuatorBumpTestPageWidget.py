@@ -26,7 +26,6 @@ from PySide2.QtWidgets import (
     QListWidget,
     QCheckBox,
     QSizePolicy,
-    QFormLayout,
     QVBoxLayout,
     QHBoxLayout,
     QGroupBox,
