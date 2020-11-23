@@ -1,5 +1,5 @@
 import TimeChart
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 
 
@@ -107,8 +107,11 @@ class ActuatorOverviewPageWidget(QWidget):
         self.velocityMzLabel = QLabel("UNKNOWN")
         self.velocityMagLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart()
-        self.chart_view = TimeChart.TimeChartView(self.chart)
+        self.chartForces = TimeChart.TimeChart(50 * 5)
+        self.chartForces_view = TimeChart.TimeChartView(self.chartForces)
+
+        self.chartPercentage = TimeChart.TimeChart(50 * 5)
+        self.chartPercentage_view = TimeChart.TimeChartView(self.chartPercentage)
 
         row = 0
         col = 0
@@ -245,7 +248,12 @@ class ActuatorOverviewPageWidget(QWidget):
         self.dataLayout.addWidget(self.velocityMzLabel, row, col + 6)
         self.dataLayout.addWidget(self.velocityMagLabel, row, col + 7)
 
-        self.plotLayout.addWidget(self.chart_view)
+        plotLayout = QHBoxLayout()
+
+        plotLayout.addWidget(self.chartForces_view)
+        plotLayout.addWidget(self.chartPercentage_view)
+
+        self.layout.addLayout(plotLayout)
 
     def setPageActive(self, active):
         if self.pageActive == active:
@@ -263,6 +271,7 @@ class ActuatorOverviewPageWidget(QWidget):
             self.comm.appliedStaticForces.connect(self.appliedStaticForces)
             self.comm.appliedThermalForces.connect(self.appliedThermalForces)
             self.comm.appliedVelocityForces.connect(self.appliedVelocityForces)
+            self.comm.forceActuatorState.connect(self.forceActuatorState)
         else:
             self.comm.appliedAberrationForces.disconnect(self.appliedAberrationForces)
             self.comm.appliedAccelerationForces.disconnect(
@@ -277,6 +286,7 @@ class ActuatorOverviewPageWidget(QWidget):
             self.comm.appliedStaticForces.disconnect(self.appliedStaticForces)
             self.comm.appliedThermalForces.disconnect(self.appliedThermalForces)
             self.comm.appliedVelocityForces.disconnect(self.appliedVelocityForces)
+            self.comm.forceActuatorState.disconnect(self.forceActuatorState)
 
         self.pageActive = active
 
@@ -342,7 +352,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.totalCommandedMzLabel.setText("%0.1f" % data.mz)
         self.totalCommandedMagLabel.setText("%0.1f" % data.forceMagnitude)
 
-        self.chart.append(
+        self.chartForces.append(
             data.timestamp, [("Force (N)", "Total Mag", data.forceMagnitude)]
         )
 
@@ -385,3 +395,10 @@ class ActuatorOverviewPageWidget(QWidget):
         self.velocityMyLabel.setText("%0.1f" % data.my)
         self.velocityMzLabel.setText("%0.1f" % data.mz)
         self.velocityMagLabel.setText("%0.1f" % data.forceMagnitude)
+
+    @Slot(map)
+    def forceActuatorState(self, data):
+        self.chartPercentage.append(
+            data.timestamp,
+            [("Percentage", "Support Percentage", data.supportPercentage * 100)],
+        )

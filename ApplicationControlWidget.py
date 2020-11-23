@@ -168,7 +168,7 @@ class ApplicationControlWidget(QWidget):
             self.enableButton.setDefault(True)
         elif data.detailedState == DetailedState.FAULT:
             self._setTextEnable(self.startButton, self.TEXT_STANDBY)
-            self.setDefault(self.startButton)
+            self.startButton.setDefault(True)
         elif data.detailedState == DetailedState.OFFLINE:
             self.startButton.setEnabled(False)
         elif data.detailedState == DetailedState.STANDBY:
