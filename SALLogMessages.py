@@ -27,13 +27,22 @@ from datetime import datetime
 class SALLogMessages(QPlainTextEdit):
     """Displays log messages."""
 
-    LEVELS = [
-        "<font color='lighgray'>T</font></font>",
-        "<font color='black'>D</font>",
+    LEVELS_IDS = [
+        "<font color='gray'>T</font></font>",
+        "<font color='darkcyan'>D</font>",
         "<font color='green'>I</font>",
         "<font color='goldenrod'>W</font>",
         "<font color='red'>E</font>",
         "<font color='purple'>C</font>",
+    ]
+
+    LEVEL_TEXT_STYLE = [
+        "color:gray; font-weight:normal;",
+        "color:black; font-weight:normal;",
+        "font-weight:bold;",
+        "font-weight:bold;",
+        "font-weight:bold;",
+        "color:red; font-weight:bold;",
     ]
 
     def __init__(self, comm):
@@ -52,7 +61,7 @@ class SALLogMessages(QPlainTextEdit):
         date = datetime.fromtimestamp(data.private_sndStamp).isoformat(
             sep=" ", timespec="milliseconds"
         )
-
+        level = min(int(data.level / 10), 5)
         self.appendHtml(
-            f"{date} [<b>{self.LEVELS[min(int(data.level/10),5)]}</b>] <b>{data.message}</b>"
+            f"{date} [<b>{self.LEVELS_IDS[level]}</b>] <span style='{self.LEVEL_TEXT_STYLE[level]}'>{data.message}</span>"
         )
