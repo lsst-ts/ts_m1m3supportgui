@@ -59,11 +59,11 @@ class SALLogWidget(QWidget):
         self.currentLevel = QLabel()
 
         self.maxBlock = QSpinBox()
+        self.maxBlock.setMaximum(1000000)
         self.maxBlock.setSingleStep(10)
         self.maxBlock.valueChanged.connect(self.setMaxBlock)
-        self.maxBlock.setValue(100)
+        self.maxBlock.setValue(1000)
         self.maxBlock.setMinimumWidth(100)
-        self.maxBlock.setMaximum(1000000)
 
         self.toolbar.addWidget(self.clearButton)
         self.toolbar.addWidget(QLabel("Level"))

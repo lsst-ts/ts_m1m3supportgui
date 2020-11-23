@@ -53,6 +53,6 @@ class SALLogMessages(QPlainTextEdit):
             sep=" ", timespec="milliseconds"
         )
 
-        self.cursorForPosition(QPoint(0, 0)).insertHtml(
-            f"{date} [<b>{self.LEVELS[min(int(data.level/10),5)]}</b>] <b>{data.message}</b><br>"
+        self.appendHtml(
+            f"{date} [<b>{self.LEVELS[min(int(data.level/10),5)]}</b>] <b>{data.message}</b>"
         )
