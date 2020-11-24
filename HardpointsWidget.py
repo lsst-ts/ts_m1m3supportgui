@@ -35,20 +35,67 @@ class HardpointsWidget(QWidget):
         self.layout.addLayout(dataLayout)
         self.setLayout(self.layout)
 
-        row = 0
+        dataLayout.addWidget(QLabel("Hardpoint"), 0, 0)
+        for hp in range(1, 7):
+            dataLayout.addWidget(QLabel(str(hp)), 0, hp)
 
-        def addRow(text, row):
-            ret = []
-            dataLayout.addWidget(QLabel(text), row, 0)
-            for hp in range(6):
-                hpLabel = QLabel()
-                dataLayout.addWidget(hpLabel, row, 1 + hp)
-                ret.append(hpLabel)
-            return ret
+        self.variables = {
+            "stepsQueued": "Steps queued",
+            "stepsCommanded": "Steps commanded",
+            "measuredForce": "Measured force",
+            "encoder": "Encoder",
+            "displacement": "Displacement",
+        }
 
-        self.stepsQueued = addRow("Steps queued", row)
+        row = 1
+        for v, n in self.variables.items():
+
+            def addRow(text, row):
+                ret = []
+                dataLayout.addWidget(QLabel(text), row, 0)
+                for hp in range(6):
+                    hpLabel = QLabel()
+                    dataLayout.addWidget(hpLabel, row, 1 + hp)
+                    ret.append(hpLabel)
+                return ret
+
+            setattr(self, v, addRow(n, row))
+            row += 1
+
+        self.forces = {
+            "forceMagnitude": "Total force",
+            "fx": "Force X",
+            "fy": "Force Y",
+            "fz": "Force Z",
+            "mx": "Moment X",
+            "my": "Moment Y",
+            "mz": "Moment Z",
+        }
+
+        dataLayout.addWidget(QLabel(), row, 0)
         row += 1
-        self.stepsCommanded = addRow("Steps commanded", row)
+
+        def addDataRow(variables, row, col=0):
+            for v, n in variables.items():
+                dataLayout.addWidget(QLabel(n), row, col)
+                l = QLabel()
+                setattr(self, v, l)
+                dataLayout.addWidget(l, row + 1, col)
+                col += 1
+
+        addDataRow(self.forces, row)
+        row += 2
+        dataLayout.addWidget(QLabel(), row, 0)
+        row += 1
+        self.positions = {
+            "xPosition": "Position X",
+            "yPosition": "Position Y",
+            "zPosition": "Position Z",
+            "xRotation": "Rotation X",
+            "yRotation": "Rotation Y",
+            "zRotation": "Rotation Z",
+        }
+        addDataRow(self.positions, row, 1)
 
         self.layout.addStretch()
 
@@ -69,5 +116,11 @@ class HardpointsWidget(QWidget):
             for hp in range(6):
                 rowLabels[hp].setText(f"{hpData[hp]:.02f}")
 
-        fillRow(data.stepsQueued, self.stepsQueued)
-        fillRow(data.stepsCommanded, self.stepsCommanded)
+        for v in self.variables:
+            fillRow(getattr(data, v), getattr(self, v))
+
+        for v in self.forces:
+            getattr(self, v).setText(str(getattr(data, v)))
+
+        for v in self.positions:
+            getattr(self, v).setText(str(getattr(data, v)))
