@@ -25,8 +25,7 @@ from PySide2.QtWidgets import QWidget
 
 
 class Gauge(QWidget):
-    """Draws gauge with color scale.
-    """
+    """Draws gauge with color scale."""
 
     def __init__(self):
         super().__init__()
@@ -50,13 +49,11 @@ class Gauge(QWidget):
         self.update()
 
     def sizeHint(self):
-        """Overridden method.
-        """
+        """Overridden method."""
         return QSize(100, 100)
 
     def paintEvent(self, event):
-        """Overridden method. Paint gauge as series of lines, and adds text labels.
-        """
+        """Overridden method. Paint gauge as series of lines, and adds text labels."""
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         swidth = max(self.width() - 100, 20)
@@ -76,10 +73,10 @@ class Gauge(QWidget):
                 )
             return
 
-
-
         for x in range(0, sheight):
-            painter.setPen(QColor.fromHsvF((x / sheight) * 0.7, min(1, 1.5 - (x / sheight)), 1))
+            painter.setPen(
+                QColor.fromHsvF((x / sheight) * 0.7, min(1, 1.5 - (x / sheight)), 1)
+            )
             painter.drawLine(0, x, swidth, x)
 
         painter.setPen(Qt.black)

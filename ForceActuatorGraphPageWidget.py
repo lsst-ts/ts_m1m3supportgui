@@ -1,7 +1,7 @@
 import QTHelpers
 from FATABLE import *
 from ForceActuatorWidget import ForceActuatorWidget
-from ActuatorsDisplay import MirrorWidget, Actuator
+from ActuatorsDisplay import MirrorWidget, ForceActuator
 
 
 class ForceActuatorGraphPageWidget(ForceActuatorWidget):
@@ -43,9 +43,9 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
             elif warningData is not None:
                 state = getWarning(row[FATABLE_INDEX])
             else:
-                state = Actuator.STATE_ACTIVE
+                state = ForceActuator.STATE_ACTIVE
 
-            self.mirrorWidget.mirrorView.addActuator(
+            self.mirrorWidget.mirrorView.addForceActuator(
                 id,
                 row[FATABLE_XPOSITION] * 1000,
                 row[FATABLE_YPOSITION] * 1000,

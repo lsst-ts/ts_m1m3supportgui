@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .Actuator import Actuator
+from .ForceActuator import ForceActuator
 
 from PySide2.QtWidgets import QGraphicsScene
 import numpy as np
@@ -29,8 +29,8 @@ class Mirror(QGraphicsScene):
     """Graphics scene containing plot of the mirror surface with actuators.
 
     Actuator list is cleared with clear() method (inherited from
-    QGraphicsScene). Actuators are added with addActuator() method. Actuator
-    data should be updated with updateActuator() call.
+    QGraphicsScene). Force Actuators are added with addForceActuator() method.
+    Force Actuator data should be updated with updateForceActuator() call.
     """
 
     def __init__(self):
@@ -49,42 +49,42 @@ class Mirror(QGraphicsScene):
         for a in self.items():
             a.setRange(minValue, maxValue)
 
-    def addActuator(self, id, x, y, data, dataIndex, state, selected):
+    def addForceActuator(self, id, x, y, data, dataIndex, state, selected):
         """Adds actuator to the list.
 
         Parameters
         ----------
         id : `int`
-            Actuator ID. Actuators are matched by ID.
+            Force Actuator ID. Actuators are matched by ID.
         x : `float`
-            Actuator X position (in mm).
+            Force Actuator X position (in mm).
         y :  `float`
-            Actuator y position (in mm).
+            Force Actuator y position (in mm).
         data : `float`
-            Actuator value.
+            Force Actuator value.
         dataIndex : `int`
-            Actuator value index.
+            Force Actuator value index.
         state : `int`
-            Actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID or
-            Actuator.STATE_WARNING.
+            Force Actuator state. ForceActuator.STATE_INVALID, ForceActuator.STATE_VALID or
+            ForceActuator.STATE_WARNING.
         selected : `bool`
             If the actuator shall be selected.
 
         """
-        self.addItem(Actuator(id, x, y, data, dataIndex, state, selected))
+        self.addItem(ForceActuator(id, x, y, data, dataIndex, state, selected))
 
-    def getActuator(self, id):
+    def getForceActuator(self, id):
         """Returns actuator with given ID.
 
         Parameters
         ----------
         id : `int`
-            Actuator ID.
+            Force Actuator ID.
 
         Returns
         -------
-        `Actuator`
-            Actuator with matched ID.
+        `ForceActuator`
+            Force Actuator with matched ID.
 
         Raises
         ------
@@ -96,21 +96,21 @@ class Mirror(QGraphicsScene):
         except StopIteration:
             raise KeyError(f"Cannot find actuator with ID {id}")
 
-    def updateActuator(self, id, data, state):
+    def updateForceActuator(self, id, data, state):
         """Updates actuator value and state.
 
         Parameters
         ----------
         id : `int`
-            Actuator ID number.
+            Force Actuator ID number.
         data : `float`
             Update actuator value.
         state : `int`
-            Updated actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID, Actuator.STATE_WARNING.
+            Updated actuator state. ForceActuator.STATE_INVALID, ForceActuator.STATE_VALID, ForceActuator.STATE_WARNING.
 
         Raises
         ------
         KeyError
             If actuator with the given ID cannot be found.
         """
-        self.getActuator(id).updateData(data, state)
+        self.getForceActuator(id).updateData(data, state)
