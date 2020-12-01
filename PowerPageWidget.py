@@ -1,6 +1,5 @@
 import QTHelpers
 import TimeChart
-from BitHelper import BitHelper
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 from asyncqt import asyncSlot

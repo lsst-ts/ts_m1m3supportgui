@@ -1,6 +1,5 @@
 import QTHelpers
 import TimeChart
-from BitHelper import BitHelper
 from PySide2.QtWidgets import (
     QWidget,
     QLabel,

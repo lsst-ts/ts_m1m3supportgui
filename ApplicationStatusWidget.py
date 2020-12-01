@@ -1,13 +1,16 @@
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
-from PySide2.QtCore import Slot
+from PySide2.QtCore import Slot, Qt
 from lsst.ts.salobj import State
+from lsst.ts.idl.enums import MTM1M3
 from SALComm import SALComm
+import QTHelpers
 
 
 class ApplicationStatusWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
+
         self.layout = QVBoxLayout()
         self.statusLayout = QGridLayout()
         self.layout.addLayout(self.statusLayout)
@@ -48,48 +51,81 @@ class ApplicationStatusWidget(QWidget):
         self.summaryStateLabel.setText(summaryStateText)
 
     @Slot(map)
+    def forceActuatorState(self, data):
+        detailedData = self.comm.MTM1M3.evt_detailedState.get()
+        if detailedData is None:
+            return
+        if (
+            detailedData.detailedState == MTM1M3.DetailedState.RAISING
+            or detailedData.detailedState == MTM1M3.DetailedState.RAISINGENGINEERING
+        ):
+            self.mirrorStateLabel.setText(
+                f"Raising ({data.supportPercentage * 100:.02f} %)"
+            )
+        elif (
+            detailedData.detailedState == MTM1M3.DetailedState.LOWERING
+            or detailedData.detailedState == MTM1M3.DetailedState.LOWERINGENGINEERING
+            or detailedData.detailedState == MTM1M3.DetailedState.LOWERINGFAULT
+        ):
+            self.mirrorStateLabel.setText(
+                f"Lowering ({data.supportPercentage * 100:.02f} %)"
+            )
+
+    @Slot(map)
     def processEventDetailedState(self, data):
         modeStateText = "Unknown"
         mirrorStateText = "Unknown"
-        if data.detailedState == 1:  # DetailedStates.DisabledState:
+        if data.detailedState == MTM1M3.DetailedState.DISABLED:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        elif data.detailedState == 13:  # DetailedStates.FaultState:
+        elif data.detailedState == MTM1M3.DetailedState.FAULT:
+            modeStateText = "Automatic"
+            mirrorStateText = "Fault"
+        elif data.detailedState == MTM1M3.DetailedState.OFFLINE:
+            modeStateText = "Offline"
+            mirrorStateText = "Parked"
+        elif data.detailedState == MTM1M3.DetailedState.STANDBY:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        # elif data.detailedState == DetailedStates.OfflineState:
-        #    modeStateText = "Offline"
-        #    mirrorStateText = "Parked"
-        elif data.detailedState == 4:  # DetailedStates.StandbyState:
+        elif data.detailedState == MTM1M3.DetailedState.PARKED:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
-        elif data.detailedState == 5:  # DetailedStates.ParkedState:
+        elif data.detailedState == MTM1M3.DetailedState.RAISING:
             modeStateText = "Automatic"
-            mirrorStateText = "Parked"
-        elif data.detailedState == 6:  # DetailedStates.RaisingState:
-            modeStateText = "Automatic"
-            mirrorStateText = "Raising"
-        elif data.detailedState == 7:  # DetailedStates.ActiveState:
+            mirrorStateText = f"Raising ({self.comm.MTM1M3.evt_forceActuatorState.get().supportPercentage * 100:.03f}%)"
+            self.comm.forceActuatorState.connect(
+                self.forceActuatorState, Qt.UniqueConnection
+            )
+        elif data.detailedState == MTM1M3.DetailedState.ACTIVE:
             modeStateText = "Automatic"
             mirrorStateText = "Active"
-        elif data.detailedState == 8:  # DetailedStates.LoweringState:
+            self.forceActuatorState.disconnect(self.forceActuatorState)
+        elif data.detailedState == MTM1M3.DetailedState.LOWERING:
             modeStateText = "Automatic"
             mirrorStateText = "Lowering"
-        elif data.detailedState == 9:  # DetailedStates.ParkedEngineeringState:
+        elif data.detailedState == MTM1M3.DetailedState.PARKEDENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Parked"
-        elif data.detailedState == 10:  # DetailedStates.RaisingEngineeringState:
+        elif data.detailedState == MTM1M3.DetailedState.RAISINGENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Raising"
-        elif data.detailedState == 11:  # DetailedStates.ActiveEngineeringState:
+        elif data.detailedState == MTM1M3.DetailedState.ACTIVEENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Active"
-        elif data.detailedState == 12:  # DetailedStates.LoweringEngineeringState:
+        elif data.detailedState == MTM1M3.DetailedState.LOWERINGENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Lowering"
-        elif data.detailedState == 13:  # DetailedStates.LoweringFaultState:
+        elif data.detailedState == MTM1M3.DetailedState.LOWERINGFAULT:
             modeStateText = "Automatic"
-            mirrorStateText = "Lowering"
+            mirrorStateText = "Lowering (fault)"
+        elif data.detailedState == MTM1M3.DetailedState.PROFILEHARDPOINTCORRECTIONS:
+            modeStateText = "Profile hardpoint corrections"
+            mirrorStateText = "Active"
+        else:
+            QTHelpers.warning(
+                self, "Unknow state", f"Unknow state received - {data.detailedState}"
+            )
+            return
 
         self.modeStateLabel.setText(modeStateText)
         self.mirrorStateLabel.setText(mirrorStateText)

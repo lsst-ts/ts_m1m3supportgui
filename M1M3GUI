@@ -19,17 +19,21 @@ from ForceActuatorValuePageWidget import ForceActuatorValuePageWidget
 from ForceBalanceSystemPageWidget import ForceBalanceSystemPageWidget
 from ForceActuatorBumpTestPageWidget import ForceActuatorBumpTestPageWidget
 from GyroPageWidget import GyroPageWidget
+from HardpointsWidget import HardpointsWidget
 from IMSPageWidget import IMSPageWidget
 from InclinometerPageWidget import InclinometerPageWidget
 from InterlockPageWidget import InterlockPageWidget
 from OverviewPageWidget import OverviewPageWidget
 from PIDPageWidget import PIDPageWidget
 from PowerPageWidget import PowerPageWidget
+from SALLogWidget import SALLogWidget
 
-from PySide2.QtWidgets import (QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel)
+from PySide2.QtWidgets import QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel
 from PySide2.QtGui import QFont
 
 from asyncqt import QEventLoop
+import asyncio
+
 
 class EUI(QDialog):
     def __init__(self, parent=None):
@@ -38,7 +42,7 @@ class EUI(QDialog):
         self.topLayerLayout = QHBoxLayout()
 
         self.comm = SALComm()
-        
+
         self.applicationControlLayout = QVBoxLayout()
         self.applicationControl = ApplicationControlWidget(self.comm)
         self.applicationControl.setFixedSize(256, 175)
@@ -59,6 +63,7 @@ class EUI(QDialog):
 
         self.addPage("Overview", OverviewPageWidget(self.comm))
         self.addPage("Actuator Overview", ActuatorOverviewPageWidget(self.comm))
+        self.addPage("Hardpoints", HardpointsWidget(self.comm))
         self.addPage("DC Accelerometers", DCAccelerometerPageWidget(self.comm))
         self.addPage("Gyro", GyroPageWidget(self.comm))
         self.addPage("IMS", IMSPageWidget(self.comm))
@@ -69,9 +74,12 @@ class EUI(QDialog):
         self.addPage("Power", PowerPageWidget(self.comm))
         self.addPage("PID", PIDPageWidget(self.comm))
         self.addPage("Force Balance System", ForceBalanceSystemPageWidget(self.comm))
-        self.addPage("Force Actuator Bump Test", ForceActuatorBumpTestPageWidget(self.comm))
+        self.addPage(
+            "Force Actuator Bump Test", ForceActuatorBumpTestPageWidget(self.comm)
+        )
         self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
         self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.comm))
+        self.addPage("SAL Log", SALLogWidget(self.comm))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
         self.layout.addLayout(self.topLayerLayout)
@@ -83,10 +91,12 @@ class EUI(QDialog):
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Create the Qt Application
     app = QApplication(sys.argv)
     loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
 
     # Create EUI
     eui = EUI()
