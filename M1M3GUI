@@ -31,7 +31,7 @@ from SALLogWidget import SALLogWidget
 from PySide2.QtWidgets import QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel
 from PySide2.QtGui import QFont
 
-from asyncqt import QEventLoop
+from asyncqt import QEventLoop, asyncClose
 import asyncio
 
 
@@ -90,6 +90,10 @@ class EUI(QDialog):
 
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
+
+    @asyncClose
+    async def closeEvent(self, event):
+        await self.comm.close()
 
 
 if __name__ == "__main__":
