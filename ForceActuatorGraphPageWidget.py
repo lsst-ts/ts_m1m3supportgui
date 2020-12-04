@@ -53,8 +53,6 @@ class ForceActuatorGraphPageWidget(ForceActuator):
             )
 
         self.mirrorWidget.setRange(min(values), max(values))
-        self.mirrorWidget.mirrorView.resetTransform()
-        self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
         if self.mirrorWidget.mirrorView.selected is not None:
             if self.mirrorWidget.mirrorView.selected.dataIndex is not None:
