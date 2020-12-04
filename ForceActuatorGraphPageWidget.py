@@ -1,3 +1,4 @@
+import QTHelpers
 from FATABLE import *
 from ForceActuator import ForceActuator
 from ActuatorsDisplay import MirrorWidget, Actuator
@@ -25,17 +26,20 @@ class ForceActuatorGraphPageWidget(ForceActuator):
 
         self.mirrorWidget.mirrorView.clear()
 
+        def getWarning(index):
+            return (
+                Actuator.STATE_WARNING
+                if warningData.forceActuatorFlags[index] != 0
+                else Actuator.STATE_ACTIVE
+            )
+
         for row in FATABLE:
             id = row[FATABLE_ID]
             index = row[self.fieldDataIndex]
             if index is None:
                 state = Actuator.STATE_INACTIVE
             elif warningData is not None:
-                state = (
-                    Actuator.STATE_WARNING
-                    if warningData.forceActuatorFlags[row[FATABLE_INDEX]] != 0
-                    else Actuator.STATE_ACTIVE
-                )
+                state = getWarning(row[FATABLE_INDEX])
             else:
                 state = Actuator.STATE_ACTIVE
 
@@ -47,14 +51,18 @@ class ForceActuatorGraphPageWidget(ForceActuator):
                 index,
                 state,
             )
+
         self.mirrorWidget.setRange(min(values), max(values))
         self.mirrorWidget.mirrorView.resetTransform()
         self.mirrorWidget.mirrorView.scale(*self.mirrorWidget.mirrorView.scaleHints())
 
-        if (
-            self.mirrorWidget.mirrorView.selected is not None
-            and self.mirrorWidget.mirrorView.selected.dataIndex is not None
-        ):
-            self.selectedActuatorValueLabel.setText(
-                str(values[self.mirrorWidget.mirrorView.selected.dataIndex])
-            )
+        if self.mirrorWidget.mirrorView.selected is not None:
+            if self.mirrorWidget.mirrorView.selected.dataIndex is not None:
+                self.selectedActuatorValueLabel.setText(
+                    str(values[self.mirrorWidget.mirrorView.selected.dataIndex])
+                )
+            if warningData is not None:
+                QTHelpers.setWarningLabel(
+                    self.selectedActuatorWarningLabel,
+                    getWarning(self.mirrorWidgets.mirrorView.selected.id),
+                )
