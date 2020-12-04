@@ -84,8 +84,9 @@ class ForceActuator(QWidget):
         self.detailsLayout.addRow(QLabel("Last Updated"), self.lastUpdatedLabel)
 
         self.filterLayout.addWidget(self.topicList)
-        self.topicList.setCurrentRow(0)
         self.filterLayout.addWidget(self.fieldList)
+
+        self.topicList.setCurrentRow(0)
 
     def currentTopicChanged(self, topicIndex):
         if topicIndex < 0:
@@ -143,7 +144,7 @@ class ForceActuator(QWidget):
             self.updateData(data)
             self.topics.changeTopic(topicIndex, self.dataCallback)
         except RuntimeError as err:
-            print(err)
+            print("ForceActuator.changeField", err)
             pass
 
     def dataCallback(self, data):

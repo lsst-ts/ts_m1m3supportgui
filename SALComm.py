@@ -231,6 +231,10 @@ class SALComm(QObject):
         self.MTMount.tel_Azimuth.callback = self.Azimuth.emit
         self.MTMount.tel_Elevation.callback = self.Elevation.emit
 
+    async def start(self):
+        await self.MTM1M3.start_task
+        await self.MTMount.start_task
+
     async def close(self):
         await self.MTMount.close()
         await self.MTM1M3.close()

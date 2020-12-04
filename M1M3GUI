@@ -36,12 +36,13 @@ import asyncio
 
 
 class EUI(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, loop, parent=None):
         super(EUI, self).__init__(parent)
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
 
         self.comm = SALComm()
+        loop.run_until_complete(self.comm.start())
 
         self.applicationControlLayout = QVBoxLayout()
         self.applicationControl = ApplicationControlWidget(self.comm)
@@ -103,7 +104,7 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     # Create EUI
-    eui = EUI()
+    eui = EUI(loop)
     eui.show()
 
     # Run the main Qt loop
