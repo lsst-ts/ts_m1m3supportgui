@@ -25,7 +25,6 @@ class ApplicationPaginationWidget(QWidget):
         self.pageList.setFixedWidth(width)
 
     def addPage(self, text, widget):
-        widget.setPageActive(False)
         self.pageList.addItem(text)
         self.pageLayout.addWidget(widget)
         if self.pageLayout.count() == 1:
@@ -34,9 +33,4 @@ class ApplicationPaginationWidget(QWidget):
     def changePage(self, row):
         if row < 0:
             return
-        current = self.pageLayout.currentWidget()
-        if current is not None:
-            current.setPageActive(False)
-        newActive = self.pageLayout.widget(row)
-        self.pageLayout.setCurrentWidget(newActive)
-        newActive.setPageActive(True)
+        self.pageLayout.setCurrentWidget(self.pageLayout.widget(row))

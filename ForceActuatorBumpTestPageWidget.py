@@ -49,7 +49,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.xIndex = self.yIndex = self.zIndex = None
         self._testRunning = False
@@ -103,9 +102,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
         self.comm.detailedState.connect(self.detailedState)
         self.comm.forceActuatorBumpTestStatus.connect(self.forceActuatorBumpTestStatus)
-
-    def setPageActive(self, active):
-        self.pageActive = active
 
     def selectedActuator(self, current, previous):
         """Called when an actuator is selected from the list."""

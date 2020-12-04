@@ -23,7 +23,6 @@ class ForceActuatorGraphPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.fieldDataIndex = None
 
@@ -82,10 +81,7 @@ class ForceActuatorGraphPageWidget(QWidget):
         self.topicList.setCurrentRow(0)
         self.filterLayout.addWidget(self.fieldList)
 
-    def setPageActive(self, active):
-        self.pageActive = active
-        if not (active):
-            self.topics.changeTopic(None, None)
+        self.topics.changeTopic(None, None)
 
     def selectedTopicChanged(self, current, previous):
         topicIndex = self.topicList.currentRow()

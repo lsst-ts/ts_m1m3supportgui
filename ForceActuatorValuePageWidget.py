@@ -211,9 +211,6 @@ class ForceActuatorValuePageWidget(QWidget):
         self.topicList.setCurrentRow(0)
         self.filterLayout.addWidget(self.fieldList)
 
-    def setPageActive(self, active):
-        self.pageActive = active
-
     def selectedTopicChanged(self, current, previous):
         topicIndex = self.topicList.currentRow()
         if topicIndex < 0:

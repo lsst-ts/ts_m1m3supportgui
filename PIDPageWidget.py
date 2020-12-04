@@ -8,7 +8,6 @@ class PIDPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -289,18 +288,8 @@ class PIDPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chartView)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.pidInfo.connect(self.pidInfo)
-            self.comm.pidData.connect(self.pidData)
-        else:
-            self.comm.pidInfo.disconnect(self.pidInfo)
-            self.comm.pidData.disconnect(self.pidData)
-
-        self.pageActive = active
+        self.comm.pidInfo.connect(self.pidInfo)
+        self.comm.pidData.connect(self.pidData)
 
     @Slot(map)
     def pidInfo(self, data):

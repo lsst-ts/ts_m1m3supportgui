@@ -7,7 +7,6 @@ class InterlockPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -58,18 +57,8 @@ class InterlockPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Cabinet Door Open"), row, col)
         self.warningLayout.addWidget(self.cabinetDoorOpenLabel, row, col + 1)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.interlockWarning.connect(self.interlockWarning)
-            self.comm.interlockStatus.connect(self.interlockStatus)
-        else:
-            self.comm.interlockWarning.disconnect(self.interlockWarning)
-            self.comm.interlockStatus.disconnect(self.interlockStatus)
-
-        self.pageActive = active
+        self.comm.interlockWarning.connect(self.interlockWarning)
+        self.comm.interlockStatus.connect(self.interlockStatus)
 
     @Slot(map)
     def interlockWarning(self, data):
