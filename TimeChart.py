@@ -109,9 +109,9 @@ class TimeChart(QtCharts.QChart):
                 update = True
                 self.nextUpdate = now + self.updateInterval
 
-        for d in series:
-            forceUpdate = False
+        forceUpdate = False
 
+        for d in series:
             axis, serie, data = d
             try:
                 a, s, points = self._findSerie(axis, serie)
@@ -123,7 +123,7 @@ class TimeChart(QtCharts.QChart):
             if len(points) > self.maxItems:
                 points = points[-self.maxItems :]
 
-            if update == False:
+            if update == False and forceUpdate == False:
                 continue
 
             values = [p.y() for p in points]
@@ -157,7 +157,7 @@ class TimeChart(QtCharts.QChart):
                 s.attachAxis(self.timeAxis)
                 s.attachAxis(a)
 
-        if update == False:
+        if update == False and forceUpdate == False:
             return
 
         for a, y_range in y_ranges.items():

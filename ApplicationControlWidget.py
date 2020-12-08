@@ -75,6 +75,11 @@ class ApplicationControlWidget(QWidget):
         # connect SAL signals
         self.comm.detailedState.connect(self.processEventDetailedState)
 
+        detailedState = self.comm.MTM1M3.evt_detailedState.get()
+        if detailedState is not None:
+            self.processEventDetailedState(detailedState)
+
+
     def disableAllButtons(self):
         if self.lastEnabled is None:
             self.lastEnabled = [

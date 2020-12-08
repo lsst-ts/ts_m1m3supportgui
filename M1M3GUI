@@ -4,8 +4,6 @@
 import sys
 import time
 
-from SALComm import SALComm
-
 from ApplicationControlWidget import ApplicationControlWidget
 from ApplicationStatusWidget import ApplicationStatusWidget
 from ApplicationPaginationWidget import ApplicationPaginationWidget
@@ -40,6 +38,8 @@ class EUI(QDialog):
         super(EUI, self).__init__(parent)
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
+
+        from SALComm import SALComm
 
         self.comm = SALComm()
         loop.run_until_complete(self.comm.start())
