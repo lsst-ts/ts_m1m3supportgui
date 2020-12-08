@@ -70,7 +70,7 @@ class TimeChart(QtCharts.QChart):
     def _addSerie(self, axis, serie):
         s = QtCharts.QLineSeries()
         s.setName(serie)
-        s.setUseOpenGL(True)
+        # s.setUseOpenGL(True)
         points = []
         try:
             self._storedSeries[axis][1][serie] = [s, points]

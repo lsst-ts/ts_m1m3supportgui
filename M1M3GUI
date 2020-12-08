@@ -26,6 +26,8 @@ from PIDPageWidget import PIDPageWidget
 from PowerPageWidget import PowerPageWidget
 from SALLogWidget import SALLogWidget
 
+import SALComm
+
 from PySide2.QtWidgets import QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel
 from PySide2.QtGui import QFont
 
@@ -38,10 +40,6 @@ class EUI(QDialog):
         super(EUI, self).__init__(parent)
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
-
-        # TODO move to top. Currently cannot be on top, as somehow still
-        # intializes SAL loops on import.
-        import SALComm
 
         self.comm = SALComm.create(
             {"MTM1M3": None, "MTMount": ["Azimuth", "Elevation"]}
