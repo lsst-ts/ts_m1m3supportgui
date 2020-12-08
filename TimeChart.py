@@ -97,8 +97,9 @@ class TimeChart(QtCharts.QChart):
         series : [(`str`, `str`, data)]
             Axis name, serie name and data. Serie name will be shown as data label.
         update : `boolean`
-            If true, updates plot. Otherwise, store points for future update call.
-        """
+            If true, updates plot. Otherwise, store points for future update
+            call and update plot if updateInterval passed since the last
+            completed update."""
 
         y_ranges = {}
         t_range = None
