@@ -39,9 +39,13 @@ class EUI(QDialog):
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
 
-        from SALComm import SALComm
+        # TODO move to top. Currently cannot be on top, as somehow still
+        # intializes SAL loops on import.
+        import SALComm
 
-        self.comm = SALComm()
+        self.comm = SALComm.create(
+            {"MTM1M3": None, "MTMount": ["Azimuth", "Elevation"]}
+        )
         loop.run_until_complete(self.comm.start())
 
         self.applicationControlLayout = QVBoxLayout()

@@ -41,7 +41,7 @@ class TimeChart(QtCharts.QChart):
         Number of items to keep in graph. When series grows above the specified
         number of points, oldest points are removed. Defaults to 50 * 30 = 50Hz * 30s.
     updateInterval: `float`, optional
-        Interval for chart redraws responding to append call. Defaults to 1 second.
+        Interval for chart redraws responding to append call. Defaults to 0.1 second.
     """
 
     def __init__(self, maxItems=50 * 30, updateInterval=0.1):
@@ -70,6 +70,7 @@ class TimeChart(QtCharts.QChart):
     def _addSerie(self, axis, serie):
         s = QtCharts.QLineSeries()
         s.setName(serie)
+        s.setUseOpenGL(True)
         points = []
         try:
             self._storedSeries[axis][1][serie] = [s, points]
