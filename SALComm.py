@@ -43,6 +43,10 @@ class MetaSAL(type(QObject)):
         return super(MetaSAL, mcs).__new__(mcs, classname, bases, dictionary)
 
 
+def _filterEvtTel(m):
+    return m.startswith("tel_") or m.startswith("evt_")
+
+
 class SALComm(QObject, metaclass=MetaSAL):
     """
     SAL proxy. Set callback to emit Qt signals.
@@ -54,9 +58,7 @@ class SALComm(QObject, metaclass=MetaSAL):
         super().__init__()
 
         def setCallbacks(remote):
-            for m in filter(
-                lambda m: m.startswith("tel_") or m.startswith("evt_"), dir(remote)
-            ):
+            for m in filter(_filterEvtTel, dir(remote)):
                 getattr(remote, m).callback = getattr(self, m[4:]).emit
 
         for remote in self.remotes.keys():
@@ -65,6 +67,16 @@ class SALComm(QObject, metaclass=MetaSAL):
     async def start(self):
         for remote in self.remotes.keys():
             await getattr(self, remote).start_task
+
+    def reemit_all(self):
+        for remote in self.remotes.keys():
+            self.emit_actuals(remote)
+
+    def emit_actuals(self, remote):
+        for m in filter(_filterEvtTel, dir(getattr(self, remote))):
+            data = getattr(getattr(self, remote), m).get()
+            if data is not None:
+                getattr(self, m[4:]).emit(data)
 
     async def close(self):
         for remote in list(self.remotes.keys())[::-1]:
