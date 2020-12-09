@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+from PySide2.QtCore import Slot
 from PySide2.QtWidgets import (
     QWidget,
     QLabel,
@@ -35,8 +36,16 @@ from TimeDeltaLabel import TimeDeltaLabel
 
 class ForceActuatorWidget(QWidget):
     """
-    Abstract class for label and graphics display of selected M1M3 values.
-    """
+    Abstract class for widget and graphics display of selected M1M3 values.
+
+    Parameters
+    ----------
+
+    comm : `SALComm`
+        SALComm instance to communicate with SAL.
+    userWidget : `QWidget`
+        Widget to be displayed on left from value selection. Its content shall
+        be update in updateData overloaded method."""
 
     def __init__(self, comm, userWidget):
         super().__init__()
@@ -64,7 +73,7 @@ class ForceActuatorWidget(QWidget):
         self.topicList = QListWidget()
         self.topicList.setFixedWidth(256)
         self.topicList.currentRowChanged.connect(self.currentTopicChanged)
-        self.topics = Topics(comm)
+        self.topics = Topics()
         for topic in self.topics.topics:
             self.topicList.addItem(topic.name)
         self.fieldList = QListWidget()
@@ -88,9 +97,10 @@ class ForceActuatorWidget(QWidget):
 
         self.topicList.setCurrentRow(0)
 
+    @Slot(int)
     def currentTopicChanged(self, topicIndex):
         if topicIndex < 0:
-            self.setUnknown()
+            self._setUnknown()
             return
 
         self.fieldList.clear()
@@ -99,24 +109,34 @@ class ForceActuatorWidget(QWidget):
 
         fieldIndex = self.topics.topics[topicIndex].selectedField
         if fieldIndex < 0:
-            self.setUnknown()
+            self._setUnknown()
             return
 
         self.fieldList.setCurrentRow(fieldIndex)
-        self.changeField(topicIndex, fieldIndex)
+        self._changeField(topicIndex, fieldIndex)
 
+    @Slot(int)
     def currentFieldChanged(self, fieldIndex):
         topicIndex = self.topicList.currentRow()
         if topicIndex < 0 or fieldIndex < 0:
-            self.setUnknown()
+            self._setUnknown()
             return
-        self.changeField(topicIndex, fieldIndex)
+        self._changeField(topicIndex, fieldIndex)
         self.topics.topics[topicIndex].selectedField = fieldIndex
 
-    def setUnknown(self):
+    def _setUnknown(self):
         self.lastUpdatedLabel.setUnknown()
 
     def updateSelectedActuator(self, s):
+        """
+        Called from childrens to update currently selected actuator display.
+
+        Parameters
+        ----------
+
+        s : `map`
+            Contains id (selected actuator ID), data (selected actuator current value) and warning (boolean, true if value is in warning).
+        """
         if s is None:
             self.selectedActuatorIdLabel.setText("not selected")
             self.selectedActuatorValueLabel.setText("")
@@ -127,7 +147,7 @@ class ForceActuatorWidget(QWidget):
         self.selectedActuatorValueLabel.setText(str(s.data))
         QTHelpers.setWarningLabel(self.selectedActuatorWarningLabel, s.warning)
 
-    def changeField(self, topicIndex, fieldIndex):
+    def _changeField(self, topicIndex, fieldIndex):
         """
         Redraw actuators with new values.
         """
@@ -136,21 +156,25 @@ class ForceActuatorWidget(QWidget):
         self.fieldGetter = field[1]
         self.fieldDataIndex = field[2]()
         try:
-            data = topic.data.get()
-            if data is None:
-                self.setUnknown()
-                return
+            self.topics.changeTopic(topicIndex, self.dataChanged, self.comm)
 
-            self.updateData(data)
-            self.topics.changeTopic(topicIndex, self.dataCallback)
+            data = getattr(self.comm.MTM1M3, topic.getTopic()).get()
+            self.dataChanged(data)
         except RuntimeError as err:
-            print("ForceActuatorWidget.changeField", err)
+            print("ForceActuatorWidget._changeField", err)
             pass
 
-    def dataCallback(self, data):
-        self.updateData(data)
-        if self.topics.lastCallBack is not None:
-            self.topics.lastCallBack(data)
+    @Slot(map)
+    def dataChanged(self, data):
+        """
+        Called when selected data are updated.
 
-    def updateData(self, data):
-        self.lastUpdatedLabel.setTime(data.timestamp)
+        Parameters
+        ----------
+
+        """
+        self.updateValues(data)
+        if data is None:
+            self._setUnknown()
+        else:
+            self.lastUpdatedLabel.setTime(data.timestamp)

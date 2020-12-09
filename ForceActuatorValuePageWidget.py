@@ -141,10 +141,12 @@ class ForceActuatorValuePageWidget(ForceActuatorWidget):
 
         super().__init__(comm, self.dataWidget)
 
-    def updateData(self, data):
-        super().updateData(data)
+    def updateValues(self, data):
+        if data is None:
+            for l in self.dataWidget.forceActuatorLabels:
+                l.setText("UNKNOWN")
+            return
 
-        # warningData = self.dataEventForceActuatorWarning.get()
         i = -1
         for row in FATABLE:
             i += 1

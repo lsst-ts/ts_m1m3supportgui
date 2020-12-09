@@ -17,12 +17,14 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
             self.updateSelectedActuator
         )
 
-    def updateData(self, data):
-        super().updateData(data)
-
+    def updateValues(self, data):
         warningData = self.comm.MTM1M3.evt_forceActuatorWarning.get()
         points = []
-        values = self.fieldGetter(data)
+
+        if data is None:
+            values = None
+        else:
+            values = self.fieldGetter(data)
 
         self.mirrorWidget.mirrorView.clear()
 
@@ -36,7 +38,7 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
         for row in FATABLE:
             id = row[FATABLE_ID]
             index = row[self.fieldDataIndex]
-            if index is None:
+            if values is None or index is None:
                 state = Actuator.STATE_INACTIVE
             elif warningData is not None:
                 state = getWarning(row[FATABLE_INDEX])
@@ -47,10 +49,14 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
                 id,
                 row[FATABLE_XPOSITION] * 1000,
                 row[FATABLE_YPOSITION] * 1000,
-                None if index is None else values[index],
+                None if (values is None or index is None) else values[index],
                 index,
                 state,
             )
+
+        if values is None:
+            self.mirrorWidget.setRange(0, 0)
+            return
 
         self.mirrorWidget.setRange(min(values), max(values))
 
