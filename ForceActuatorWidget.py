@@ -33,7 +33,7 @@ from TopicData import Topics
 from TimeDeltaLabel import TimeDeltaLabel
 
 
-class ForceActuator(QWidget):
+class ForceActuatorWidget(QWidget):
     """
     Abstract class for label and graphics display of selected M1M3 values.
     """
@@ -144,7 +144,7 @@ class ForceActuator(QWidget):
             self.updateData(data)
             self.topics.changeTopic(topicIndex, self.dataCallback)
         except RuntimeError as err:
-            print("ForceActuator.changeField", err)
+            print("ForceActuatorWidget.changeField", err)
             pass
 
     def dataCallback(self, data):

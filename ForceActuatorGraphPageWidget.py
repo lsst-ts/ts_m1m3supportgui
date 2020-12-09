@@ -1,10 +1,10 @@
 import QTHelpers
 from FATABLE import *
-from ForceActuator import ForceActuator
+from ForceActuatorWidget import ForceActuatorWidget
 from ActuatorsDisplay import MirrorWidget, Actuator
 
 
-class ForceActuatorGraphPageWidget(ForceActuator):
+class ForceActuatorGraphPageWidget(ForceActuatorWidget):
     """
     Draw distribution of force actuators, and selected value. Intercept events callbacks to trigger updates.
     """

@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QWidget, QGridLayout, QLabel
 from FATABLE import *
-from ForceActuator import ForceActuator
+from ForceActuatorWidget import ForceActuatorWidget
 
 
 class DataWidget(QWidget):
@@ -135,7 +135,7 @@ class DataWidget(QWidget):
         self.setLayout(self.layout)
 
 
-class ForceActuatorValuePageWidget(ForceActuator):
+class ForceActuatorValuePageWidget(ForceActuatorWidget):
     def __init__(self, comm):
         self.dataWidget = DataWidget()
 
