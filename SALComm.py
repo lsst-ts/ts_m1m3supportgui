@@ -33,9 +33,9 @@ def _filterEvtTel(m):
 
 class MetaSAL(type(QObject)):
     """Metaclass for Qt<->SAL/DDS glue class. Creates Qt Signal objects for all
-    read topics. Names of remotes to use are read from class _remotes hash. The
-    _remotes hash key is remote name, value is array of included topics or None
-    for including all found topics.
+    read topics. Names of remotes to use are read from class variable map
+    _remotes. The _remotes map key is remote name, value is array of included
+    topics or None for including all found topics.
     """
 
     def __new__(mcs, classname, bases, dictionary):
@@ -60,10 +60,16 @@ class MetaSAL(type(QObject)):
                 set_callbacks(getattr(self, remote))
 
         async def start(self):
+            """
+            Calls start_task for all created remotes.
+            """
             for remote in self._remotes.keys():
                 await getattr(self, remote).start_task
 
         def reemit_all(self):
+            """
+            Re-emits all available telemetry and event data as Qt messages.
+            """
             for remote in self._remotes.keys():
                 self.reemit_remote(remote)
 
@@ -81,11 +87,13 @@ class MetaSAL(type(QObject)):
 
         newclass = super(MetaSAL, mcs).__new__(mcs, classname, bases, dictionary)
 
+        # creates class methods
         setattr(newclass, connect_callbacks.__name__, connect_callbacks)
         setattr(newclass, start.__name__, start)
         setattr(newclass, reemit_all.__name__, reemit_all)
         setattr(newclass, reemit_remote.__name__, reemit_remote)
         setattr(newclass, close.__name__, close)
+
         return newclass
 
 
@@ -112,8 +120,15 @@ def create(remotes):
     .. code-block:: python
        import SALComm
 
+       import sys
+       from asyncqt import QEventLoop
+       from PySide2.QtWidgets import QApplication
+
+       app = QApplication(sys.argv)
+       loop = QEventLoop(app)
+       asyncio.set_event_loop(loop)
+
        my_sal = SALComm.create("MTMount": None, "M2Hexapod": "Position")
-       loop.run_until_complete(my_sal.start())
 
        @Slot(map)
        def update_labels_position(data):
@@ -121,6 +136,12 @@ def create(remotes):
 
        my_sal.Position.connect(update_labels_position)
 
+       ...
+
+       # should trigger callbacks with historic data
+       loop.run_until_complete(my_sal.start())
+
+       # runs start command
        await my_sal.MTMount.cmd_start.set_start(settingsToApply="Default")
     """
 

@@ -44,7 +44,6 @@ class EUI(QDialog):
         self.comm = SALComm.create(
             {"MTM1M3": None, "MTMount": ["Azimuth", "Elevation"]}
         )
-        loop.run_until_complete(self.comm.start())
 
         self.applicationControlLayout = QVBoxLayout()
         self.applicationControl = ApplicationControlWidget(self.comm)
@@ -91,7 +90,7 @@ class EUI(QDialog):
         self.setLayout(self.layout)
         self.setFixedSize(1900, 1000)
 
-        self.comm.reemit_all()
+        loop.run_until_complete(self.comm.start())
 
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
