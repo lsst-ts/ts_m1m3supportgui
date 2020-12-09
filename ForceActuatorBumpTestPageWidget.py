@@ -198,7 +198,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
                 self.comm.forceActuatorData.disconnect(self.forceActuatorData)
                 self._testRunning = False
 
-        elif self._testRunning == False:
+        elif self._testRunning is False:
             self.chart.clearData()
             self.bumpTestButton.setEnabled(False)
             self.killBumpTestButton.setEnabled(True)
@@ -208,7 +208,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
     # helper functions. Helps correctly enable/disable Run bump test button.
     def _anyCylinderNotRunning(self):
-        return self._testRunning == False and self._anyCylinder()
+        return self._testRunning is False and self._anyCylinder()
 
     def _anyCylinder(self):
         return self.primaryTest.isChecked() or (
