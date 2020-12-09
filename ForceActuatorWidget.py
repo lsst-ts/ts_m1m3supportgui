@@ -37,6 +37,7 @@ from TimeDeltaLabel import TimeDeltaLabel
 class ForceActuatorWidget(QWidget):
     """
     Abstract class for widget and graphics display of selected M1M3 values.
+    Children classes must implement updateValues(data) method.
 
     Parameters
     ----------
@@ -45,7 +46,16 @@ class ForceActuatorWidget(QWidget):
         SALComm instance to communicate with SAL.
     userWidget : `QWidget`
         Widget to be displayed on left from value selection. Its content shall
-        be update in updateData overloaded method."""
+        be update in updateValues(data) method.
+
+    Methods
+    -------
+
+    updateValues(data)
+        Must be defined in every child. This is called when selection is
+        changed or when new data become available. If data parameter is None,
+        then no data has been received for selected read topic.
+    """
 
     def __init__(self, comm, userWidget):
         super().__init__()
