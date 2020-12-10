@@ -8,7 +8,6 @@ class InclinometerPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -76,20 +75,8 @@ class InclinometerPageWidget(QWidget):
 
         self.setLayout(self.layout)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
-            self.comm.inclinometerData.connect(self.inclinometerData)
-        else:
-            self.comm.inclinometerSensorWarning.disconnect(
-                self.inclinometerSensorWarning
-            )
-            self.comm.inclinometerData.disconnect(self.inclinometerData)
-
-        self.pageActive = active
+        self.comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
+        self.comm.inclinometerData.connect(self.inclinometerData)
 
     @Slot(bool)
     def inclinometerSensorWarning(self, anyWarning):

@@ -26,6 +26,10 @@ class MirrorWidget(QWidget):
 
         self.setLayout(layout)
 
+    def resizeEvent(self, event):
+        self.mirrorView.resetTransform()
+        self.mirrorView.scale(*self.mirrorView.scaleHints())
+
     def setRange(self, min, max):
         """Sets range used for color scaling.
 

@@ -8,7 +8,6 @@ class GyroPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -271,18 +270,8 @@ class GyroPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chart_view)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.gyroWarning.connect(self.gyroWarning)
-            self.comm.gyroData.connect(self.gyroData)
-        else:
-            self.comm.gyroWarning.disconnect(self.gyroWarning)
-            self.comm.gyroData.disconnect(self.gyroData)
-
-        self.pageActive = active
+        self.comm.gyroWarning.connect(self.gyroWarning)
+        self.comm.gyroData.connect(self.gyroData)
 
     @Slot(bool)
     def gyroWarning(self, anyWarning):

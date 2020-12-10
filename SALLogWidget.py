@@ -39,8 +39,6 @@ class SALLogWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
 
-        self.pageActive = False
-
         self.comm = comm
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -79,19 +77,10 @@ class SALLogWidget(QWidget):
 
         self.comm.logLevel.connect(self.logLevel)
 
+
     def _levelToIndex(self, level):
         return min(int(level / 10), 5)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-        self.pageActive = active
-
-        if self.pageActive:
-            data = self.comm.MTM1M3.evt_logLevel.get()
-            if data is not None:
-                self.logLevel(data)
-                self.level.setCurrentIndex(self._levelToIndex(data.level))
 
     @Slot()
     def setMaxBlock(self, i):

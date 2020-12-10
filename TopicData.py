@@ -4,11 +4,17 @@ __all__ = ["Topics"]
 
 
 class TopicData:
-    def __init__(self, name, fields, data):
+    def __init__(self, name, fields, topic, isEvent=True):
         self.name = name
         self.fields = fields
         self.selectedField = 0
-        self.data = data
+        self.topic = topic
+        self.isEvent = isEvent
+
+    def getTopic(self):
+        if self.isEvent:
+            return "evt_" + self.topic
+        return "tel_" + self.topic
 
 
 class Topics:
@@ -16,15 +22,14 @@ class Topics:
     Class constructing list of all available topics.
     """
 
-    def __init__(self, comm):
+    def __init__(self):
         self.lastIndex = None
-        self.lastCallBack = None
 
         self.topics = [
             TopicData(
                 "Applied Aberration Forces",
                 [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]],
-                comm.MTM1M3.evt_appliedAberrationForces,
+                "appliedAberrationForces",
             ),
             TopicData(
                 "Applied Acceleration Forces",
@@ -33,12 +38,12 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedAccelerationForces,
+                "appliedAccelerationForces",
             ),
             TopicData(
                 "Applied Active Optic Forces",
                 [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]],
-                comm.MTM1M3.evt_appliedActiveOpticForces,
+                "appliedActiveOpticForces",
             ),
             TopicData(
                 "Applied Azimuth Forces",
@@ -47,7 +52,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedAzimuthForces,
+                "appliedAzimuthForces",
             ),
             TopicData(
                 "Applied Balance Forces",
@@ -56,7 +61,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedBalanceForces,
+                "appliedBalanceForces",
             ),
             TopicData(
                 "Applied Cylinder Forces",
@@ -72,7 +77,7 @@ class Topics:
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_appliedCylinderForces,
+                "appliedCylinderForces",
             ),
             TopicData(
                 "Applied Elevation Forces",
@@ -81,7 +86,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedElevationForces,
+                "appliedElevationForces",
             ),
             TopicData(
                 "Applied Forces",
@@ -90,7 +95,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedForces,
+                "appliedForces",
             ),
             TopicData(
                 "Applied Offset Forces",
@@ -99,7 +104,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedOffsetForces,
+                "appliedOffsetForces",
             ),
             TopicData(
                 "Applied Static Forces",
@@ -108,7 +113,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedStaticForces,
+                "appliedStaticForces",
             ),
             TopicData(
                 "Applied Thermal Forces",
@@ -117,7 +122,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedThermalForces,
+                "appliedThermalForces",
             ),
             TopicData(
                 "Applied Velocity Forces",
@@ -126,12 +131,12 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_appliedVelocityForces,
+                "appliedVelocityForces",
             ),
             TopicData(
                 "Pre-clipped Aberration Forces",
                 [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]],
-                comm.MTM1M3.evt_preclippedAberrationForces,
+                "preclippedAberrationForces",
             ),
             TopicData(
                 "Pre-clipped Acceleration Forces",
@@ -140,12 +145,12 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedAccelerationForces,
+                "preclippedAccelerationForces",
             ),
             TopicData(
                 "Pre-clipped Active Optic Forces",
                 [["Z Forces", lambda x: x.zForces, lambda: FATABLE_ZINDEX]],
-                comm.MTM1M3.evt_preclippedActiveOpticForces,
+                "preclippedActiveOpticForces",
             ),
             TopicData(
                 "Pre-clipped Azimuth Forces",
@@ -154,7 +159,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedAzimuthForces,
+                "preclippedAzimuthForces",
             ),
             TopicData(
                 "Pre-clipped Balance Forces",
@@ -163,7 +168,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedBalanceForces,
+                "preclippedBalanceForces",
             ),
             TopicData(
                 "Pre-clipped Cylinder Forces",
@@ -179,7 +184,7 @@ class Topics:
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_preclippedCylinderForces,
+                "preclippedCylinderForces",
             ),
             TopicData(
                 "Pre-clipped Elevation Forces",
@@ -188,7 +193,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedElevationForces,
+                "preclippedElevationForces",
             ),
             TopicData(
                 "Pre-clipped Forces",
@@ -197,7 +202,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedForces,
+                "preclippedForces",
             ),
             TopicData(
                 "Pre-clipped Offset Forces",
@@ -206,7 +211,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedOffsetForces,
+                "preclippedOffsetForces",
             ),
             TopicData(
                 "Pre-clipped Static Forces",
@@ -215,7 +220,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedStaticForces,
+                "preclippedStaticForces",
             ),
             TopicData(
                 "Pre-clipped Thermal Forces",
@@ -224,7 +229,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedThermalForces,
+                "preclippedThermalForces",
             ),
             TopicData(
                 "Pre-clipped Velocity Forces",
@@ -233,7 +238,7 @@ class Topics:
                     ["Y Forces", lambda x: x.yForces, lambda: FATABLE_YINDEX],
                     ["X Forces", lambda x: x.xForces, lambda: FATABLE_XINDEX],
                 ],
-                comm.MTM1M3.evt_preclippedVelocityForces,
+                "preclippedVelocityForces",
             ),
             TopicData(
                 "Measured forces",
@@ -264,7 +269,8 @@ class Topics:
                         lambda: FATABLE_XINDEX,
                     ],
                 ],
-                comm.MTM1M3.tel_forceActuatorData,
+                "forceActuatorData",
+                False,
             ),
             TopicData(
                 "Force Actuator ILC Info",
@@ -275,7 +281,7 @@ class Topics:
                     ["Minor Revision", lambda x: x.minorRevision],
                     ["ADC Scan Rate", lambda x: x.adcScanRate, lambda: FATABLE_ZINDEX],
                 ],
-                comm.MTM1M3.evt_forceActuatorInfo,
+                "forceActuatorInfo",
             ),
             TopicData(
                 "Force Actuator Id Info",
@@ -307,7 +313,7 @@ class Topics:
                         lambda: FATABLE_ZINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_forceActuatorInfo,
+                "forceActuatorInfo",
             ),
             TopicData(
                 "Force Actuator Main Calibration Info",
@@ -343,7 +349,7 @@ class Topics:
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_forceActuatorInfo,
+                "forceActuatorInfo",
             ),
             TopicData(
                 "Force Actuator Backup Calibration Info",
@@ -379,7 +385,7 @@ class Topics:
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_forceActuatorInfo,
+                "forceActuatorInfo",
             ),
             TopicData(
                 "Force Actuator Mezzanine Calibration Info",
@@ -395,7 +401,7 @@ class Topics:
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_forceActuatorInfo,
+                "forceActuatorInfo",
             ),
             TopicData(
                 "Force Actuator Position Info",
@@ -410,12 +416,12 @@ class Topics:
                     ["Y Position", lambda x: x.yPosition, lambda: FATABLE_ZINDEX],
                     ["Z Position", lambda x: x.zPosition, lambda: FATABLE_ZINDEX],
                 ],
-                comm.MTM1M3.evt_forceActuatorInfo,
+                "forceActuatorInfo",
             ),
             TopicData(
                 "Force Actuator State",
                 [["ILC State", lambda x: x.ilcState, lambda: FATABLE_ZINDEX]],
-                comm.MTM1M3.evt_forceActuatorState,
+                "forceActuatorState",
             ),
             TopicData(
                 "Force Actuator Warning",
@@ -558,7 +564,7 @@ class Topics:
                         lambda: FATABLE_ZINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_forceActuatorWarning,
+                "forceActuatorWarning",
             ),
             TopicData(
                 "Force Actuator Force Warning",
@@ -584,7 +590,7 @@ class Topics:
                         lambda: FATABLE_ZINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_forceActuatorForceWarning,
+                "forceActuatorForceWarning",
             ),
             TopicData(
                 "FA Bump Test",
@@ -606,18 +612,16 @@ class Topics:
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
-                comm.MTM1M3.evt_forceActuatorBumpTestStatus,
+                "forceActuatorBumpTestStatus",
             ),
         ]
 
-    def changeTopic(self, index, callback):
+    def changeTopic(self, index, slot, comm):
         if self.lastIndex is not None:
-            self.topics[self.lastIndex].data.callback = self.lastCallBack
+            getattr(comm, self.topics[self.lastIndex].topic).disconnect(slot)
 
         self.lastIndex = index
         if index is None:
-            self.lastCallBack = None
             return
 
-        self.lastCallBack = self.topics[index].data.callback
-        self.topics[index].data.callback = callback
+        getattr(comm, self.topics[index].topic).connect(slot)

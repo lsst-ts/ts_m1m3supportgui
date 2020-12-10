@@ -9,7 +9,6 @@ class PowerPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -294,20 +293,9 @@ class PowerPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chartView)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.powerWarning.connect(self.powerWarning)
-            self.comm.powerStatus.connect(self.powerStatus)
-            self.comm.powerSupplyData.connect(self.powerSupplyData)
-        else:
-            self.comm.powerWarning.disconnect(self.powerWarning)
-            self.comm.powerStatus.disconnect(self.powerStatus)
-            self.comm.powerSupplyData.disconnect(self.powerSupplyData)
-
-        self.pageActive = active
+        self.comm.powerWarning.connect(self.powerWarning)
+        self.comm.powerStatus.connect(self.powerStatus)
+        self.comm.powerSupplyData.connect(self.powerSupplyData)
 
     @Slot(map)
     def powerWarning(self, data):

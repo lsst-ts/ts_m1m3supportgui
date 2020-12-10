@@ -26,7 +26,6 @@ class HardpointsWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
 
@@ -99,16 +98,7 @@ class HardpointsWidget(QWidget):
 
         self.layout.addStretch()
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        else:
-            self.comm.hardpointActuatorData.disconnect(self.hardpointActuatorData)
-
-        self.pageActive = active
+        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
 
     @Slot(map)
     def hardpointActuatorData(self, data):

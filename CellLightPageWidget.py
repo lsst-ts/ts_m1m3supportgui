@@ -8,7 +8,6 @@ class CellLightPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -54,18 +53,8 @@ class CellLightPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
         self.warningLayout.addWidget(self.cellLightSensorMismatchLabel, row, col + 1)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.cellLightWarning.connect(self.cellLightWarning)
-            self.comm.cellLightStatus.connect(self.cellLightStatus)
-        else:
-            self.comm.cellLightWarning.disconnect(self.cellLightWarning)
-            self.comm.cellLightStatus.disconnect(self.cellLightStatus)
-
-        self.pageActive = active
+        self.comm.cellLightWarning.connect(self.cellLightWarning)
+        self.comm.cellLightStatus.connect(self.cellLightStatus)
 
     @Slot(map)
     def cellLightWarning(self, data):

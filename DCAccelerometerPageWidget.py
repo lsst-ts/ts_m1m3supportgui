@@ -8,7 +8,6 @@ class DCAccelerometerPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -100,18 +99,8 @@ class DCAccelerometerPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chart_view)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.accelerometerWarning.connect(self.accelerometerWarning)
-            self.comm.accelerometerData.connect(self.accelerometerData)
-        else:
-            self.comm.accelerometerWarning.disconnect(self.accelerometerWarning)
-            self.comm.accelerometerData.disconnect(self.accelerometerData)
-
-        self.pageActive = active
+        self.comm.accelerometerWarning.connect(self.accelerometerWarning)
+        self.comm.accelerometerData.connect(self.accelerometerData)
 
     @Slot(map)
     def accelerometerWarning(self, data):

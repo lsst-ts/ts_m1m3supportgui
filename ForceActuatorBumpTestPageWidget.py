@@ -49,7 +49,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.xIndex = self.yIndex = self.zIndex = None
         self._testRunning = False
@@ -103,9 +102,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
         self.comm.detailedState.connect(self.detailedState)
         self.comm.forceActuatorBumpTestStatus.connect(self.forceActuatorBumpTestStatus)
-
-    def setPageActive(self, active):
-        self.pageActive = active
 
     def selectedActuator(self, current, previous):
         """Called when an actuator is selected from the list."""
@@ -202,7 +198,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
                 self.comm.forceActuatorData.disconnect(self.forceActuatorData)
                 self._testRunning = False
 
-        elif self._testRunning == False:
+        elif self._testRunning is False:
             self.chart.clearData()
             self.bumpTestButton.setEnabled(False)
             self.killBumpTestButton.setEnabled(True)
@@ -212,7 +208,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
 
     # helper functions. Helps correctly enable/disable Run bump test button.
     def _anyCylinderNotRunning(self):
-        return self._testRunning == False and self._anyCylinder()
+        return self._testRunning is False and self._anyCylinder()
 
     def _anyCylinder(self):
         return self.primaryTest.isChecked() or (

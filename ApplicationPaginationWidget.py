@@ -18,30 +18,19 @@ class ApplicationPaginationWidget(QWidget):
         self.setLayout(self.layout)
 
         self.pageList = QListWidget()
-        self.pageList.itemSelectionChanged.connect(self.changePage)
+        self.pageList.currentRowChanged.connect(self.changePage)
         self.listLayout.addWidget(self.pageList)
-        self.pages = []
-        self.activePage = None
 
     def setPageListWidth(self, width):
         self.pageList.setFixedWidth(width)
 
     def addPage(self, text, widget):
-        widget.setPageActive(False)
-        self.pages.append([text, widget])
         self.pageList.addItem(text)
         self.pageLayout.addWidget(widget)
-        if len(self.pages) == 1:
+        if self.pageLayout.count() == 1:
             self.pageList.setCurrentRow(0)
 
-    def changePage(self):
-        if self.activePage is not None:
-            self.activePage.setPageActive(False)
-        items = self.pageList.selectedItems()
-        if len(items) > 0:
-            text = items[0].text()
-            for pages in self.pages:
-                if pages[0] == text:
-                    self.pageLayout.setCurrentWidget(pages[1])
-                    self.activePage = pages[1]
-                    self.activePage.setPageActive(True)
+    def changePage(self, row):
+        if row < 0:
+            return
+        self.pageLayout.setCurrentWidget(self.pageLayout.widget(row))
