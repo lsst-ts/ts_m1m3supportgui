@@ -19,7 +19,9 @@
 
 import TimeChart
 from FATABLE import *
+from SALLogWidget import SALLogWidget
 from PySide2.QtCore import Slot
+from PySide2.QtGui import QColor
 from PySide2.QtWidgets import (
     QWidget,
     QPushButton,
@@ -29,6 +31,7 @@ from PySide2.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QGroupBox,
+    QProgressBar,
 )
 from asyncqt import asyncSlot
 
@@ -50,7 +53,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         super().__init__()
         self.comm = comm
 
-        self.xIndex = self.yIndex = self.zIndex = None
+        self.xIndex = self.yIndex = self.zIndex = self.sIndex = self.testedId = None
         self._testRunning = False
 
         actuatorBox = QGroupBox("Actuator")
@@ -59,6 +62,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
             self.actuatorId.addItem(str(f[FATABLE_ID]))
         self.actuatorId.currentItemChanged.connect(self.selectedActuator)
         self.actuatorId.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.MinimumExpanding)
+        self.actuatorId.setMaximumWidth(100)
         actuatorLayout = QVBoxLayout()
         actuatorLayout.addWidget(self.actuatorId)
         actuatorBox.setLayout(actuatorLayout)
@@ -66,16 +70,27 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.primaryTest = QCheckBox("Primary (Z)")
         self.primaryTest.setChecked(True)
         self.primaryTest.toggled.connect(self.toggledTest)
+        self.primaryPB = QProgressBar()
+        self.primaryPB.setMaximum(6)
+        self.primaryPB.setMaximumWidth(500)
+
         self.secondaryTest = QCheckBox("Secondary (X or Y)")
         self.secondaryTest.setChecked(True)
         self.secondaryTest.toggled.connect(self.toggledTest)
+        self.secondaryPB = QProgressBar()
+        self.secondaryPB.setMaximum(6)
+        self.secondaryPB.setMaximumWidth(500)
 
         cylinders = QGroupBox("Cylinders")
         cylinderLayout = QVBoxLayout()
         cylinderLayout.addWidget(self.primaryTest)
+        cylinderLayout.addWidget(self.primaryPB)
         cylinderLayout.addWidget(self.secondaryTest)
+        cylinderLayout.addWidget(self.secondaryPB)
         cylinderLayout.addStretch(1)
         cylinders.setLayout(cylinderLayout)
+
+        cylinders.setMaximumWidth(510)
 
         self.chart = TimeChart.TimeChart()
         self.chart_view = TimeChart.TimeChartView(self.chart)
@@ -92,9 +107,8 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.layout = QVBoxLayout()
         self.forms = QHBoxLayout()
         self.forms.addWidget(actuatorBox)
-        self.forms.addSpacing(20)
         self.forms.addWidget(cylinders)
-        self.forms.addStretch(1)
+        self.forms.addWidget(SALLogWidget(self.comm))
         self.layout.addLayout(self.forms)
         self.layout.addWidget(self.chart_view)
         self.layout.addLayout(self.buttonLayout)
@@ -120,21 +134,21 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     def toggledTest(self, toggled):
         """Called when primary or secondary tests check box are toggled."""
         self.bumpTestButton.setEnabled(
-             self.actuatorId.currentItem() is not None and self._anyCylinderNotRunning()
+            self.actuatorId.currentItem() is not None and self._anyCylinderNotRunning()
         )
 
     @asyncSlot()
     async def issueCommandBumpTest(self):
         """Call M1M3 bump test command."""
-        actuatorId = int(self.actuatorId.currentItem().text())
-        self.index = actuatorIDToIndex(actuatorId)
+        self.testedId = int(self.actuatorId.currentItem().text())
+        self.zIndex = actuatorIDToIndex(self.testedId)
 
-        self.xIndex = FATABLE[self.index][FATABLE_XINDEX]
-        self.yIndex = FATABLE[self.index][FATABLE_YINDEX]
-        self.zIndex = FATABLE[self.index][FATABLE_ZINDEX]
+        self.xIndex = FATABLE[self.zIndex][FATABLE_XINDEX]
+        self.yIndex = FATABLE[self.zIndex][FATABLE_YINDEX]
+        self.sIndex = FATABLE[self.zIndex][FATABLE_SINDEX]
 
         await self.comm.MTM1M3.cmd_forceActuatorBumpTest.set_start(
-            actuatorId=actuatorId,
+            actuatorId=self.testedId,
             testPrimary=self.primaryTest.isChecked(),
             testSecondary=(
                 self.secondaryTest.isEnabled() and self.secondaryTest.isChecked()
@@ -175,9 +189,21 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         """Adds measured forces to graph."""
         chartData = []
         if self.xIndex is not None:
-            chartData.append(("Force (N)", "Measured X", data.xForce[self.xIndex],))
+            chartData.append(
+                (
+                    "Force (N)",
+                    "Measured X",
+                    data.xForce[self.xIndex],
+                )
+            )
         if self.yIndex is not None:
-            chartData.append(("Force (N)", "Measured Y", data.yForce[self.yIndex],))
+            chartData.append(
+                (
+                    "Force (N)",
+                    "Measured Y",
+                    data.yForce[self.yIndex],
+                )
+            )
         if self.zIndex is not None:
             chartData.append(("Force (N)", "Measured Z", data.zForce[self.zIndex]))
 
@@ -187,6 +213,53 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     def forceActuatorBumpTestStatus(self, data):
         """Received when an actuator finish/start running bump tests or the actuator reports progress of the bump test."""
 
+        testProgress = [
+            "Not tested",
+            "Testing start zero",
+            "Testing positive",
+            "Positive wait zero",
+            "Testing negative",
+            "Negative wait zero",
+            "Passed",
+            "Failed",
+        ]
+
+        # test progress
+        if self.zIndex is not None:
+            self.primaryPB.setEnabled(True)
+            val = data.primaryTest[self.zIndex]
+            self.primaryPB.setFormat(f"ID {self.testedId} - {testProgress[val]} - %v")
+            self.primaryPB.setValue(min(6, val))
+        else:
+            self.primaryPB.setEnabled(False)
+
+        if self.sIndex is not None:
+            self.secondaryPB.setEnabled(True)
+            val = data.secondaryTest[self.sIndex]
+            self.secondaryPB.setFormat(f"ID {self.testedId} - {testProgress[val]} - %v")
+            self.secondaryPB.setValue(min(6, val))
+        else:
+            self.secondaryPB.setEnabled(False)
+
+        # list display
+        for index in range(156):
+            item = self.actuatorId.item(index)
+            color = QColor("black")
+            if data.primaryTest[index] == 6:
+                color = QColor("green")
+            elif data.primaryTest[index] == 7:
+                color = QColor("red")
+
+            sIndex = FATABLE[index][FATABLE_SINDEX]
+            if sIndex is not None:
+                if data.secondaryTest[sIndex] == 6 and data.primaryTest[index] == 7:
+                    color = QColor("orange")
+                elif data.secondaryTest[sIndex] == 7 and data.primaryTest[index] == 6:
+                    color = QColor("orange")
+
+            item.setForeground(color)
+
+        # no tests running..
         if data.actuatorId < 0:
             if self._testRunning == True:
                 self.bumpTestButton.setEnabled(
