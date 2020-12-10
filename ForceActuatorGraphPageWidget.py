@@ -30,16 +30,16 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
 
         def getWarning(index):
             return (
-                Actuator.STATE_WARNING
+                ForceActuator.STATE_WARNING
                 if warningData.forceActuatorFlags[index] != 0
-                else Actuator.STATE_ACTIVE
+                else ForceActuator.STATE_ACTIVE
             )
 
         for row in FATABLE:
             id = row[FATABLE_ID]
             index = row[self.fieldDataIndex]
             if values is None or index is None:
-                state = Actuator.STATE_INACTIVE
+                state = ForceActuator.STATE_INACTIVE
             elif warningData is not None:
                 state = getWarning(row[FATABLE_INDEX])
             else:

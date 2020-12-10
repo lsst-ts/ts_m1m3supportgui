@@ -31,6 +31,7 @@ class HardpointsWidget(QWidget):
 
     def __init__(self, comm):
         super().__init__()
+        self.comm = comm
 
         self.layout = QVBoxLayout()
 
@@ -133,8 +134,8 @@ class HardpointsWidget(QWidget):
 
         self.layout.addStretch()
 
-        comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        comm.hardpointActuatorState.connect(self.hardpointActuatorState)
+        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
 
     @Slot(map)
     def hardpointActuatorData(self, data):
