@@ -8,7 +8,6 @@ class OverviewPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QHBoxLayout()
         self.dataLayout = QGridLayout()
@@ -222,66 +221,30 @@ class OverviewPageWidget(QWidget):
         self.dataLayout.addWidget(self.inclinometerLabel, row, col + 1)
         self.dataLayout.addWidget(self.tmaElevationLabel, row, col + 2)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
+        self.comm.accelerometerWarning.connect(self.accelerometerWarning)
+        self.comm.airSupplyWarning.connect(self.airSupplyWarning)
+        self.comm.appliedForces.connect(self.appliedForces)
+        self.comm.cellLightWarning.connect(self.cellLightWarning)
+        self.comm.detailedState.connect(self.detailedState)
+        self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
+        self.comm.forceActuatorWarning.connect(self.forceActuatorWarning)
+        self.comm.gyroWarning.connect(self.gyroWarning)
+        self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
+        self.comm.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
+        self.comm.heartbeat.connect(self.heartbeat)
+        self.comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
+        self.comm.interlockWarning.connect(self.interlockWarning)
+        self.comm.powerWarning.connect(self.powerWarning)
 
-        if active:
-            self.comm.accelerometerWarning.connect(self.accelerometerWarning)
-            self.comm.airSupplyWarning.connect(self.airSupplyWarning)
-            self.comm.appliedForces.connect(self.appliedForces)
-            self.comm.cellLightWarning.connect(self.cellLightWarning)
-            self.comm.detailedState.connect(self.detailedState)
-            self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
-            self.comm.forceActuatorWarning.connect(self.forceActuatorWarning)
-            self.comm.gyroWarning.connect(self.gyroWarning)
-            self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
-            self.comm.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
-            self.comm.heartbeat.connect(self.heartbeat)
-            self.comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
-            self.comm.interlockWarning.connect(self.interlockWarning)
-            self.comm.powerWarning.connect(self.powerWarning)
+        self.comm.accelerometerData.connect(self.accelerometerData)
+        self.comm.forceActuatorData.connect(self.forceActuatorData)
+        self.comm.gyroData.connect(self.gyroData)
+        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        self.comm.imsData.connect(self.imsData)
+        self.comm.inclinometerData.connect(self.inclinometerData)
 
-            self.comm.accelerometerData.connect(self.accelerometerData)
-            self.comm.forceActuatorData.connect(self.forceActuatorData)
-            self.comm.gyroData.connect(self.gyroData)
-            self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-            self.comm.imsData.connect(self.imsData)
-            self.comm.inclinometerData.connect(self.inclinometerData)
-
-            self.comm.Azimuth.connect(self.azimuth)
-            self.comm.Elevation.connect(self.elevation)
-        else:
-            self.comm.accelerometerWarning.disconnect(self.accelerometerWarning)
-            self.comm.airSupplyWarning.disconnect(self.airSupplyWarning)
-            self.comm.appliedForces.disconnect(self.appliedForces)
-            self.comm.cellLightWarning.disconnect(self.cellLightWarning)
-            self.comm.detailedState.disconnect(self.detailedState)
-            self.comm.displacementSensorWarning.disconnect(
-                self.displacementSensorWarning
-            )
-            self.comm.forceActuatorWarning.disconnect(self.forceActuatorWarning)
-            self.comm.gyroWarning.disconnect(self.gyroWarning)
-            self.comm.hardpointActuatorWarning.disconnect(self.hardpointActuatorWarning)
-            self.comm.hardpointMonitorWarning.disconnect(self.hardpointMonitorWarning)
-            self.comm.heartbeat.disconnect(self.heartbeat)
-            self.comm.inclinometerSensorWarning.disconnect(
-                self.inclinometerSensorWarning
-            )
-            self.comm.interlockWarning.disconnect(self.interlockWarning)
-            self.comm.powerWarning.disconnect(self.powerWarning)
-
-            self.comm.accelerometerData.disconnect(self.accelerometerData)
-            self.comm.forceActuatorData.disconnect(self.forceActuatorData)
-            self.comm.gyroData.disconnect(self.gyroData)
-            self.comm.hardpointActuatorData.disconnect(self.hardpointActuatorData)
-            self.comm.imsData.disconnect(self.imsData)
-            self.comm.inclinometerData.disconnect(self.inclinometerData)
-
-            self.comm.Azimuth.disconnect(self.azimuth)
-            self.comm.Elevation.disconnect(self.elevation)
-
-        self.pageActive = active
+        self.comm.Azimuth.connect(self.azimuth)
+        self.comm.Elevation.connect(self.elevation)
 
     def accelerometerWarning(self, data):
         QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data.anyWarning)

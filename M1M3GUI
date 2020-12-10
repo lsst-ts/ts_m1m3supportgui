@@ -4,8 +4,6 @@
 import sys
 import time
 
-from SALComm import SALComm
-
 from ApplicationControlWidget import ApplicationControlWidget
 from ApplicationStatusWidget import ApplicationStatusWidget
 from ApplicationPaginationWidget import ApplicationPaginationWidget
@@ -28,20 +26,24 @@ from PIDPageWidget import PIDPageWidget
 from PowerPageWidget import PowerPageWidget
 from SALLogWidget import SALLogWidget
 
+import SALComm
+
 from PySide2.QtWidgets import QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel
 from PySide2.QtGui import QFont
 
-from asyncqt import QEventLoop
+from asyncqt import QEventLoop, asyncClose
 import asyncio
 
 
 class EUI(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, loop, parent=None):
         super(EUI, self).__init__(parent)
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
 
-        self.comm = SALComm()
+        self.comm = SALComm.create(
+            {"MTM1M3": None, "MTMount": ["Azimuth", "Elevation"]}
+        )
 
         self.applicationControlLayout = QVBoxLayout()
         self.applicationControl = ApplicationControlWidget(self.comm)
@@ -88,8 +90,14 @@ class EUI(QDialog):
         self.setLayout(self.layout)
         self.setFixedSize(1900, 1000)
 
+        loop.run_until_complete(self.comm.start())
+
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
+
+    @asyncClose
+    async def closeEvent(self, event):
+        await self.comm.close()
 
 
 if __name__ == "__main__":
@@ -99,7 +107,7 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
 
     # Create EUI
-    eui = EUI()
+    eui = EUI(loop)
     eui.show()
 
     # Run the main Qt loop

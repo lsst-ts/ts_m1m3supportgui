@@ -16,7 +16,6 @@ class ForceBalanceSystemPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self._balanceData = None
         self._hardpointData = None
@@ -150,20 +149,9 @@ class ForceBalanceSystemPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.balanceChartView)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.appliedBalanceForces.connect(self.appliedBalanceForces)
-            self.comm.forceActuatorWarning.connect(self.forceActuatorWarning)
-            self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        else:
-            self.comm.appliedBalanceForces.disconnect(self.appliedBalanceForces)
-            self.comm.forceActuatorWarning.disconnect(self.forceActuatorWarning)
-            self.comm.hardpointActuatorData.disconnect(self.hardpointActuatorData)
-
-        self.pageActive = active
+        self.comm.appliedBalanceForces.connect(self.appliedBalanceForces)
+        self.comm.forceActuatorWarning.connect(self.forceActuatorWarning)
+        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
 
     @Slot(map)
     def appliedBalanceForces(self, data):

@@ -9,7 +9,6 @@ class IMSPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -163,20 +162,9 @@ class IMSPageWidget(QWidget):
         self.plotLayout.addWidget(self.posChartView)
         self.plotLayout.addWidget(self.rawChartView)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
+        self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
+        self.comm.imsData.connect(self.imsData)
 
-        if active:
-            self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
-            self.comm.imsData.connect(self.imsData)
-        else:
-            self.comm.displacementSensorWarning.disconnect(
-                self.displacementSensorWarning
-            )
-            self.comm.imsData.disconnect(self.imsData)
-
-        self.pageActive = active
 
     @Slot(bool)
     def displacementSensorWarning(self, anyWarning):

@@ -7,7 +7,6 @@ class ActuatorOverviewPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -255,40 +254,18 @@ class ActuatorOverviewPageWidget(QWidget):
 
         self.layout.addLayout(plotLayout)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.appliedAberrationForces.connect(self.appliedAberrationForces)
-            self.comm.appliedAccelerationForces.connect(self.appliedAccelerationForces)
-            self.comm.appliedActiveOpticForces.connect(self.appliedActiveOpticForces)
-            self.comm.appliedAzimuthForces.connect(self.appliedAzimuthForces)
-            self.comm.appliedBalanceForces.connect(self.appliedBalanceForces)
-            self.comm.appliedElevationForces.connect(self.appliedElevationForces)
-            self.comm.appliedForces.connect(self.appliedForces)
-            self.comm.appliedOffsetForces.connect(self.appliedOffsetForces)
-            self.comm.appliedStaticForces.connect(self.appliedStaticForces)
-            self.comm.appliedThermalForces.connect(self.appliedThermalForces)
-            self.comm.appliedVelocityForces.connect(self.appliedVelocityForces)
-            self.comm.forceActuatorState.connect(self.forceActuatorState)
-        else:
-            self.comm.appliedAberrationForces.disconnect(self.appliedAberrationForces)
-            self.comm.appliedAccelerationForces.disconnect(
-                self.appliedAccelerationForces
-            )
-            self.comm.appliedActiveOpticForces.disconnect(self.appliedActiveOpticForces)
-            self.comm.appliedAzimuthForces.disconnect(self.appliedAzimuthForces)
-            self.comm.appliedBalanceForces.disconnect(self.appliedBalanceForces)
-            self.comm.appliedElevationForces.disconnect(self.appliedElevationForces)
-            self.comm.appliedForces.disconnect(self.appliedForces)
-            self.comm.appliedOffsetForces.disconnect(self.appliedOffsetForces)
-            self.comm.appliedStaticForces.disconnect(self.appliedStaticForces)
-            self.comm.appliedThermalForces.disconnect(self.appliedThermalForces)
-            self.comm.appliedVelocityForces.disconnect(self.appliedVelocityForces)
-            self.comm.forceActuatorState.disconnect(self.forceActuatorState)
-
-        self.pageActive = active
+        self.comm.appliedAberrationForces.connect(self.appliedAberrationForces)
+        self.comm.appliedAccelerationForces.connect(self.appliedAccelerationForces)
+        self.comm.appliedActiveOpticForces.connect(self.appliedActiveOpticForces)
+        self.comm.appliedAzimuthForces.connect(self.appliedAzimuthForces)
+        self.comm.appliedBalanceForces.connect(self.appliedBalanceForces)
+        self.comm.appliedElevationForces.connect(self.appliedElevationForces)
+        self.comm.appliedForces.connect(self.appliedForces)
+        self.comm.appliedOffsetForces.connect(self.appliedOffsetForces)
+        self.comm.appliedStaticForces.connect(self.appliedStaticForces)
+        self.comm.appliedThermalForces.connect(self.appliedThermalForces)
+        self.comm.appliedVelocityForces.connect(self.appliedVelocityForces)
+        self.comm.forceActuatorState.connect(self.forceActuatorState)
 
     @Slot(map)
     def appliedAberrationForces(self, data):

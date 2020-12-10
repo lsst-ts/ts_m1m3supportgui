@@ -8,7 +8,6 @@ class AirPageWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
         self.comm = comm
-        self.pageActive = False
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -58,18 +57,8 @@ class AirPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
         self.warningLayout.addWidget(self.airValveSensorMismatch, row, col + 1)
 
-    def setPageActive(self, active):
-        if self.pageActive == active:
-            return
-
-        if active:
-            self.comm.airSupplyWarning.connect(self.airSupplyWarning)
-            self.comm.airSupplyStatus.connect(self.airSupplyStatus)
-        else:
-            self.comm.airSupplyWarning.disconnect(self.airSupplyWarning)
-            self.comm.airSupplyStatus.disconnect(self.airSupplyStatus)
-
-        self.pageActive = active
+        self.comm.airSupplyWarning.connect(self.airSupplyWarning)
+        self.comm.airSupplyStatus.connect(self.airSupplyStatus)
 
     @Slot(map)
     def airSupplyWarning(self, data):
