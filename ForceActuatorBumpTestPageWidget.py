@@ -105,12 +105,15 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         actuatorLayout.addWidget(self.actuatorsTable)
         actuatorBox.setLayout(actuatorLayout)
 
-        self.primaryPB = QProgressBar()
-        self.primaryPB.setMaximum(6)
+        def testPB():
+            pb = QProgressBar()
+            pb.setMaximum(6)
+            return pb
+
+        self.primaryPB = testPB()
         self.primaryLabelPB = QLabel("Primary")
 
-        self.secondaryPB = QProgressBar()
-        self.secondaryPB.setMaximum(6)
+        self.secondaryPB = testPB()
         self.secondaryLabelPB = QLabel("Seconday")
 
         self.progressGroup = QGroupBox("Test progress")
