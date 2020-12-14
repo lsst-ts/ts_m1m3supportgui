@@ -130,15 +130,18 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.chart_view = TimeChart.TimeChartView(self.chart)
         self.chart_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.bumpTestAllButton = QPushButton("Bump test all")
-        self.bumpTestAllButton.clicked.connect(self.bumpTestAll)
-        self.bumpTestAllButton.setEnabled(False)
-        self.bumpTestButton = QPushButton("Run bump test")
-        self.bumpTestButton.clicked.connect(self.issueCommandBumpTest)
-        self.bumpTestButton.setEnabled(False)
-        self.killBumpTestButton = QPushButton("Stop bump test")
-        self.killBumpTestButton.clicked.connect(self.issueCommandKillBumpTest)
-        self.killBumpTestButton.setEnabled(False)
+        def makeButton(text, clicked):
+            button = QPushButton(text)
+            button.setEnabled(False)
+            button.clicked.connect(clicked)
+            return button
+
+        self.bumpTestAllButton = makeButton("Bump test all", self.bumpTestAll)
+        self.bumpTestButton = makeButton("Run bump test", self.issueCommandBumpTest)
+        self.killBumpTestButton = makeButton(
+            "Stop bump test", self.issueCommandKillBumpTest
+        )
+
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.addWidget(self.bumpTestAllButton)
         self.buttonLayout.addWidget(self.bumpTestButton)
