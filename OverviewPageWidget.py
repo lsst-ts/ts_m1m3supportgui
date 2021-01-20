@@ -243,8 +243,8 @@ class OverviewPageWidget(QWidget):
         self.comm.imsData.connect(self.imsData)
         self.comm.inclinometerData.connect(self.inclinometerData)
 
-        self.comm.Azimuth.connect(self.azimuth)
-        self.comm.Elevation.connect(self.elevation)
+        self.comm.azimuth.connect(self.azimuth)
+        self.comm.elevation.connect(self.elevation)
 
     def accelerometerWarning(self, data):
         QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data.anyWarning)
