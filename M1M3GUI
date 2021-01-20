@@ -42,7 +42,7 @@ class EUI(QDialog):
         self.topLayerLayout = QHBoxLayout()
 
         self.comm = SALComm.create(
-            {"MTM1M3": None, "MTMount": ["Azimuth", "Elevation"]}
+            {"MTM1M3": None, "MTMount": ["azimuth", "elevation"]}
         )
 
         self.applicationControlLayout = QVBoxLayout()
