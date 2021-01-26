@@ -21,6 +21,8 @@ import TimeChart
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 
+from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
+
 
 class HardpointsWidget(QWidget):
     def __init__(self, comm):
@@ -61,6 +63,13 @@ class HardpointsWidget(QWidget):
             setattr(self, v, addRow(n, row))
             row += 1
 
+        dataLayout.addWidget(QLabel("Motion state"), row, 0)
+        self.hpStates = []
+        for hp in range(6):
+            self.hpStates.append(QLabel())
+            dataLayout.addWidget(self.hpStates[hp], row, hp + 1)
+        row += 1
+
         self.forces = {
             "forceMagnitude": "Total force",
             "fx": "Force X",
@@ -99,6 +108,7 @@ class HardpointsWidget(QWidget):
         self.layout.addStretch()
 
         self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
 
     @Slot(map)
     def hardpointActuatorData(self, data):
@@ -114,3 +124,22 @@ class HardpointsWidget(QWidget):
 
         for v in self.positions:
             getattr(self, v).setText(str(getattr(data, v)))
+
+    @Slot(map)
+    def hardpointActuatorState(self, data):
+        states = {
+            HardpointActuatorMotionStates.STANDBY: "Standby",
+            HardpointActuatorMotionStates.CHASING: "Chasing",
+            HardpointActuatorMotionStates.STEPPING: "Stepping",
+            HardpointActuatorMotionStates.QUICKPOSITIONING: "Quick positioning",
+            HardpointActuatorMotionStates.FINEPOSITIONING: "Fine positioning",
+        }
+
+        def getHpState(state):
+            try:
+                return states[state]
+            except KeyError:
+                return f"Invalid {state}"
+
+        for hp in range(6):
+            self.hpStates[hp].setText(getHpState(data.motionState[hp]))
