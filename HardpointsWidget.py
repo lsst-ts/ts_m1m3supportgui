@@ -24,6 +24,8 @@ import astropy.units as u
 
 from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
 
+from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
+
 
 class HardpointsWidget(QWidget):
     """Displays hardpoint data - encoders and calculated position, hardpoint
