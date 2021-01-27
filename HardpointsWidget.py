@@ -20,6 +20,7 @@
 import TimeChart
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
+import astropy.units as u
 
 from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
 
@@ -40,12 +41,26 @@ class HardpointsWidget(QWidget):
         for hp in range(1, 7):
             dataLayout.addWidget(QLabel(f"<b>{hp}</b>"), 0, hp)
 
+        class ValueFormat:
+            def __init__(self, label, fmt, scale=None):
+                self.label = label
+                self.fmt = fmt
+                self.scale = scale
+
+            def toString(self, data):
+                if self.scale is None:
+                    return f"{data:{self.fmt}}"
+                else:
+                    return f"{(self.scale(data)):{self.fmt}}"
+
         self.variables = {
-            "stepsQueued": ("Steps queued", "d"),
-            "stepsCommanded": ("Steps commanded", "d"),
-            "encoder": ("Encoder", "d"),
-            "measuredForce": ("Measured force", ".02f"),
-            "displacement": ("Displacement", ".02f"),
+            "stepsQueued": ValueFormat("Steps queued", "d"),
+            "stepsCommanded": ValueFormat("Steps commanded", "d"),
+            "encoder": ValueFormat("Encoder", "d"),
+            "measuredForce": ValueFormat("Measured force", ".02f", lambda x: x * u.N),
+            "displacement": ValueFormat(
+                "Displacement", ".02f", lambda x: (x * u.meter).to(u.mm)
+            ),
         }
 
         row = 1
@@ -61,7 +76,7 @@ class HardpointsWidget(QWidget):
                     ret.append(hpLabel)
                 return ret
 
-            setattr(self, k, addRow(v[0], row))
+            setattr(self, k, addRow(v.label, row))
             row += 1
 
         dataLayout.addWidget(QLabel("Motion state"), row, 0)
@@ -113,12 +128,12 @@ class HardpointsWidget(QWidget):
 
     @Slot(map)
     def hardpointActuatorData(self, data):
-        def fillRow(hpData, rowLabels, fmt):
+        def fillRow(hpData, rowLabels, transform):
             for hp in range(6):
-                rowLabels[hp].setText(f"{hpData[hp]:{fmt}}")
+                rowLabels[hp].setText(transform(hpData[hp]))
 
         for k, v in self.variables.items():
-            fillRow(getattr(data, k), getattr(self, k), v[1])
+            fillRow(getattr(data, k), getattr(self, k), v.toString)
 
         for v in self.forces:
             getattr(self, v).setText(str(getattr(data, v)))
