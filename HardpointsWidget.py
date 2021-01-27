@@ -36,20 +36,21 @@ class HardpointsWidget(QWidget):
         self.layout.addLayout(dataLayout)
         self.setLayout(self.layout)
 
-        dataLayout.addWidget(QLabel("Hardpoint"), 0, 0)
+        dataLayout.addWidget(QLabel("<b>Hardpoint</b>"), 0, 0)
         for hp in range(1, 7):
-            dataLayout.addWidget(QLabel(str(hp)), 0, hp)
+            dataLayout.addWidget(QLabel(f"<b>{hp}</b>"), 0, hp)
 
         self.variables = {
-            "stepsQueued": "Steps queued",
-            "stepsCommanded": "Steps commanded",
-            "measuredForce": "Measured force",
-            "encoder": "Encoder",
-            "displacement": "Displacement",
+            "stepsQueued": ("Steps queued", "d"),
+            "stepsCommanded": ("Steps commanded", "d"),
+            "encoder": ("Encoder", "d"),
+            "measuredForce": ("Measured force", ".02f"),
+            "displacement": ("Displacement", ".02f"),
         }
 
         row = 1
-        for v, n in self.variables.items():
+
+        for k, v in self.variables.items():
 
             def addRow(text, row):
                 ret = []
@@ -60,7 +61,7 @@ class HardpointsWidget(QWidget):
                     ret.append(hpLabel)
                 return ret
 
-            setattr(self, v, addRow(n, row))
+            setattr(self, k, addRow(v[0], row))
             row += 1
 
         dataLayout.addWidget(QLabel("Motion state"), row, 0)
@@ -85,7 +86,7 @@ class HardpointsWidget(QWidget):
 
         def addDataRow(variables, row, col=0):
             for v, n in variables.items():
-                dataLayout.addWidget(QLabel(n), row, col)
+                dataLayout.addWidget(QLabel(f"<b>{n}</b>"), row, col)
                 l = QLabel()
                 setattr(self, v, l)
                 dataLayout.addWidget(l, row + 1, col)
@@ -112,12 +113,12 @@ class HardpointsWidget(QWidget):
 
     @Slot(map)
     def hardpointActuatorData(self, data):
-        def fillRow(hpData, rowLabels):
+        def fillRow(hpData, rowLabels, fmt):
             for hp in range(6):
-                rowLabels[hp].setText(f"{hpData[hp]:.02f}")
+                rowLabels[hp].setText(f"{hpData[hp]:{fmt}}")
 
-        for v in self.variables:
-            fillRow(getattr(data, v), getattr(self, v))
+        for k, v in self.variables.items():
+            fillRow(getattr(data, k), getattr(self, k), v[1])
 
         for v in self.forces:
             getattr(self, v).setText(str(getattr(data, v)))
