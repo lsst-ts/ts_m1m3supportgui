@@ -90,8 +90,6 @@ class EUI(QDialog):
         self.setLayout(self.layout)
         self.setFixedSize(1900, 1000)
 
-        loop.run_until_complete(self.comm.start())
-
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
 
