@@ -23,6 +23,7 @@
 import abc
 from PySide2.QtCore import QObject, Signal
 from lsst.ts.salobj import Domain, Remote
+import functools
 
 __all__ = ["create"]
 
@@ -58,13 +59,9 @@ class MetaSAL(type(QObject)):
 
             for remote in self._remotes.keys():
                 set_callbacks(getattr(self, remote))
-
-        async def start(self):
-            """
-            Calls start_task for all created remotes.
-            """
-            for remote in self._remotes.keys():
-                await getattr(self, remote).start_task
+                getattr(self, remote).start_task.add_done_callback(
+                    functools.partial(self.reemit_remote, remote)
+                )
 
         def reemit_all(self):
             """
@@ -73,7 +70,7 @@ class MetaSAL(type(QObject)):
             for remote in self._remotes.keys():
                 self.reemit_remote(remote)
 
-        def reemit_remote(self, remote):
+        def reemit_remote(self, remote, task=None):
             for m in filter(_filterEvtTel, dir(getattr(self, remote))):
                 data = getattr(getattr(self, remote), m).get()
                 if data is not None:
@@ -89,7 +86,6 @@ class MetaSAL(type(QObject)):
 
         # creates class methods
         setattr(newclass, connect_callbacks.__name__, connect_callbacks)
-        setattr(newclass, start.__name__, start)
         setattr(newclass, reemit_all.__name__, reemit_all)
         setattr(newclass, reemit_remote.__name__, reemit_remote)
         setattr(newclass, close.__name__, close)
