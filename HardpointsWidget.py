@@ -57,9 +57,9 @@ class HardpointsWidget(QWidget):
             "stepsQueued": ValueFormat("Steps queued", "d"),
             "stepsCommanded": ValueFormat("Steps commanded", "d"),
             "encoder": ValueFormat("Encoder", "d"),
-            "measuredForce": ValueFormat("Measured force", ".02f", lambda x: x * u.N),
+            "measuredForce": ValueFormat("Measured force", ".03f", lambda x: x * u.N),
             "displacement": ValueFormat(
-                "Displacement", ".02f", lambda x: (x * u.meter).to(u.mm)
+                "Displacement", ".04f", lambda x: (x * u.meter).to(u.mm)
             ),
         }
 
