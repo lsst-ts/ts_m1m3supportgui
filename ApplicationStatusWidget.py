@@ -15,9 +15,9 @@ class ApplicationStatusWidget(QWidget):
         self.layout.addLayout(self.statusLayout)
         self.setLayout(self.layout)
 
-        self.summaryStateLabel = QLabel("Offline")
-        self.modeStateLabel = QLabel("Automatic")
-        self.mirrorStateLabel = QLabel("Parked")
+        self.summaryStateLabel = QLabel("UNKNOWN")
+        self.modeStateLabel = QLabel("UNKNOWN")
+        self.mirrorStateLabel = QLabel("UNKNOWN")
 
         row = 0
         col = 0
@@ -58,17 +58,39 @@ class ApplicationStatusWidget(QWidget):
             detailedData.detailedState == MTM1M3.DetailedState.RAISING
             or detailedData.detailedState == MTM1M3.DetailedState.RAISINGENGINEERING
         ):
-            self.mirrorStateLabel.setText(
-                f"Raising ({data.supportPercentage * 100:.02f} %)"
-            )
+            if data.supportPercentage >= 1:
+                self.mirrorStateLabel.setText("Raising - positioning hardpoints")
+            else:
+                self.mirrorStateLabel.setText(
+                    f"Raising ({data.supportPercentage * 100:.02f}%)"
+                )
         elif (
             detailedData.detailedState == MTM1M3.DetailedState.LOWERING
             or detailedData.detailedState == MTM1M3.DetailedState.LOWERINGENGINEERING
-            or detailedData.detailedState == MTM1M3.DetailedState.LOWERINGFAULT
         ):
+            if data.supportPercentage <= 0:
+                self.mirrorStateLabel.setText("Lowering - positioning hardpoints")
+            else:
+                self.mirrorStateLabel.setText(
+                    f"Lowering ({data.supportPercentage * 100:.02f}%)"
+                )
+        elif detailedData.detailedState == MTM1M3.DetailedState.LOWERINGFAULT:
             self.mirrorStateLabel.setText(
-                f"Lowering ({data.supportPercentage * 100:.02f} %)"
+                f"Lowering (fault, {data.supportPercentage * 100:.02f}%)"
             )
+        else:
+            self._disconnectRaiseLowering()
+
+    def _connectRaiseLowering(self):
+        self.comm.forceActuatorState.connect(
+            self.forceActuatorState, Qt.UniqueConnection
+        )
+
+    def _disconnectRaiseLowering(self):
+        try:
+            self.comm.forceActuatorState.disconnect(self.forceActuatorState)
+        except RuntimeError:
+            pass
 
     @Slot(map)
     def processEventDetailedState(self, data):
@@ -89,41 +111,48 @@ class ApplicationStatusWidget(QWidget):
         elif data.detailedState == MTM1M3.DetailedState.PARKED:
             modeStateText = "Automatic"
             mirrorStateText = "Parked"
+            self._disconnectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.RAISING:
             modeStateText = "Automatic"
             mirrorStateText = f"Raising ({self.comm.MTM1M3.evt_forceActuatorState.get().supportPercentage * 100:.03f}%)"
-            self.comm.forceActuatorState.connect(
-                self.forceActuatorState, Qt.UniqueConnection
-            )
+            self._connectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.ACTIVE:
             modeStateText = "Automatic"
             mirrorStateText = "Active"
-            self.forceActuatorState.disconnect(self.forceActuatorState)
+            self._disconnectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.LOWERING:
             modeStateText = "Automatic"
             mirrorStateText = "Lowering"
+            self._connectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.PARKEDENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Parked"
+            self._disconnectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.RAISINGENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Raising"
+            self._connectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.ACTIVEENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Active"
+            self._disconnectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.LOWERINGENGINEERING:
             modeStateText = "Manual"
             mirrorStateText = "Lowering"
+            self._connectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.LOWERINGFAULT:
             modeStateText = "Automatic"
             mirrorStateText = "Lowering (fault)"
+            self._connectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.PROFILEHARDPOINTCORRECTIONS:
             modeStateText = "Profile hardpoint corrections"
             mirrorStateText = "Active"
+            self._disconnectRaiseLowering()
         else:
             QTHelpers.warning(
-                self, "Unknow state", f"Unknow state received - {data.detailedState}"
+                self, "Unknown state", f"Unknown state received - {data.detailedState}"
             )
+            self._disconnectRaiseLowering()
             return
 
         self.modeStateLabel.setText(modeStateText)
