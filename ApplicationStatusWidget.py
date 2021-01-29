@@ -78,8 +78,6 @@ class ApplicationStatusWidget(QWidget):
             self.mirrorStateLabel.setText(
                 f"Lowering (fault, {data.supportPercentage * 100:.02f}%)"
             )
-        else:
-            self._disconnectRaiseLowering()
 
     def _connectRaiseLowering(self):
         self.comm.forceActuatorState.connect(
