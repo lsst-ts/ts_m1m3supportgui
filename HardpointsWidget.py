@@ -56,14 +56,20 @@ class HardpointsWidget(QWidget):
                 else:
                     return f"{(self.scale(data)):{self.fmt}}"
 
+        class Force(ValueFormat):
+            def __init__(self, label, fmt=".02f"):
+                super().__init__(label, fmt, lambda x: x * u.N)
+
+        class Mm(ValueFormat):
+            def __init__(self, label):
+                super().__init__(label, ".04f", lambda x: (x * u.meter).to(u.mm))
+
         self.variables = {
             "stepsQueued": ValueFormat("Steps queued", "d"),
             "stepsCommanded": ValueFormat("Steps commanded", "d"),
             "encoder": ValueFormat("Encoder", "d"),
-            "measuredForce": ValueFormat("Measured force", ".03f", lambda x: x * u.N),
-            "displacement": ValueFormat(
-                "Displacement", ".04f", lambda x: (x * u.meter).to(u.mm)
-            ),
+            "measuredForce": Force("Measured force", ".03f"),
+            "displacement": Mm("Displacement"),
         }
 
         row = 1
@@ -90,23 +96,23 @@ class HardpointsWidget(QWidget):
         row += 1
 
         self.forces = {
-            "forceMagnitude": "Total force",
-            "fx": "Force X",
-            "fy": "Force Y",
-            "fz": "Force Z",
-            "mx": "Moment X",
-            "my": "Moment Y",
-            "mz": "Moment Z",
+            "forceMagnitude": Force("Total force"),
+            "fx": Force("Force X"),
+            "fy": Force("Force Y"),
+            "fz": Force("Force Z"),
+            "mx": Force("Moment X"),
+            "my": Force("Moment Y"),
+            "mz": Force("Moment Z"),
         }
 
         dataLayout.addWidget(QLabel(), row, 0)
         row += 1
 
         def addDataRow(variables, row, col=0):
-            for v, n in variables.items():
-                dataLayout.addWidget(QLabel(f"<b>{n}</b>"), row, col)
+            for k, v in variables.items():
+                dataLayout.addWidget(QLabel(f"<b>{v.label}</b>"), row, col)
                 l = QLabel()
-                setattr(self, v, l)
+                setattr(self, k, l)
                 dataLayout.addWidget(l, row + 1, col)
                 col += 1
 
@@ -115,12 +121,12 @@ class HardpointsWidget(QWidget):
         dataLayout.addWidget(QLabel(), row, 0)
         row += 1
         self.positions = {
-            "xPosition": "Position X",
-            "yPosition": "Position Y",
-            "zPosition": "Position Z",
-            "xRotation": "Rotation X",
-            "yRotation": "Rotation Y",
-            "zRotation": "Rotation Z",
+            "xPosition": Mm("Position X"),
+            "yPosition": Mm("Position Y"),
+            "zPosition": Mm("Position Z"),
+            "xRotation": Mm("Rotation X"),
+            "yRotation": Mm("Rotation Y"),
+            "zRotation": Mm("Rotation Z"),
         }
         addDataRow(self.positions, row, 1)
 
@@ -138,11 +144,11 @@ class HardpointsWidget(QWidget):
         for k, v in self.variables.items():
             fillRow(getattr(data, k), getattr(self, k), v.toString)
 
-        for v in self.forces:
-            getattr(self, v).setText(str(getattr(data, v)))
+        for k, v in self.forces.items():
+            getattr(self, k).setText(v.toString(getattr(data, k)))
 
-        for v in self.positions:
-            getattr(self, v).setText(str(getattr(data, v)))
+        for k, v in self.positions.items():
+            getattr(self, k).setText(v.toString(getattr(data, k)))
 
     @Slot(map)
     def hardpointActuatorState(self, data):
