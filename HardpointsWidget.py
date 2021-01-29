@@ -26,9 +26,11 @@ from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
 
 
 class HardpointsWidget(QWidget):
+    """Displays hardpoint data - encoders and calculated position, hardpoint
+    state, and M1M3 displacement."""
+
     def __init__(self, comm):
         super().__init__()
-        self.comm = comm
 
         self.layout = QVBoxLayout()
 
@@ -42,6 +44,14 @@ class HardpointsWidget(QWidget):
             dataLayout.addWidget(QLabel(f"<b>{hp}</b>"), 0, hp)
 
         class ValueFormat:
+            """Custom class to display values.
+
+            Parameters
+            ----------
+            label : `str`
+                Label for value. Used to construct
+            """
+
             def __init__(self, label, fmt, scale=None):
                 self.label = label
                 self.fmt = fmt
@@ -123,8 +133,8 @@ class HardpointsWidget(QWidget):
 
         self.layout.addStretch()
 
-        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
+        comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        comm.hardpointActuatorState.connect(self.hardpointActuatorState)
 
     @Slot(map)
     def hardpointActuatorData(self, data):

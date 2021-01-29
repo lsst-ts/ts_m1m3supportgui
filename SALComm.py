@@ -71,6 +71,17 @@ class MetaSAL(type(QObject)):
                 self.reemit_remote(remote)
 
         def reemit_remote(self, remote, task=None):
+            """
+            Re-emits all telemetry and event data from a single remote as Qt messages.
+
+            Parameters
+            ----------
+            remote : `str`
+                SAL Remote name (e.i. not SAL remote itself).
+            task : Object
+                Optional parameter, future from Future.add_done_callback. See
+                https://docs.python.org/3/library/asyncio-future.html#asyncio.Future.add_done_callback.
+            """
             for m in filter(_filterEvtTel, dir(getattr(self, remote))):
                 data = getattr(getattr(self, remote), m).get()
                 if data is not None:
