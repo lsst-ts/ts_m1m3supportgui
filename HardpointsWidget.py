@@ -20,12 +20,17 @@
 import TimeChart
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
+import astropy.units as u
+
+from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
 
 
 class HardpointsWidget(QWidget):
+    """Displays hardpoint data - encoders and calculated position, hardpoint
+    state, and M1M3 displacement."""
+
     def __init__(self, comm):
         super().__init__()
-        self.comm = comm
 
         self.layout = QVBoxLayout()
 
@@ -34,20 +39,43 @@ class HardpointsWidget(QWidget):
         self.layout.addLayout(dataLayout)
         self.setLayout(self.layout)
 
-        dataLayout.addWidget(QLabel("Hardpoint"), 0, 0)
+        dataLayout.addWidget(QLabel("<b>Hardpoint</b>"), 0, 0)
         for hp in range(1, 7):
-            dataLayout.addWidget(QLabel(str(hp)), 0, hp)
+            dataLayout.addWidget(QLabel(f"<b>{hp}</b>"), 0, hp)
+
+        class ValueFormat:
+            """Custom class to display values.
+
+            Parameters
+            ----------
+            label : `str`
+                Label for value. Used to construct
+            """
+
+            def __init__(self, label, fmt, scale=None):
+                self.label = label
+                self.fmt = fmt
+                self.scale = scale
+
+            def toString(self, data):
+                if self.scale is None:
+                    return f"{data:{self.fmt}}"
+                else:
+                    return f"{(self.scale(data)):{self.fmt}}"
 
         self.variables = {
-            "stepsQueued": "Steps queued",
-            "stepsCommanded": "Steps commanded",
-            "measuredForce": "Measured force",
-            "encoder": "Encoder",
-            "displacement": "Displacement",
+            "stepsQueued": ValueFormat("Steps queued", "d"),
+            "stepsCommanded": ValueFormat("Steps commanded", "d"),
+            "encoder": ValueFormat("Encoder", "d"),
+            "measuredForce": ValueFormat("Measured force", ".03f", lambda x: x * u.N),
+            "displacement": ValueFormat(
+                "Displacement", ".04f", lambda x: (x * u.meter).to(u.mm)
+            ),
         }
 
         row = 1
-        for v, n in self.variables.items():
+
+        for k, v in self.variables.items():
 
             def addRow(text, row):
                 ret = []
@@ -58,8 +86,15 @@ class HardpointsWidget(QWidget):
                     ret.append(hpLabel)
                 return ret
 
-            setattr(self, v, addRow(n, row))
+            setattr(self, k, addRow(v.label, row))
             row += 1
+
+        dataLayout.addWidget(QLabel("Motion state"), row, 0)
+        self.hpStates = []
+        for hp in range(6):
+            self.hpStates.append(QLabel())
+            dataLayout.addWidget(self.hpStates[hp], row, hp + 1)
+        row += 1
 
         self.forces = {
             "forceMagnitude": "Total force",
@@ -76,7 +111,7 @@ class HardpointsWidget(QWidget):
 
         def addDataRow(variables, row, col=0):
             for v, n in variables.items():
-                dataLayout.addWidget(QLabel(n), row, col)
+                dataLayout.addWidget(QLabel(f"<b>{n}</b>"), row, col)
                 l = QLabel()
                 setattr(self, v, l)
                 dataLayout.addWidget(l, row + 1, col)
@@ -98,19 +133,39 @@ class HardpointsWidget(QWidget):
 
         self.layout.addStretch()
 
-        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        comm.hardpointActuatorState.connect(self.hardpointActuatorState)
 
     @Slot(map)
     def hardpointActuatorData(self, data):
-        def fillRow(hpData, rowLabels):
+        def fillRow(hpData, rowLabels, transform):
             for hp in range(6):
-                rowLabels[hp].setText(f"{hpData[hp]:.02f}")
+                rowLabels[hp].setText(transform(hpData[hp]))
 
-        for v in self.variables:
-            fillRow(getattr(data, v), getattr(self, v))
+        for k, v in self.variables.items():
+            fillRow(getattr(data, k), getattr(self, k), v.toString)
 
         for v in self.forces:
             getattr(self, v).setText(str(getattr(data, v)))
 
         for v in self.positions:
             getattr(self, v).setText(str(getattr(data, v)))
+
+    @Slot(map)
+    def hardpointActuatorState(self, data):
+        states = {
+            HardpointActuatorMotionStates.STANDBY: "Standby",
+            HardpointActuatorMotionStates.CHASING: "Chasing",
+            HardpointActuatorMotionStates.STEPPING: "Stepping",
+            HardpointActuatorMotionStates.QUICKPOSITIONING: "Quick positioning",
+            HardpointActuatorMotionStates.FINEPOSITIONING: "Fine positioning",
+        }
+
+        def getHpState(state):
+            try:
+                return states[state]
+            except KeyError:
+                return f"Invalid {state}"
+
+        for hp in range(6):
+            self.hpStates[hp].setText(getHpState(data.motionState[hp]))
