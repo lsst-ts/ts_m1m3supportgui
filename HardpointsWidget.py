@@ -18,9 +18,17 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 import TimeChart
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QSpinBox, QPushButton
+from PySide2.QtWidgets import (
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QGridLayout,
+    QSpinBox,
+    QPushButton,
+)
 from PySide2.QtCore import Slot
-import astropy.units as u
+from UnitLabel import *
+import copy
 
 from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
 
@@ -44,51 +52,27 @@ class HardpointsWidget(QWidget):
         for hp in range(1, 7):
             dataLayout.addWidget(QLabel(f"<b>{hp}</b>"), 0, hp)
 
-        class ValueFormat:
-            def __init__(self, label, fmt, scale=None):
-                self.label = label
-                self.fmt = fmt
-                self.scale = scale
-
-            def toString(self, data):
-                if self.scale is None:
-                    return f"{data:{self.fmt}}"
-                else:
-                    return f"{(self.scale(data)):{self.fmt}}"
-
-        class Force(ValueFormat):
-            def __init__(self, label, fmt=".02f"):
-                super().__init__(label, fmt, lambda x: x * u.N)
-
-        class Mm(ValueFormat):
-            def __init__(self, label):
-                super().__init__(label, ".04f", lambda x: (x * u.meter).to(u.mm))
-
-        class WarningLabel(ValueFormat):
-            def __init__(self, label):
-                super().__init__(label, "b")
-
         self.variables = {
-            "stepsQueued": ValueFormat("Steps queued", "d"),
-            "stepsCommanded": ValueFormat("Steps commanded", "d"),
-            "encoder": ValueFormat("Encoder", "d"),
-            "measuredForce": Force("Measured force", ".03f"),
-            "displacement": Mm("Displacement"),
+            "stepsQueued": ("Steps queued", UnitLabel()),
+            "stepsCommanded": ("Steps commanded", UnitLabel()),
+            "encoder": ("Encoder", UnitLabel()),
+            "measuredForce": ("Measured force", Force(".03f")),
+            "displacement": ("Displacement", Mm()),
         }
 
         row = 1
 
-        def addRow(text, row):
+        def addRow(textValue, row):
             ret = []
-            dataLayout.addWidget(QLabel(text), row, 0)
+            dataLayout.addWidget(QLabel(textValue[0]), row, 0)
             for hp in range(6):
-                hpLabel = QLabel()
-                dataLayout.addWidget(hpLabel, row, 1 + hp)
-                ret.append(hpLabel)
+                l = copy.copy(textValue[1])
+                dataLayout.addWidget(l, row, 1 + hp)
+                ret.append(l)
             return ret
 
         for k, v in self.variables.items():
-            setattr(self, k, addRow(v.label, row))
+            setattr(self, k, addRow(v, row))
             row += 1
 
         dataLayout.addWidget(QLabel("Encoder targets"), row, 0)
@@ -106,32 +90,32 @@ class HardpointsWidget(QWidget):
         dataLayout.addWidget(setFromCurrent, row, 1, 1, 2)
 
         row += 1
-            
+
         self.monitorData = {
-            "breakawayLVDT": ValueFormat("Breakaway LVDT", ".02f"),
-            "displacementLVDT": ValueFormat("Displacement LVDT", ".02f"),
-            "breakawayPressure": ValueFormat("Breakaway Pressure", ".02f"),
-            "pressureSensor1": ValueFormat("Pressure Sensor 1", ".04f"),
-            "pressureSensor2": ValueFormat("Pressure Sensor 2", ".04f"),
-            "pressureSensor3": ValueFormat("Pressure Sensor 3", ".04f"),
+            "breakawayLVDT": ("Breakaway LVDT", UnitLabel(".02f")),
+            "displacementLVDT": ("Displacement LVDT", UnitLabel(".02f")),
+            "breakawayPressure": ("Breakaway Pressure", UnitLabel(".02f")),
+            "pressureSensor1": ("Pressure Sensor 1", UnitLabel(".04f")),
+            "pressureSensor2": ("Pressure Sensor 2", UnitLabel(".04f")),
+            "pressureSensor3": ("Pressure Sensor 3", UnitLabel(".04f")),
         }
 
         for k, v in self.monitorData.items():
-            setattr(self, k, addRow(v.label, row))
+            setattr(self, k, addRow(v, row))
             row += 1
 
         self.warnings = {
-            "majorFault": WarningLabel("Major fault"),
-            "minorFault": WarningLabel("Minor fault"),
-            "faultOverride": WarningLabel("Fault override"),
-            "mainCalibrationError": WarningLabel("Main calibration error"),
-            "backupCalibrationError": WarningLabel("Backup calibration error"),
-            "limitSwitch1Operated": WarningLabel("Limit switch 1"),
-            "limitSwitch2Operated": WarningLabel("Limit switch 2"),
+            "majorFault": ("Major fault", WarningLabel()),
+            "minorFault": ("Minor fault", WarningLabel()),
+            "faultOverride": ("Fault override", WarningLabel()),
+            "mainCalibrationError": ("Main calibration error", WarningLabel()),
+            "backupCalibrationError": ("Backup calibration error", WarningLabel()),
+            "limitSwitch1Operated": ("Limit switch 1", WarningLabel()),
+            "limitSwitch2Operated": ("Limit switch 2", WarningLabel()),
         }
 
         for k, v in self.warnings.items():
-            setattr(self, k, addRow(v.label, row))
+            setattr(self, k, addRow(v, row))
             row += 1
 
         dataLayout.addWidget(QLabel("Motion state"), row, 0)
@@ -142,13 +126,13 @@ class HardpointsWidget(QWidget):
         row += 1
 
         self.forces = {
-            "forceMagnitude": Force("Total force"),
-            "fx": Force("Force X"),
-            "fy": Force("Force Y"),
-            "fz": Force("Force Z"),
-            "mx": Force("Moment X"),
-            "my": Force("Moment Y"),
-            "mz": Force("Moment Z"),
+            "forceMagnitude": ("Total force", Force()),
+            "fx": ("Force X", Force()),
+            "fy": ("Force Y", Force()),
+            "fz": ("Force Z", Force()),
+            "mx": ("Moment X", Force()),
+            "my": ("Moment Y", Force()),
+            "mz": ("Moment Z", Force()),
         }
 
         dataLayout.addWidget(QLabel(), row, 0)
@@ -156,10 +140,9 @@ class HardpointsWidget(QWidget):
 
         def addDataRow(variables, row, col=0):
             for k, v in variables.items():
-                dataLayout.addWidget(QLabel(f"<b>{v.label}</b>"), row, col)
-                l = QLabel()
-                setattr(self, k, l)
-                dataLayout.addWidget(l, row + 1, col)
+                dataLayout.addWidget(QLabel(f"<b>{v[0]}</b>"), row, col)
+                setattr(self, k, v[1])
+                dataLayout.addWidget(v[1], row + 1, col)
                 col += 1
 
         addDataRow(self.forces, row)
@@ -167,12 +150,12 @@ class HardpointsWidget(QWidget):
         dataLayout.addWidget(QLabel(), row, 0)
         row += 1
         self.positions = {
-            "xPosition": Mm("Position X"),
-            "yPosition": Mm("Position Y"),
-            "zPosition": Mm("Position Z"),
-            "xRotation": Mm("Rotation X"),
-            "yRotation": Mm("Rotation Y"),
-            "zRotation": Mm("Rotation Z"),
+            "xPosition": ("Position X", Mm()),
+            "yPosition": ("Position Y", Mm()),
+            "zPosition": ("Position Z", Mm()),
+            "xRotation": ("Rotation X", Mm()),
+            "yRotation": ("Rotation Y", Mm()),
+            "zRotation": ("Rotation Z", Mm()),
         }
         addDataRow(self.positions, row, 1)
 
@@ -199,10 +182,10 @@ class HardpointsWidget(QWidget):
             self._fillRow(getattr(data, k), getattr(self, k), v.toString)
 
         for k, v in self.forces.items():
-            getattr(self, k).setText(v.toString(getattr(data, k)))
+            getattr(self, k).setValue(getattr(data, k))
 
         for k, v in self.positions.items():
-            getattr(self, k).setText(v.toString(getattr(data, k)))
+            getattr(self, k).setValue(getattr(data, k))
 
     @Slot(map)
     def hardpointActuatorState(self, data):
