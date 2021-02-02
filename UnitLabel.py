@@ -24,6 +24,14 @@ __all__ = ["UnitLabel", "Force", "Mm", "WarningLabel"]
 
 
 class UnitLabel(QLabel):
+    """Qt Label that can display and convert Astropy units.
+
+    Parameters
+    ----------
+    fmt : `str`
+        Format string. See Python formatting function
+    """
+
     def __init__(self, fmt="d", unit=None, convert=None):
         super().__init__()
         self.fmt = fmt
@@ -52,6 +60,6 @@ class Mm(UnitLabel):
         super().__init__(fmt, u.meter, u.mm)
 
 
-class WarningLabel(ValueFormat):
+class WarningLabel(UnitLabel):
     def __init__(self):
         super().__init__("b")
