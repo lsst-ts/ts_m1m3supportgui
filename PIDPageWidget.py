@@ -362,7 +362,7 @@ class PIDPageWidget(QWidget):
     @Slot(map)
     def pidData(self, data):
         self.fxSetpointLabel.setText("%0.3f" % data.setpoint[0])
-        self.fxMeasurementLabel.setText("%0.3f" % data.measurement[0])
+        self.fxMeasurementLabel.setText("%0.3f" % data.measuredPID[0])
         self.fxErrorLabel.setText("%0.3f" % data.error[0])
         self.fxErrorT1Label.setText("%0.3f" % data.errorT1[0])
         self.fxErrorT2Label.setText("%0.3f" % data.errorT2[0])
@@ -370,7 +370,7 @@ class PIDPageWidget(QWidget):
         self.fxControlT1Label.setText("%0.3f" % data.controlT1[0])
         self.fxControlT2Label.setText("%0.3f" % data.controlT2[0])
         self.fySetpointLabel.setText("%0.3f" % data.setpoint[1])
-        self.fyMeasurementLabel.setText("%0.3f" % data.measurement[1])
+        self.fyMeasurementLabel.setText("%0.3f" % data.measuredPID[1])
         self.fyErrorLabel.setText("%0.3f" % data.error[1])
         self.fyErrorT1Label.setText("%0.3f" % data.errorT1[1])
         self.fyErrorT2Label.setText("%0.3f" % data.errorT2[1])
@@ -378,7 +378,7 @@ class PIDPageWidget(QWidget):
         self.fyControlT1Label.setText("%0.3f" % data.controlT1[1])
         self.fyControlT2Label.setText("%0.3f" % data.controlT2[1])
         self.fzSetpointLabel.setText("%0.3f" % data.setpoint[2])
-        self.fzMeasurementLabel.setText("%0.3f" % data.measurement[2])
+        self.fzMeasurementLabel.setText("%0.3f" % data.measuredPID[2])
         self.fzErrorLabel.setText("%0.3f" % data.error[2])
         self.fzErrorT1Label.setText("%0.3f" % data.errorT1[2])
         self.fzErrorT2Label.setText("%0.3f" % data.errorT2[2])
@@ -386,7 +386,7 @@ class PIDPageWidget(QWidget):
         self.fzControlT1Label.setText("%0.3f" % data.controlT1[2])
         self.fzControlT2Label.setText("%0.3f" % data.controlT2[2])
         self.mxSetpointLabel.setText("%0.3f" % data.setpoint[3])
-        self.mxMeasurementLabel.setText("%0.3f" % data.measurement[3])
+        self.mxMeasurementLabel.setText("%0.3f" % data.measuredPID[3])
         self.mxErrorLabel.setText("%0.3f" % data.error[3])
         self.mxErrorT1Label.setText("%0.3f" % data.errorT1[3])
         self.mxErrorT2Label.setText("%0.3f" % data.errorT2[3])
@@ -394,7 +394,7 @@ class PIDPageWidget(QWidget):
         self.mxControlT1Label.setText("%0.3f" % data.controlT1[3])
         self.mxControlT2Label.setText("%0.3f" % data.controlT2[3])
         self.mySetpointLabel.setText("%0.3f" % data.setpoint[4])
-        self.myMeasurementLabel.setText("%0.3f" % data.measurement[4])
+        self.myMeasurementLabel.setText("%0.3f" % data.measuredPID[4])
         self.myErrorLabel.setText("%0.3f" % data.error[4])
         self.myErrorT1Label.setText("%0.3f" % data.errorT1[4])
         self.myErrorT2Label.setText("%0.3f" % data.errorT2[4])
@@ -402,7 +402,7 @@ class PIDPageWidget(QWidget):
         self.myControlT1Label.setText("%0.3f" % data.controlT1[4])
         self.myControlT2Label.setText("%0.3f" % data.controlT2[4])
         self.mzSetpointLabel.setText("%0.3f" % data.setpoint[5])
-        self.mzMeasurementLabel.setText("%0.3f" % data.measurement[5])
+        self.mzMeasurementLabel.setText("%0.3f" % data.measuredPID[5])
         self.mzErrorLabel.setText("%0.3f" % data.error[5])
         self.mzErrorT1Label.setText("%0.3f" % data.errorT1[5])
         self.mzErrorT2Label.setText("%0.3f" % data.errorT2[5])
@@ -414,10 +414,10 @@ class PIDPageWidget(QWidget):
             data.timestamp,
             [
                 ("Command", "Fx", data.control[0]),
-                self.chart.append("Command", "Fy", data.control[1]),
-                self.chart.append("Command", "Fz", data.control[2]),
-                self.chart.append("Command", "Mx", data.control[3]),
-                self.chart.append("Command", "My", data.control[4]),
-                self.chart.append("Command", "Mz", data.control[5]),
+                ("Command", "Fy", data.control[1]),
+                ("Command", "Fz", data.control[2]),
+                ("Command", "Mx", data.control[3]),
+                ("Command", "My", data.control[4]),
+                ("Command", "Mz", data.control[5]),
             ],
         )
