@@ -64,6 +64,10 @@ class HardpointsWidget(QWidget):
             def __init__(self, label):
                 super().__init__(label, ".04f", lambda x: (x * u.meter).to(u.mm))
 
+        class WarningLabel(ValueFormat):
+            def __init__(self, label):
+                super().__init__(label, "b")
+
         self.variables = {
             "stepsQueued": ValueFormat("Steps queued", "d"),
             "stepsCommanded": ValueFormat("Steps commanded", "d"),
@@ -97,6 +101,20 @@ class HardpointsWidget(QWidget):
         }
 
         for k, v in self.monitorData.items():
+            setattr(self, k, addRow(v.label, row))
+            row += 1
+
+        self.warnings = {
+            "majorFault": WarningLabel("Major fault"),
+            "minorFault": WarningLabel("Minor fault"),
+            "faultOverride": WarningLabel("Fault override"),
+            "mainCalibrationError": WarningLabel("Main calibration error"),
+            "backupCalibrationError": WarningLabel("Backup calibration error"),
+            "limitSwitch1Operated": WarningLabel("Limit switch 1"),
+            "limitSwitch2Operated": WarningLabel("Limit switch 2"),
+        }
+
+        for k, v in self.warnings.items():
             setattr(self, k, addRow(v.label, row))
             row += 1
 
@@ -147,6 +165,7 @@ class HardpointsWidget(QWidget):
         self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
         self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
         self.comm.hardpointMonitorData.connect(self.hardpointMonitorData)
+        self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
 
     def _fillRow(self, hpData, rowLabels, transform):
         for hp in range(6):
@@ -186,3 +205,10 @@ class HardpointsWidget(QWidget):
     def hardpointMonitorData(self, data):
         for k, v in self.monitorData.items():
             self._fillRow(getattr(data, k), getattr(self, k), v.toString)
+
+    @Slot(map)
+    def hardpointActuatorWarning(self, data):
+        for k, v in self.warnings.items():
+            self._fillRow(getattr(data, k), getattr(self, k), v.toString)
+
+
