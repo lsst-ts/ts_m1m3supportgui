@@ -74,17 +74,29 @@ class HardpointsWidget(QWidget):
 
         row = 1
 
+        def addRow(text, row):
+            ret = []
+            dataLayout.addWidget(QLabel(text), row, 0)
+            for hp in range(6):
+                hpLabel = QLabel()
+                dataLayout.addWidget(hpLabel, row, 1 + hp)
+                ret.append(hpLabel)
+            return ret
+
         for k, v in self.variables.items():
+            setattr(self, k, addRow(v.label, row))
+            row += 1
 
-            def addRow(text, row):
-                ret = []
-                dataLayout.addWidget(QLabel(text), row, 0)
-                for hp in range(6):
-                    hpLabel = QLabel()
-                    dataLayout.addWidget(hpLabel, row, 1 + hp)
-                    ret.append(hpLabel)
-                return ret
+        self.monitorData = {
+            "breakawayLVDT": ValueFormat("Breakaway LVDT", ".02f"),
+            "displacementLVDT": ValueFormat("Displacement LVDT", ".02f"),
+            "breakawayPressure": ValueFormat("Breakaway Pressure", ".02f"),
+            "pressureSensor1": ValueFormat("Pressure Sensor 1", ".04f"),
+            "pressureSensor2": ValueFormat("Pressure Sensor 2", ".04f"),
+            "pressureSensor3": ValueFormat("Pressure Sensor 3", ".04f"),
+        }
 
+        for k, v in self.monitorData.items():
             setattr(self, k, addRow(v.label, row))
             row += 1
 
@@ -134,15 +146,16 @@ class HardpointsWidget(QWidget):
 
         self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
         self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
+        self.comm.hardpointMonitorData.connect(self.hardpointMonitorData)
+
+    def _fillRow(self, hpData, rowLabels, transform):
+        for hp in range(6):
+            rowLabels[hp].setText(transform(hpData[hp]))
 
     @Slot(map)
     def hardpointActuatorData(self, data):
-        def fillRow(hpData, rowLabels, transform):
-            for hp in range(6):
-                rowLabels[hp].setText(transform(hpData[hp]))
-
         for k, v in self.variables.items():
-            fillRow(getattr(data, k), getattr(self, k), v.toString)
+            self._fillRow(getattr(data, k), getattr(self, k), v.toString)
 
         for k, v in self.forces.items():
             getattr(self, k).setText(v.toString(getattr(data, k)))
@@ -168,3 +181,8 @@ class HardpointsWidget(QWidget):
 
         for hp in range(6):
             self.hpStates[hp].setText(getHpState(data.motionState[hp]))
+
+    @Slot(map)
+    def hardpointMonitorData(self, data):
+        for k, v in self.monitorData.items():
+            self._fillRow(getattr(data, k), getattr(self, k), v.toString)
