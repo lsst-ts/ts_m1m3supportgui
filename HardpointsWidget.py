@@ -18,7 +18,7 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 import TimeChart
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout, QSpinBox, QPushButton
 from PySide2.QtCore import Slot
 import astropy.units as u
 
@@ -91,6 +91,22 @@ class HardpointsWidget(QWidget):
             setattr(self, k, addRow(v.label, row))
             row += 1
 
+        dataLayout.addWidget(QLabel("Encoder targets"), row, 0)
+        self.hpTargets = []
+        for hp in range(6):
+            sb = QSpinBox()
+            sb.setRange(-66000, 66000)
+            sb.setSingleStep(100)
+            dataLayout.addWidget(sb, row, 1 + hp)
+            self.hpTargets.append(sb)
+        row += 1
+
+        setFromCurrent = QPushButton("Set current")
+        setFromCurrent.clicked.connect(self._setFromCurrent)
+        dataLayout.addWidget(setFromCurrent, row, 1, 1, 2)
+
+        row += 1
+            
         self.monitorData = {
             "breakawayLVDT": ValueFormat("Breakaway LVDT", ".02f"),
             "displacementLVDT": ValueFormat("Displacement LVDT", ".02f"),
@@ -167,6 +183,12 @@ class HardpointsWidget(QWidget):
         self.comm.hardpointMonitorData.connect(self.hardpointMonitorData)
         self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
 
+    @Slot()
+    def _setFromCurrent(self):
+        hpData = self.comm.MTM1M3.tel_hardpointActuatorData.get()
+        for hp in range(6):
+            self.hpTargets[hp].setValue(hpData.encoder[hp])
+
     def _fillRow(self, hpData, rowLabels, transform):
         for hp in range(6):
             rowLabels[hp].setText(transform(hpData[hp]))
@@ -210,5 +232,3 @@ class HardpointsWidget(QWidget):
     def hardpointActuatorWarning(self, data):
         for k, v in self.warnings.items():
             self._fillRow(getattr(data, k), getattr(self, k), v.toString)
-
-
