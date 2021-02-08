@@ -31,7 +31,10 @@ from asyncqt import asyncSlot
 from UnitLabel import *
 import copy
 
-from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
+from lsst.ts.salobj import base
+from lsst.ts.idl.enums.MTM1M3 import *
+
+import QTHelpers
 
 
 class HardpointsWidget(QWidget):
@@ -76,19 +79,19 @@ class HardpointsWidget(QWidget):
             setattr(self, k, addRow(v, row))
             row += 1
 
-        dataLayout.addWidget(QLabel("Encoder targets"), row, 0)
-        self.hpTargets = []
+        dataLayout.addWidget(QLabel("Encoder offsets"), row, 0)
+        self.hpOffsets = []
         for hp in range(6):
             sb = QSpinBox()
             sb.setRange(-66000, 66000)
             sb.setSingleStep(100)
             dataLayout.addWidget(sb, row, 1 + hp)
-            self.hpTargets.append(sb)
+            self.hpOffsets.append(sb)
         row += 1
 
-        moveHP = QPushButton("Move")
-        moveHP.clicked.connect(self._moveHP)
-        dataLayout.addWidget(moveHP, row, 1, 1, 3)
+        self.moveHPButton = QPushButton("Move")
+        self.moveHPButton.clicked.connect(self._moveHP)
+        dataLayout.addWidget(self.moveHPButton, row, 1, 1, 3)
 
         reset = QPushButton("Reset")
         reset.clicked.connect(self._reset)
@@ -166,6 +169,7 @@ class HardpointsWidget(QWidget):
 
         self.layout.addStretch()
 
+        self.comm.detailedState.connect(self.detailedState)
         self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
         self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
         self.comm.hardpointMonitorData.connect(self.hardpointMonitorData)
@@ -173,17 +177,40 @@ class HardpointsWidget(QWidget):
 
     @asyncSlot()
     async def _moveHP(self):
-        steps = list(map(lambda x: x.value(), self.hpTargets))
-        await self.comm.MTM1M3.cmd_moveHardpointActuators.set_start(steps=steps)
+        steps = list(map(lambda x: x.value(), self.hpOffsets))
+        try:
+            await self.comm.MTM1M3.cmd_moveHardpointActuators.set_start(steps=steps)
+        except base.AckError as ackE:
+            await QTHelpers.warning(
+                self,
+                f"Error executing moveHardpointActuators({steps})",
+                ackE.ackcmd.result,
+            )
+        except RuntimeError as rte:
+            await QTHelpers.warning(
+                self, f"Error executing moveHardpointActuators({steps})", str(rte),
+            )
 
     @Slot()
     def _reset(self):
         for hp in range(6):
-            self.hpTargets[hp].setValue(0)
+            self.hpOffsets[hp].setValue(0)
 
     def _fillRow(self, hpData, rowLabels):
         for hp in range(6):
             rowLabels[hp].setValue(hpData[hp])
+
+    @Slot(map)
+    def detailedState(self, data):
+        self.moveHPButton.setEnabled(
+            data.detailedState
+            in (
+                DetailedState.PARKEDENGINEERING,
+                DetailedState.RAISINGENGINEERING,
+                DetailedState.ACTIVEENGINEERING,
+                DetailedState.LOWERINGENGINEERING,
+            )
+        )
 
     @Slot(map)
     def hardpointActuatorData(self, data):
