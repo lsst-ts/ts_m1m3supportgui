@@ -28,7 +28,7 @@ from PySide2.QtWidgets import (
 )
 from PySide2.QtCore import Slot
 from asyncqt import asyncSlot
-from UnitLabel import *
+from CustomLabels import *
 import copy
 
 from lsst.ts.salobj import base

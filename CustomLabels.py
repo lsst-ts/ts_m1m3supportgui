@@ -29,7 +29,11 @@ class UnitLabel(QLabel):
     Parameters
     ----------
     fmt : `str`
-        Format string. See Python formatting function
+        Format string. See Python formatting function for details.
+    unit : `astropy.units`
+        Variable unit.
+    convert : `astropy.units`
+        Convert values to this unit. 
     """
 
     def __init__(self, fmt="d", unit=None, convert=None):
@@ -42,6 +46,13 @@ class UnitLabel(QLabel):
         return UnitLabel(self.fmt, self.unit, self.convert)
 
     def setValue(self, value):
+        """Sets value. Transformation and formatting is done according to unit, convert and fmt constructor arguments.
+
+        Parameters
+        ----------
+        value : `float`
+            Current (=to be displayed) variable value.
+        """
         if self.convert is not None:
             self.setText(f"{((value * self.unit).to(self.convert)):{self.fmt}}")
         elif self.unit is not None:
@@ -51,15 +62,27 @@ class UnitLabel(QLabel):
 
 
 class Force(UnitLabel):
+    """Displays force in N (Newtons)"""
     def __init__(self, fmt=".02f"):
         super().__init__(fmt, u.N)
 
 
 class Mm(UnitLabel):
+    """Display meters as mm (milimeters)"""
     def __init__(self, fmt=".04f"):
         super().__init__(fmt, u.meter, u.mm)
 
 
-class WarningLabel(UnitLabel):
+class WarningLabel(QLabel):
+    """Displays on/off warnings"""
     def __init__(self):
-        super().__init__("b")
+        super().__init__()
+
+    def __copy__(self):
+        return WarningLabel()
+
+    def setValue(self, value):
+        if value:
+            self.setText(f"<font color='red'>On</font>")
+        else:
+            self.setText(f"<font color='green'>Off</font>")
