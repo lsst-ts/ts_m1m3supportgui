@@ -27,6 +27,7 @@ from PySide2.QtWidgets import (
     QPushButton,
 )
 from PySide2.QtCore import Slot
+from asyncqt import asyncSlot
 from UnitLabel import *
 import copy
 
@@ -85,9 +86,13 @@ class HardpointsWidget(QWidget):
             self.hpTargets.append(sb)
         row += 1
 
-        setFromCurrent = QPushButton("Set current")
-        setFromCurrent.clicked.connect(self._setFromCurrent)
-        dataLayout.addWidget(setFromCurrent, row, 1, 1, 2)
+        moveHP = QPushButton("Move")
+        moveHP.clicked.connect(self._moveHP)
+        dataLayout.addWidget(moveHP, row, 1, 1, 3)
+
+        reset = QPushButton("Reset")
+        reset.clicked.connect(self._reset)
+        dataLayout.addWidget(reset, row, 4, 1, 3)
 
         row += 1
 
@@ -166,20 +171,24 @@ class HardpointsWidget(QWidget):
         self.comm.hardpointMonitorData.connect(self.hardpointMonitorData)
         self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
 
-    @Slot()
-    def _setFromCurrent(self):
-        hpData = self.comm.MTM1M3.tel_hardpointActuatorData.get()
-        for hp in range(6):
-            self.hpTargets[hp].setValue(hpData.encoder[hp])
+    @asyncSlot()
+    async def _moveHP(self):
+        steps = list(map(lambda x: x.value(), self.hpTargets))
+        await self.comm.MTM1M3.cmd_moveHardpointActuators.set_start(steps=steps)
 
-    def _fillRow(self, hpData, rowLabels, transform):
+    @Slot()
+    def _reset(self):
         for hp in range(6):
-            rowLabels[hp].setText(transform(hpData[hp]))
+            self.hpTargets[hp].setValue(0)
+
+    def _fillRow(self, hpData, rowLabels):
+        for hp in range(6):
+            rowLabels[hp].setValue(hpData[hp])
 
     @Slot(map)
     def hardpointActuatorData(self, data):
         for k, v in self.variables.items():
-            self._fillRow(getattr(data, k), getattr(self, k), v.toString)
+            self._fillRow(getattr(data, k), getattr(self, k))
 
         for k, v in self.forces.items():
             getattr(self, k).setValue(getattr(data, k))
@@ -209,9 +218,9 @@ class HardpointsWidget(QWidget):
     @Slot(map)
     def hardpointMonitorData(self, data):
         for k, v in self.monitorData.items():
-            self._fillRow(getattr(data, k), getattr(self, k), v.toString)
+            self._fillRow(getattr(data, k), getattr(self, k))
 
     @Slot(map)
     def hardpointActuatorWarning(self, data):
         for k, v in self.warnings.items():
-            self._fillRow(getattr(data, k), getattr(self, k), v.toString)
+            self._fillRow(getattr(data, k), getattr(self, k))
