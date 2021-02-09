@@ -24,46 +24,46 @@ from PySide2.QtGui import QPen, QPainter, QColor, QBrush, QTransform
 from PySide2.QtWidgets import QGraphicsItem
 
 
-class Actuator(QGraphicsItem):
+class ForceActuator(QGraphicsItem):
     """Combines graphical display of an actuator with its data. Record if an
     actuator is selected by a mouse click.
 
     Value sets (measured, rejected, calculated..) is managed by upper level
     classes.
 
-    Actuator can be selected - then it is drawn with highlighting, showing it
-    is the selected actuator. 
+    Force Actuator can be selected - then it is drawn with highlighting,
+    showing it is the selected actuator.
 
     Parameters
     ----------
     id : `int`
-         Actuator identification number. Starting with 101, the first number
-         identified segment (1-4). The value ranges up to 443.
+         Force Actuator identification number. Starting with 101, the first
+         number identified segment (1-4). The value ranges up to 443.
     x : `float`
-         Actuator X coordinate (in mm).
+         Force Actuator X coordinate (in mm).
     y : `float`
-         Actuator Y coordinate (in mm).
+         Force Actuator Y coordinate (in mm).
     data : `float`
          Data associated with the actuator (actual force, calculated force, ..).
     dataIndex : `int`
          Index in value arrays. Points to selected actuator value.
     state : `int`
-         Actuator state. 0 for inactive/unused, 1 for active OK, 2 for active
-         warning.
+         Force Actuator state. 0 for inactive/unused, 1 for active OK, 2 for
+         active warning.
     selected : `bool`
          If the actuator shall be selected.
     """
 
     STATE_INACTIVE = 0
-    """Actuator value is not relevant for the current display (`int`).
+    """Force Actuator value is not relevant for the current display (`int`).
     """
 
     STATE_ACTIVE = 1
-    """Actuator is active and healthy (`int`).
+    """Force Actuator is active and healthy (`int`).
     """
 
     STATE_WARNING = 2
-    """Actuator is active, but the value / actuator has some warning attached (`int`).
+    """Force Actuator is active, but the value / actuator has some warning attached (`int`).
     """
 
     def __init__(self, id, x, y, data, dataIndex, state, selected):
@@ -109,8 +109,7 @@ class Actuator(QGraphicsItem):
 
     @property
     def data(self):
-        """Value associated with the actuator (`float`).
-        """
+        """Value associated with the actuator (`float`)."""
         return self._data
 
     @data.setter
@@ -120,26 +119,22 @@ class Actuator(QGraphicsItem):
 
     @property
     def warning(self):
-        """If actuator is in warning state (`bool`).
-        """
+        """If actuator is in warning state (`bool`)."""
         return self._state == self.STATE_WARNING
 
     @property
     def active(self):
-        """If actuator is active (`bool`).
-        """
+        """If actuator is active (`bool`)."""
         return not (self._state == self.STATE_INACTIVE)
 
     def setRange(self, minValue, maxValue):
-        """Set actuator range. This is used for setting display color.
-        """
+        """Set actuator range. This is used for setting display color."""
         self._min = minValue
         self._max = maxValue
         self.update()
 
     def boundingRect(self):
-        """Returns rectangle occupied by drawing. Overridden method.
-        """
+        """Returns rectangle occupied by drawing. Overridden method."""
         return QRect(
             self._center.x() - 10 * self._scale,
             self._center.y() - 10 * self._scale,
@@ -148,8 +143,7 @@ class Actuator(QGraphicsItem):
         )
 
     def paint(self, painter, option, widget):
-        """Paint actuator. Overridden method.
-        """
+        """Paint actuator. Overridden method."""
         # if range isn't set, don't draw
         if self._min is None or self._max is None:
             return

@@ -21,19 +21,18 @@
 
 from PySide2.QtCore import Signal
 from PySide2.QtWidgets import QGraphicsView
-from . import Mirror, Actuator
+from . import Mirror, ForceActuator
 
 
 class MirrorView(QGraphicsView):
-    """View on mirror populated by actuators.
-    """
+    """View on mirror populated by actuators."""
 
-    selectionChanged = Signal(Actuator)
+    selectionChanged = Signal(ForceActuator)
     """Signal raised when another actuator is selected by a mouse click.
 
     Parameters
     ----------
-    Actuator
+    Force Actuator
         Selected actuator.
     """
 
@@ -44,10 +43,9 @@ class MirrorView(QGraphicsView):
 
     @property
     def selected(self):
-        """Selected actuator or None if no actuator selected (Actuator).
-        """
+        """Selected actuator or None if no actuator selected (ForceActuator)."""
         try:
-            return self._mirror.getActuator(self._selectedId)
+            return self._mirror.getForceActuator(self._selectedId)
         except KeyError:
             return None
 
@@ -75,55 +73,55 @@ class MirrorView(QGraphicsView):
         self._mirror.setRange(min, max)
 
     def clear(self):
-        """Removes all actuators from the view.
-        """
+        """Removes all actuators from the view."""
         self._mirror.clear()
 
     def scaleHints(self):
-        """Returns preferred scaling. Overloaded method.
-        """
+        """Returns preferred scaling. Overloaded method."""
         s = min(self.width() / 8600, self.height() / 8600)
         return (s, s)
 
-    def addActuator(self, id, x, y, data, dataIndex, state):
+    def addForceActuator(self, id, x, y, data, dataIndex, state):
         """Adds actuator.
 
         Parameters
         ----------
         id : `int`
-            Actuator ID. Actuators are matched by ID.
+            Force Actuator ID. Actuators are matched by ID.
         x : `float`
-            Actuator X position (in mm).
+            Force Actuator X position (in mm).
         y :  `float`
-            Actuator y position (in mm).
+            Force Actuator y position (in mm).
         data : `float`
-            Actuator value.
+            Force Actuator value.
         dataIndex : `int`
-            Actuator value index.
+            Force Actuator value index.
         state : `int`
-            Actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID or
-            Actuator.STATE_WARNING.
+            Force Actuator state. ForceActuator.STATE_INVALID, ForceActuator.STATE_VALID or
+            ForceActuator.STATE_WARNING.
         """
-        self._mirror.addActuator(id, x, y, data, dataIndex, state, id == self._selectedId)
+        self._mirror.addForceActuator(
+            id, x, y, data, dataIndex, state, id == self._selectedId
+        )
 
-    def updateActuator(self, id, data, state):
+    def updateForceActuator(self, id, data, state):
         """Update actuator value and state.
 
         Parameters
         ----------
         id : `int`
-            Actuator ID number.
+            Force Actuator ID number.
         data : `float`
             Update actuator value.
         state : `int`
-            Updated actuator state. Actuator.STATE_INVALID, Actuator.STATE_VALID, Actuator.STATE_WARNING.
+            Updated actuator state. ForceActuator.STATE_INVALID, ForceActuator.STATE_VALID, ForceActuator.STATE_WARNING.
 
         Raises
         ------
         KeyError
             If actuator with the given ID cannot be found.
         """
-        self._mirror.updateActuator(id, data, state)
+        self._mirror.updateForceActuator(id, data, state)
         if self._selectedId == id:
             self.selectionChanged.emit(self.selected if self.selected.active else None)
 

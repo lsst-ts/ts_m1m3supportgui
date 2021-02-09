@@ -78,6 +78,20 @@ class ApplicationStatusWidget(QWidget):
             self.mirrorStateLabel.setText(
                 f"Lowering (fault, {data.supportPercentage * 100:.02f}%)"
             )
+        else:
+            self._disconnectRaiseLowering()
+
+    def _connectRaiseLowering(self):
+        self.comm.forceActuatorState.connect(
+            self.forceActuatorState, Qt.UniqueConnection
+        )
+
+    def _disconnectRaiseLowering(self):
+        try:
+            self.comm.forceActuatorState.disconnect(self.forceActuatorState)
+        except RuntimeError:
+            # raised when disconnecting not connected slot - ignore it, as the code might try to disconnect not connected slot
+            pass
 
     def _connectRaiseLowering(self):
         self.comm.forceActuatorState.connect(

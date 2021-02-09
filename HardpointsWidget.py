@@ -18,11 +18,23 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 import TimeChart
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QGridLayout
+from PySide2.QtWidgets import (
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QGridLayout,
+    QSpinBox,
+    QPushButton,
+)
 from PySide2.QtCore import Slot
-import astropy.units as u
+from asyncqt import asyncSlot
+from CustomLabels import *
+import copy
 
-from lsst.ts.idl.enums.MTM1M3 import HardpointActuatorMotionStates
+from lsst.ts.salobj import base
+from lsst.ts.idl.enums.MTM1M3 import *
+
+import QTHelpers
 
 
 class HardpointsWidget(QWidget):
@@ -31,6 +43,7 @@ class HardpointsWidget(QWidget):
 
     def __init__(self, comm):
         super().__init__()
+        self.comm = comm
 
         self.layout = QVBoxLayout()
 
@@ -43,50 +56,74 @@ class HardpointsWidget(QWidget):
         for hp in range(1, 7):
             dataLayout.addWidget(QLabel(f"<b>{hp}</b>"), 0, hp)
 
-        class ValueFormat:
-            """Custom class to display values.
-
-            Parameters
-            ----------
-            label : `str`
-                Label for value. Used to construct
-            """
-
-            def __init__(self, label, fmt, scale=None):
-                self.label = label
-                self.fmt = fmt
-                self.scale = scale
-
-            def toString(self, data):
-                if self.scale is None:
-                    return f"{data:{self.fmt}}"
-                else:
-                    return f"{(self.scale(data)):{self.fmt}}"
-
         self.variables = {
-            "stepsQueued": ValueFormat("Steps queued", "d"),
-            "stepsCommanded": ValueFormat("Steps commanded", "d"),
-            "encoder": ValueFormat("Encoder", "d"),
-            "measuredForce": ValueFormat("Measured force", ".03f", lambda x: x * u.N),
-            "displacement": ValueFormat(
-                "Displacement", ".04f", lambda x: (x * u.meter).to(u.mm)
-            ),
+            "stepsQueued": ("Steps queued", UnitLabel()),
+            "stepsCommanded": ("Steps commanded", UnitLabel()),
+            "encoder": ("Encoder", UnitLabel()),
+            "measuredForce": ("Measured force", Force(".03f")),
+            "displacement": ("Displacement", Mm()),
         }
 
         row = 1
 
+        def addRow(textValue, row):
+            ret = []
+            dataLayout.addWidget(QLabel(textValue[0]), row, 0)
+            for hp in range(6):
+                l = copy.copy(textValue[1])
+                dataLayout.addWidget(l, row, 1 + hp)
+                ret.append(l)
+            return ret
+
         for k, v in self.variables.items():
+            setattr(self, k, addRow(v, row))
+            row += 1
 
-            def addRow(text, row):
-                ret = []
-                dataLayout.addWidget(QLabel(text), row, 0)
-                for hp in range(6):
-                    hpLabel = QLabel()
-                    dataLayout.addWidget(hpLabel, row, 1 + hp)
-                    ret.append(hpLabel)
-                return ret
+        dataLayout.addWidget(QLabel("Encoder offsets"), row, 0)
+        self.hpOffsets = []
+        for hp in range(6):
+            sb = QSpinBox()
+            sb.setRange(-(1 << 16), 1 << 16)
+            sb.setSingleStep(100)
+            dataLayout.addWidget(sb, row, 1 + hp)
+            self.hpOffsets.append(sb)
+        row += 1
 
-            setattr(self, k, addRow(v.label, row))
+        self.moveHPButton = QPushButton("Move")
+        self.moveHPButton.clicked.connect(self._moveHP)
+        dataLayout.addWidget(self.moveHPButton, row, 1, 1, 3)
+
+        reset = QPushButton("Reset")
+        reset.clicked.connect(self._reset)
+        dataLayout.addWidget(reset, row, 4, 1, 3)
+
+        row += 1
+
+        self.monitorData = {
+            "breakawayLVDT": ("Breakaway LVDT", UnitLabel(".02f")),
+            "displacementLVDT": ("Displacement LVDT", UnitLabel(".02f")),
+            "breakawayPressure": ("Breakaway Pressure", UnitLabel(".02f")),
+            "pressureSensor1": ("Pressure Sensor 1", UnitLabel(".04f")),
+            "pressureSensor2": ("Pressure Sensor 2", UnitLabel(".04f")),
+            "pressureSensor3": ("Pressure Sensor 3", UnitLabel(".04f")),
+        }
+
+        for k, v in self.monitorData.items():
+            setattr(self, k, addRow(v, row))
+            row += 1
+
+        self.warnings = {
+            "majorFault": ("Major fault", WarningLabel()),
+            "minorFault": ("Minor fault", WarningLabel()),
+            "faultOverride": ("Fault override", WarningLabel()),
+            "mainCalibrationError": ("Main calibration error", WarningLabel()),
+            "backupCalibrationError": ("Backup calibration error", WarningLabel()),
+            "limitSwitch1Operated": ("Limit switch 1", WarningLabel()),
+            "limitSwitch2Operated": ("Limit switch 2", WarningLabel()),
+        }
+
+        for k, v in self.warnings.items():
+            setattr(self, k, addRow(v, row))
             row += 1
 
         dataLayout.addWidget(QLabel("Motion state"), row, 0)
@@ -97,24 +134,23 @@ class HardpointsWidget(QWidget):
         row += 1
 
         self.forces = {
-            "forceMagnitude": "Total force",
-            "fx": "Force X",
-            "fy": "Force Y",
-            "fz": "Force Z",
-            "mx": "Moment X",
-            "my": "Moment Y",
-            "mz": "Moment Z",
+            "forceMagnitude": ("Total force", Force()),
+            "fx": ("Force X", Force()),
+            "fy": ("Force Y", Force()),
+            "fz": ("Force Z", Force()),
+            "mx": ("Moment X", Force()),
+            "my": ("Moment Y", Force()),
+            "mz": ("Moment Z", Force()),
         }
 
         dataLayout.addWidget(QLabel(), row, 0)
         row += 1
 
         def addDataRow(variables, row, col=0):
-            for v, n in variables.items():
-                dataLayout.addWidget(QLabel(f"<b>{n}</b>"), row, col)
-                l = QLabel()
-                setattr(self, v, l)
-                dataLayout.addWidget(l, row + 1, col)
+            for k, v in variables.items():
+                dataLayout.addWidget(QLabel(f"<b>{v[0]}</b>"), row, col)
+                setattr(self, k, v[1])
+                dataLayout.addWidget(v[1], row + 1, col)
                 col += 1
 
         addDataRow(self.forces, row)
@@ -122,34 +158,70 @@ class HardpointsWidget(QWidget):
         dataLayout.addWidget(QLabel(), row, 0)
         row += 1
         self.positions = {
-            "xPosition": "Position X",
-            "yPosition": "Position Y",
-            "zPosition": "Position Z",
-            "xRotation": "Rotation X",
-            "yRotation": "Rotation Y",
-            "zRotation": "Rotation Z",
+            "xPosition": ("Position X", Mm()),
+            "yPosition": ("Position Y", Mm()),
+            "zPosition": ("Position Z", Mm()),
+            "xRotation": ("Rotation X", Mm()),
+            "yRotation": ("Rotation Y", Mm()),
+            "zRotation": ("Rotation Z", Mm()),
         }
         addDataRow(self.positions, row, 1)
 
         self.layout.addStretch()
 
-        comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        comm.hardpointActuatorState.connect(self.hardpointActuatorState)
+        self.comm.detailedState.connect(self.detailedState)
+        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
+        self.comm.hardpointMonitorData.connect(self.hardpointMonitorData)
+        self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
+
+    @asyncSlot()
+    async def _moveHP(self):
+        steps = list(map(lambda x: x.value(), self.hpOffsets))
+        try:
+            await self.comm.MTM1M3.cmd_moveHardpointActuators.set_start(steps=steps)
+        except base.AckError as ackE:
+            await QTHelpers.warning(
+                self,
+                f"Error executing moveHardpointActuators({steps})",
+                ackE.ackcmd.result,
+            )
+        except RuntimeError as rte:
+            await QTHelpers.warning(
+                self, f"Error executing moveHardpointActuators({steps})", str(rte),
+            )
+
+    @Slot()
+    def _reset(self):
+        for hp in range(6):
+            self.hpOffsets[hp].setValue(0)
+
+    def _fillRow(self, hpData, rowLabels):
+        for hp in range(6):
+            rowLabels[hp].setValue(hpData[hp])
+
+    @Slot(map)
+    def detailedState(self, data):
+        self.moveHPButton.setEnabled(
+            data.detailedState
+            in (
+                DetailedState.PARKEDENGINEERING,
+                DetailedState.RAISINGENGINEERING,
+                DetailedState.ACTIVEENGINEERING,
+                DetailedState.LOWERINGENGINEERING,
+            )
+        )
 
     @Slot(map)
     def hardpointActuatorData(self, data):
-        def fillRow(hpData, rowLabels, transform):
-            for hp in range(6):
-                rowLabels[hp].setText(transform(hpData[hp]))
-
         for k, v in self.variables.items():
-            fillRow(getattr(data, k), getattr(self, k), v.toString)
+            self._fillRow(getattr(data, k), getattr(self, k))
 
-        for v in self.forces:
-            getattr(self, v).setText(str(getattr(data, v)))
+        for k, v in self.forces.items():
+            getattr(self, k).setValue(getattr(data, k))
 
-        for v in self.positions:
-            getattr(self, v).setText(str(getattr(data, v)))
+        for k, v in self.positions.items():
+            getattr(self, k).setValue(getattr(data, k))
 
     @Slot(map)
     def hardpointActuatorState(self, data):
@@ -169,3 +241,13 @@ class HardpointsWidget(QWidget):
 
         for hp in range(6):
             self.hpStates[hp].setText(getHpState(data.motionState[hp]))
+
+    @Slot(map)
+    def hardpointMonitorData(self, data):
+        for k, v in self.monitorData.items():
+            self._fillRow(getattr(data, k), getattr(self, k))
+
+    @Slot(map)
+    def hardpointActuatorWarning(self, data):
+        for k, v in self.warnings.items():
+            self._fillRow(getattr(data, k), getattr(self, k))
