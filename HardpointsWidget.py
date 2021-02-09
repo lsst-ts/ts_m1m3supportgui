@@ -83,7 +83,7 @@ class HardpointsWidget(QWidget):
         self.hpOffsets = []
         for hp in range(6):
             sb = QSpinBox()
-            sb.setRange(-66000, 66000)
+            sb.setRange(-(1 << 16), 1 << 16)
             sb.setSingleStep(100)
             dataLayout.addWidget(sb, row, 1 + hp)
             self.hpOffsets.append(sb)

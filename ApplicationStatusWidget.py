@@ -90,6 +90,7 @@ class ApplicationStatusWidget(QWidget):
         try:
             self.comm.forceActuatorState.disconnect(self.forceActuatorState)
         except RuntimeError:
+            # raised when disconnecting not connected slot - ignore it, as the code might try to disconnect not connected slot
             pass
 
     def _connectRaiseLowering(self):
