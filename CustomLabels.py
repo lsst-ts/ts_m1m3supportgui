@@ -182,6 +182,19 @@ class ArcsecWarning(Arcsec):
         )
 
 
+class Arcsec(UnitLabel):
+    """Display radians as arcseconds.
+
+    Parameters
+    ----------
+    fmt : `str`, optional
+        Float formatting. Defaults to .02f.
+    """
+
+    def __init__(self, fmt="0.02f"):
+        super().__init__(fmt, u.rad, u.arcsec)
+
+
 class WarningLabel(QLabel):
     """Displays on/off warnings"""
 
