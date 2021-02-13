@@ -20,7 +20,7 @@
 from PySide2.QtWidgets import QLabel
 import astropy.units as u
 
-__all__ = ["UnitLabel", "Force", "Mm", "WarningLabel"]
+__all__ = ["UnitLabel", "Force", "Mm", "WarningLabel", "Arcsec"]
 
 
 class UnitLabel(QLabel):
@@ -40,6 +40,17 @@ class UnitLabel(QLabel):
     def __init__(self, fmt="d", unit=None, convert=None):
         super().__init__()
         self.fmt = fmt
+        if convert is not None and unit is not None:
+            self.scale = (1 * unit).to(convert).value
+            self.unit_name = " " + convert.name
+        elif convert is not None and unit is None:
+            raise RuntimeError("Cannot specify conversion without input units!")
+        elif unit is not None:
+            self.scale = 1
+            self.unit_name = " " + unit.name
+        else:
+            self.scale = 1
+            self.unit_name = ""
         self.unit = unit
         self.convert = convert
 
@@ -54,12 +65,7 @@ class UnitLabel(QLabel):
         value : `float`
             Current (=to be displayed) variable value.
         """
-        if self.convert is not None:
-            self.setText(f"{((value * self.unit).to(self.convert)):{self.fmt}}")
-        elif self.unit is not None:
-            self.setText(f"{(value * self.unit):{self.fmt}}")
-        else:
-            self.setText(f"{value:{self.fmt}}")
+        self.setText(f"{(value * self.scale):{self.fmt}}{self.unit_name}")
 
 
 class Force(UnitLabel):
@@ -86,6 +92,19 @@ class Mm(UnitLabel):
 
     def __init__(self, fmt=".04f"):
         super().__init__(fmt, u.meter, u.mm)
+
+
+class Arcsec(UnitLabel):
+    """Display radians as arcseconds.
+
+    Parameters
+    ----------
+    fmt : `str`, optional
+        Float formatting. Defaults to .02f.
+    """
+
+    def __init__(self, fmt="0.02f"):
+        super().__init__(fmt, u.rad, u.arcsec)
 
 
 class WarningLabel(QLabel):
