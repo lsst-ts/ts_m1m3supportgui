@@ -178,7 +178,7 @@ class ArcsecWarning(Arcsec):
         error_level=(1.45 * u.arcsec).to(u.rad).value,
     ):
         super().__init__(
-            fmt, lambda v: abs(v) > warning_level, lambda v: abs(v) > error_level
+            fmt, lambda v: abs(v) > warning_threshold, lambda v: abs(v) > error_threshold
         )
 
 
@@ -201,7 +201,11 @@ class ArcsecWarning(Arcsec):
     Parameters
     ----------
     fmt : `str`, optional
-        Float formatting. Defaults to .02f.
+        Float formatting. Defaults to 0.02f.
+    warning_threshold : `float`
+        If abs(value) is above the threshold, display value as warning (yellow text).
+    error_threshold : `float`
+        If abs(value) is above the threshold, display value as error (red text). 
     """
 
     def __init__(
