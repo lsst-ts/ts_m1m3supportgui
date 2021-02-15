@@ -40,7 +40,18 @@ import QTHelpers
 
 
 class PositionWidget(QWidget):
-    """Displays position data - measured and target position, allows to offset (jog) the mirror."""
+    """Displays position data - measured and target position, allows to offset (jog) the mirror.
+
+    POSITIONS
+    ---------
+        Array containing name of positions. Used to name variables and as
+        arguments names for positionM1M3 command.
+
+    Parameters
+    ----------
+    comm : `SALComm`
+        Proxy class for SAL/DDS communication. See SALComm.py for details.
+    """
 
     POSITIONS = [
         "xPosition",
@@ -157,11 +168,19 @@ class PositionWidget(QWidget):
 
         self.layout.addStretch()
 
-        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        self.comm.imsData.connect(self.imsData)
-        self.comm.detailedState.connect(self.detailedState)
+        self.comm.hardpointActuatorData.connect(self._hardpointActuatorDataCallback)
+        self.comm.imsData.connect(self._imsDataCallback)
+        self.comm.detailedState.connect(self._detailedStateCallback)
 
     async def moveMirror(self, **kwargs):
+        """Move mirror. Calls positionM1M3 command.
+
+        Parameters
+        ----------
+        **kwargs : `dict`
+            New target position. Needs to have POSITIONS keys. Passed to
+            positionM1M3 command.
+        """
         try:
             await self.comm.MTM1M3.cmd_positionM1M3.set_start(**kwargs)
         except base.AckError as ackE:
@@ -177,6 +196,14 @@ class PositionWidget(QWidget):
         return MM2M if label[1:] == "Position" else ARCSEC2R
 
     def getTargets(self):
+        """Return current target values (from form target box).
+
+        Returns
+        -------
+        args : `dict`
+            Current target values. Contains POSITIONS keys. In default units
+            (mm, rad).
+        """
         args = {}
         for p in self.POSITIONS:
             scale = MM2M if p[1:] == "Position" else ARCSEC2R
@@ -184,6 +211,13 @@ class PositionWidget(QWidget):
         return args
 
     def setTargets(self, targets):
+        """Set current target values.
+
+        Parameters
+        ----------
+        targets : `dict`
+            Target values. Dictionary with POSITIONS keys.
+        """
         for k, v in targets.items():
             getattr(self, "target_" + k).setValue(v / self._getScale(k))
 
@@ -218,20 +252,20 @@ class PositionWidget(QWidget):
             v.setValue(getattr(self._hpData, k) - getattr(self._imsData, k))
 
     @Slot(map)
-    def hardpointActuatorData(self, data):
+    def _hardpointActuatorDataCallback(self, data):
         self._fillRow(self.hpVariables, data)
         self._hpData = data
         self.copyCurrentButton.setEnabled(True)
         self._updateDiffs()
 
     @Slot(map)
-    def imsData(self, data):
+    def _imsDataCallback(self, data):
         self._fillRow(self.imsVariables, data)
         self._imsData = data
         self._updateDiffs()
 
     @Slot(map)
-    def detailedState(self, data):
+    def _detailedStateCallback(self, data):
         enabled = data.detailedState in (
             DetailedState.ACTIVEENGINEERING,
             DetailedState.ACTIVE,
