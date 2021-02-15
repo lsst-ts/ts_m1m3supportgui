@@ -172,7 +172,7 @@ class DirectionPadWidget(QWidget):
 
         layout = QHBoxLayout()
         layout.addWidget(addArrowsBox("Translation", 0, u.mm.to(u.meter)))
-        layout.addWidget(addArrowsBox("Rotation", 3, u.arcsec.to(u.rad)))
+        layout.addWidget(addArrowsBox("Rotation", 3, u.arcsec.to(u.deg)))
 
         self.setLayout(layout)
 

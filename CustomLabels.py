@@ -146,7 +146,7 @@ class MmWarning(Mm):
 
 
 class Arcsec(UnitLabel):
-    """Display radians as arcseconds.
+    """Display degrees as arcseconds.
 
     Parameters
     ----------
@@ -155,11 +155,11 @@ class Arcsec(UnitLabel):
     """
 
     def __init__(self, fmt="0.02f", is_warn_func=None, is_err_func=None):
-        super().__init__(fmt, u.rad, u.arcsec, is_warn_func, is_err_func)
+        super().__init__(fmt, u.deg, u.arcsec, is_warn_func, is_err_func)
 
 
 class ArcsecWarning(Arcsec):
-    """Display radians as arcseconds.
+    """Display degrees as arcseconds.
 
     Parameters
     ----------
@@ -174,8 +174,8 @@ class ArcsecWarning(Arcsec):
     def __init__(
         self,
         fmt="0.02f",
-        warning_level=(0.73 * u.arcsec).to(u.rad).value,
-        error_level=(1.45 * u.arcsec).to(u.rad).value,
+        warning_level=(0.73 * u.arcsec).to(u.deg).value,
+        error_level=(1.45 * u.arcsec).to(u.deg).value,
     ):
         super().__init__(
             fmt, lambda v: abs(v) > warning_threshold, lambda v: abs(v) > error_threshold

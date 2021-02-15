@@ -221,8 +221,8 @@ class IMSPageWidget(QWidget):
                 ("Position (mm)", "X", data.xPosition * M2MM),
                 ("Position (mm)", "Y", data.yPosition * M2MM),
                 ("Position (mm)", "Z", data.zPosition * M2MM),
-                ("Rotation (arcsec)", "X", data.xRotation * R2ARCSEC),
-                ("Rotation (arcsec)", "Y", data.yRotation * R2ARCSEC),
-                ("Rotation (arcsec)", "Z", data.zRotation * R2ARCSEC),
+                ("Rotation (arcsec)", "X", data.xRotation * D2ARCSEC),
+                ("Rotation (arcsec)", "Y", data.yRotation * D2ARCSEC),
+                ("Rotation (arcsec)", "Z", data.zRotation * D2ARCSEC),
             ],
         )

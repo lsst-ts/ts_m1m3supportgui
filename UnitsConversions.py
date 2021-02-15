@@ -1,9 +1,9 @@
 import astropy.units as u
 
-__all__ = ["M2MM", "R2ARCSEC", "MM2M", "ARCSEC2R"]
+__all__ = ["M2MM", "D2ARCSEC", "MM2M", "ARCSEC2D"]
 
 M2MM = u.m.to(u.mm)
-R2ARCSEC = u.rad.to(u.arcsec)
+R2ARCSEC = u.deg.to(u.arcsec)
 
 MM2M = 1 / M2MM
-ARCSEC2R = 1 / R2ARCSEC
+ARCSEC2D = 1 / D2ARCSEC
