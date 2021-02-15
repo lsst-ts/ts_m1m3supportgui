@@ -488,11 +488,7 @@ class Topics:
                         lambda x: x.watchdogReset,
                         lambda: FATABLE_ZINDEX,
                     ],
-                    [
-                        "Brownout",
-                        lambda x: x.brownOut,
-                        lambda: FATABLE_ZINDEX,
-                    ],
+                    ["Brownout", lambda x: x.brownOut, lambda: FATABLE_ZINDEX,],
                     [
                         "Event Trap Reset",
                         lambda x: x.eventTrapReset,
@@ -553,11 +549,7 @@ class Topics:
                         lambda x: x.mezzanineApplicationCRCMismatch,
                         lambda: FATABLE_ZINDEX,
                     ],
-                    [
-                        "ILC Fault",
-                        lambda x: x.ilcFault,
-                        lambda: FATABLE_ZINDEX,
-                    ],
+                    ["ILC Fault", lambda x: x.ilcFault, lambda: FATABLE_ZINDEX,],
                     [
                         "Broadcast Counter Warning",
                         lambda x: x.broadcastCounterWarning,

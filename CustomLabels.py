@@ -137,7 +137,9 @@ class MmWarning(Mm):
         error_threshold=(8 * u.um).to(u.meter).value,
     ):
         super().__init__(
-            fmt, lambda v: abs(v) > warning_threshold, lambda v: abs(v) > error_threshold
+            fmt,
+            lambda v: abs(v) > warning_threshold,
+            lambda v: abs(v) > error_threshold,
         )
 
 

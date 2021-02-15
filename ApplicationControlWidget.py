@@ -127,9 +127,7 @@ class ApplicationControlWidget(QWidget):
                 await self.comm.MTM1M3.cmd_standby.start()
         except base.AckError as ackE:
             await QTHelpers.warning(
-                self,
-                f"Error executing {button.text()}",
-                ackE.ackcmd.result,
+                self, f"Error executing {button.text()}", ackE.ackcmd.result,
             )
             self.restoreEnabled()
 
