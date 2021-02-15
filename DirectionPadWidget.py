@@ -105,6 +105,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     scale,
                 ),
+                0,
                 1,
                 1,
             )
@@ -138,6 +139,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     scale,
                 ),
+                1,
                 2,
                 2,
             )
