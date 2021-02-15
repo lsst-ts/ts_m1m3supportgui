@@ -3,6 +3,8 @@ from datetime import datetime
 from PySide2.QtWidgets import QWidget, QLabel, QHBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 
+from CustomLabels import *
+
 
 class OverviewPageWidget(QWidget):
     def __init__(self, comm):
