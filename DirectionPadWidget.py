@@ -36,9 +36,21 @@ __all__ = ["DirectionPadWidget"]
 
 
 class DirectionPadWidget(QWidget):
-    """Widget displaying direction pad - allows to move and rotate XYZ"""
+    """Widget displaying direction pad - allows to move and rotate XYZ.
 
-    """Called when position is changed."""
+    Shows buttons to translate and rotate shape in 3D space. Translation is in
+    meters, with step size set in mm. Rotation is set in radians, with step
+    size in arcseconds.
+    """
+
+    """Emitted when user push a button/changes target position. Only parameter
+
+    Parameters
+    ----------
+    list : `list`
+        6 member array, holding new X Y Z translations and X Y Z
+        rotations.
+    """
     positionChanged = Signal(list)
 
     def __init__(self):
@@ -157,4 +169,12 @@ class DirectionPadWidget(QWidget):
         self.setLayout(layout)
 
     def setPosition(self, position):
+        """Set current pad position.
+
+        Parameters
+        ----------
+        position : `iterable`
+            New position. Button offsets would take this position as starting
+            point.
+        """
         self.position = list(position)
