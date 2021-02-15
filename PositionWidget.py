@@ -138,6 +138,12 @@ class PositionWidget(QWidget):
 
         dataLayout.addWidget(self.moveMirrorButton, row, 1, 1, 3)
 
+        self.copyCurrentButton = QPushButton("Copy Current")
+        self.copyCurrentButton.setEnabled(False)
+        self.copyCurrentButton.clicked.connect(self._copyCurrent)
+
+        dataLayout.addWidget(self.copyCurrentButton, row, 4, 1, 3)
+
         row += 1
         self.dirPad = DirectionPadWidget()
         self.dirPad.setEnabled(False)
@@ -183,6 +189,12 @@ class PositionWidget(QWidget):
         self.dirPad.setPosition(map(lambda p: targets[p], self.POSITIONS))
         await self.moveMirror(**self.getTargets())
 
+    @Slot()
+    def _copyCurrent(self):
+        args = {k: getattr(self._hpData, k) for k in self.POSITIONS}
+        self.setTargets(args)
+        self.dirPad.setPosition(map(lambda p: args[p], self.POSITIONS))
+
     @asyncSlot()
     async def _positionChanged(self, offsets):
         args = {}
@@ -205,6 +217,7 @@ class PositionWidget(QWidget):
     def hardpointActuatorData(self, data):
         self._fillRow(self.hpVariables, data)
         self._hpData = data
+        self.copyCurrentButton.setEnabled(True)
         self._updateDiffs()
 
     @Slot(map)
