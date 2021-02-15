@@ -27,6 +27,7 @@ from PySide2.QtWidgets import (
     QHBoxLayout,
     QFormLayout,
     QDoubleSpinBox,
+    QSizePolicy,
 )
 from PySide2.QtCore import Signal
 
@@ -75,6 +76,8 @@ class DirectionPadWidget(QWidget):
             layout = QGridLayout()
 
             deltaSB = QDoubleSpinBox()
+            deltaSB.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.MinimumExpanding)
+
             if title == "Translation":
                 deltaSB.setRange(-10, 10)
                 deltaSB.setDecimals(3)
@@ -89,7 +92,7 @@ class DirectionPadWidget(QWidget):
             deltaF = QFormLayout()
             deltaF.addRow("Delta", deltaSB)
 
-            layout.addLayout(deltaF, 0, 0)
+            layout.addLayout(deltaF, 0, 0, 1, 3)
 
             layout.addWidget(
                 positionButton(
@@ -99,7 +102,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     scale,
                 ),
-                0,
+                1,
                 1,
             )
             layout.addWidget(
@@ -110,7 +113,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     -scale,
                 ),
-                2,
+                3,
                 1,
             )
             layout.addWidget(
@@ -121,7 +124,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     -scale,
                 ),
-                1,
+                2,
                 0,
             )
             layout.addWidget(
@@ -132,7 +135,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     scale,
                 ),
-                1,
+                2,
                 2,
             )
             layout.addWidget(
@@ -143,7 +146,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     scale,
                 ),
-                0,
+                1,
                 4,
             )
             layout.addWidget(
@@ -154,7 +157,7 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     -scale,
                 ),
-                2,
+                3,
                 4,
             )
 
