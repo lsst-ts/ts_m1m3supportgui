@@ -17,8 +17,18 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtWidgets import QWidget, QGridLayout, QPushButton, QStyle, QApplication
+from PySide2.QtWidgets import (
+    QWidget,
+    QGridLayout,
+    QPushButton,
+    QStyle,
+    QApplication,
+    QGroupBox,
+    QHBoxLayout,
+)
 from PySide2.QtCore import Signal
+
+import astropy.units as u
 
 __all__ = ["DirectionPadWidget"]
 
@@ -31,8 +41,6 @@ class DirectionPadWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-
-        layout = QGridLayout()
 
         self.position = [0.0] * 6
 
@@ -47,13 +55,15 @@ class DirectionPadWidget(QWidget):
 
         style = QApplication.instance().style()
 
-        def addArrows(col, indexOffset, change):
+        def addArrowsBox(title, indexOffset, change):
+            layout = QGridLayout()
+
             layout.addWidget(
                 positionButton(
                     style.standardIcon(QStyle.SP_ArrowUp), "X+", 0 + indexOffset, change
                 ),
+                0,
                 1,
-                col + 2,
             )
             layout.addWidget(
                 positionButton(
@@ -62,8 +72,8 @@ class DirectionPadWidget(QWidget):
                     0 + indexOffset,
                     -change,
                 ),
-                3,
-                col + 2,
+                2,
+                1,
             )
             layout.addWidget(
                 positionButton(
@@ -72,8 +82,8 @@ class DirectionPadWidget(QWidget):
                     1 + indexOffset,
                     -change,
                 ),
-                2,
-                col + 1,
+                1,
+                0,
             )
             layout.addWidget(
                 positionButton(
@@ -82,15 +92,15 @@ class DirectionPadWidget(QWidget):
                     1 + indexOffset,
                     change,
                 ),
+                1,
                 2,
-                col + 3,
             )
             layout.addWidget(
                 positionButton(
                     style.standardIcon(QStyle.SP_ArrowUp), "Z+", 2 + indexOffset, change
                 ),
-                1,
-                col + 4,
+                0,
+                4,
             )
             layout.addWidget(
                 positionButton(
@@ -99,11 +109,19 @@ class DirectionPadWidget(QWidget):
                     2 + indexOffset,
                     -change,
                 ),
-                3,
-                col + 4,
+                2,
+                4,
             )
 
-        addArrows(0, 0, 0.001)
-        addArrows(5, 3, 0.00024)
+            ret = QGroupBox(title)
+            ret.setLayout(layout)
+            return ret
+
+        layout = QHBoxLayout()
+        layout.addWidget(addArrowsBox("Translation", 0, (1 * u.mm).to(u.meter).value))
+        layout.addWidget(addArrowsBox("Rotation", 0, (1 * u.arcsec).to(u.rad).value))
 
         self.setLayout(layout)
+
+    def setPosition(self, position):
+        self.position = list(position)

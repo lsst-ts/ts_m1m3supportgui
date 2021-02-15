@@ -133,12 +133,16 @@ class PositionWidget(QWidget):
         row += 1
 
         self.moveMirrorButton = QPushButton("Move Mirror")
+        self.moveMirrorButton.setEnabled(False)
         self.moveMirrorButton.clicked.connect(self._moveMirror)
 
         dataLayout.addWidget(self.moveMirrorButton, row, 1, 1, 3)
 
         row += 1
-        dataLayout.addWidget(DirectionPadWidget(), row, 1, 2, 2)
+        self.dirPad = DirectionPadWidget()
+        self.dirPad.setEnabled(False)
+        self.dirPad.positionChanged.connect(self._positionChanged)
+        dataLayout.addWidget(self.dirPad, row, 1, 3, 3)
 
         self.layout.addStretch()
 
@@ -146,22 +150,46 @@ class PositionWidget(QWidget):
         self.comm.imsData.connect(self.imsData)
         self.comm.detailedState.connect(self.detailedState)
 
-    @asyncSlot()
-    async def _moveMirror(self):
-        args = {}
+    async def moveMirror(self, **kwargs):
         try:
-            for p in self.POSITIONS:
-                scale = MM2M if p[1:] == "Position" else ARCSEC2R
-                args[p] = float(getattr(self, "target_" + p).text()) * scale
-            await self.comm.MTM1M3.cmd_positionM1M3.set_start(**args)
+            await self.comm.MTM1M3.cmd_positionM1M3.set_start(**kwargs)
         except base.AckError as ackE:
             await QTHelpers.warning(
-                self, f"Error executing positionM1M3({args})", ackE.ackcmd.result,
+                self, f"Error executing positionM1M3({kwargs})", ackE.ackcmd.result,
             )
         except RuntimeError as rte:
             await QTHelpers.warning(
-                self, f"Error executing positionM1M3({args})", str(rte),
+                self, f"Error executing positionM1M3({kwargs})", str(rte),
             )
+
+    def getTargets(self):
+        args = {}
+        for p in self.POSITIONS:
+            scale = MM2M if p[1:] == "Position" else ARCSEC2R
+            args[p] = float(getattr(self, "target_" + p).text()) * scale
+        return args
+
+    def setTargets(self, targets):
+        for k, v in targets.items():
+            l = getattr(self, "target_" + k)
+            if k[1:] == "Position":
+                l.setText(f"{(v * M2MM):+01.03f}")
+            else:
+                l.setText(f"{(v * R2ARCSEC):+02.02f}")
+
+    @asyncSlot()
+    async def _moveMirror(self):
+        targets = self.getTargets()
+        self.dirPad.setPosition(map(lambda p: targets[p], self.POSITIONS))
+        await self.moveMirror(**self.getTargets())
+
+    @asyncSlot()
+    async def _positionChanged(self, offsets):
+        args = {}
+        for i in range(6):
+            args[self.POSITIONS[i]] = offsets[i]
+        self.setTargets(args)
+        await self.moveMirror(**args)
 
     def _fillRow(self, variables, data):
         for k, v in variables.items():
@@ -187,7 +215,10 @@ class PositionWidget(QWidget):
 
     @Slot(map)
     def detailedState(self, data):
-        self.moveMirrorButton.setEnabled(
-            data.detailedState
-            in (DetailedState.ACTIVEENGINEERING, DetailedState.ACTIVE)
+        enabled = data.detailedState in (
+            DetailedState.ACTIVEENGINEERING,
+            DetailedState.ACTIVE,
         )
+
+        self.moveMirrorButton.setEnabled(enabled)
+        self.dirPad.setEnabled(enabled)
