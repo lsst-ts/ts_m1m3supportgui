@@ -25,6 +25,8 @@ from PySide2.QtWidgets import (
     QApplication,
     QGroupBox,
     QHBoxLayout,
+    QFormLayout,
+    QDoubleSpinBox,
 )
 from PySide2.QtCore import Signal
 
@@ -48,19 +50,42 @@ class DirectionPadWidget(QWidget):
             self.position[index] += change
             self.positionChanged.emit(self.position)
 
-        def positionButton(icon, text, index, change):
+        def positionButton(icon, text, index, delta, deltaScale):
             but = QPushButton(icon, text)
-            but.clicked.connect(lambda: _positionChanged(index, change))
+            but.clicked.connect(
+                lambda: _positionChanged(index, delta.value() * deltaScale)
+            )
             return but
 
         style = QApplication.instance().style()
 
-        def addArrowsBox(title, indexOffset, change):
+        def addArrowsBox(title, indexOffset, scale):
             layout = QGridLayout()
+
+            deltaSB = QDoubleSpinBox()
+            if title == "Translation":
+                deltaSB.setRange(-10, 10)
+                deltaSB.setDecimals(3)
+                deltaSB.setValue(1.0)
+            else:
+                deltaSB.setRange(-300, 300)
+                deltaSB.setDecimals(2)
+                deltaSB.setValue(10.0)
+
+            setattr(self, "delta_" + title, deltaSB)
+
+            deltaF = QFormLayout()
+            deltaF.addRow("Delta", deltaSB)
+
+            layout.addLayout(deltaF, 0, 0)
 
             layout.addWidget(
                 positionButton(
-                    style.standardIcon(QStyle.SP_ArrowUp), "X+", 0 + indexOffset, change
+                    style.standardIcon(QStyle.SP_ArrowUp),
+                    "X+",
+                    0 + indexOffset,
+                    deltaSB,
+                    scale,
                 ),
                 0,
                 1,
@@ -70,7 +95,8 @@ class DirectionPadWidget(QWidget):
                     style.standardIcon(QStyle.SP_ArrowDown),
                     "X-",
                     0 + indexOffset,
-                    -change,
+                    deltaSB,
+                    -scale,
                 ),
                 2,
                 1,
@@ -80,7 +106,8 @@ class DirectionPadWidget(QWidget):
                     style.standardIcon(QStyle.SP_ArrowLeft),
                     "Y-",
                     1 + indexOffset,
-                    -change,
+                    deltaSB,
+                    -scale,
                 ),
                 1,
                 0,
@@ -90,14 +117,19 @@ class DirectionPadWidget(QWidget):
                     style.standardIcon(QStyle.SP_ArrowRight),
                     "Y+",
                     1 + indexOffset,
-                    change,
+                    deltaSB,
+                    scale,
                 ),
                 1,
                 2,
             )
             layout.addWidget(
                 positionButton(
-                    style.standardIcon(QStyle.SP_ArrowUp), "Z+", 2 + indexOffset, change
+                    style.standardIcon(QStyle.SP_ArrowUp),
+                    "Z+",
+                    2 + indexOffset,
+                    deltaSB,
+                    scale,
                 ),
                 0,
                 4,
@@ -107,7 +139,8 @@ class DirectionPadWidget(QWidget):
                     style.standardIcon(QStyle.SP_ArrowDown),
                     "Z-",
                     2 + indexOffset,
-                    -change,
+                    deltaSB,
+                    -scale,
                 ),
                 2,
                 4,
@@ -119,7 +152,7 @@ class DirectionPadWidget(QWidget):
 
         layout = QHBoxLayout()
         layout.addWidget(addArrowsBox("Translation", 0, (1 * u.mm).to(u.meter).value))
-        layout.addWidget(addArrowsBox("Rotation", 0, (1 * u.arcsec).to(u.rad).value))
+        layout.addWidget(addArrowsBox("Rotation", 3, (1 * u.arcsec).to(u.rad).value))
 
         self.setLayout(layout)
 

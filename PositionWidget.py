@@ -23,7 +23,7 @@ from PySide2.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QGridLayout,
-    QLineEdit,
+    QDoubleSpinBox,
     QPushButton,
 )
 from PySide2.QtCore import Slot
@@ -120,14 +120,18 @@ class PositionWidget(QWidget):
 
         col = 1
         for p in self.POSITIONS:
+            sb = QDoubleSpinBox()
             if p[1:] == "Position":
-                le = QLineEdit("+0.000")
-                le.setInputMask("#9.999")
+                sb.setRange(-10, 10)
+                sb.setDecimals(3)
+                sb.setSingleStep(0.001)
             else:
-                le = QLineEdit("+00.00")
-                le.setInputMask("#99.99")
-            dataLayout.addWidget(le, row, col)
-            setattr(self, "target_" + p, le)
+                sb.setRange(-300, 300)
+                sb.setDecimals(2)
+                sb.setSingleStep(0.01)
+
+            dataLayout.addWidget(sb, row, col)
+            setattr(self, "target_" + p, sb)
             col += 1
 
         row += 1
@@ -135,6 +139,7 @@ class PositionWidget(QWidget):
         self.moveMirrorButton = QPushButton("Move Mirror")
         self.moveMirrorButton.setEnabled(False)
         self.moveMirrorButton.clicked.connect(self._moveMirror)
+        self.moveMirrorButton.setDefault(True)
 
         dataLayout.addWidget(self.moveMirrorButton, row, 1, 1, 3)
 
@@ -168,20 +173,19 @@ class PositionWidget(QWidget):
                 self, f"Error executing positionM1M3({kwargs})", str(rte),
             )
 
+    def _getScale(self, label):
+        return MM2M if label[1:] == "Position" else ARCSEC2R
+
     def getTargets(self):
         args = {}
         for p in self.POSITIONS:
             scale = MM2M if p[1:] == "Position" else ARCSEC2R
-            args[p] = float(getattr(self, "target_" + p).text()) * scale
+            args[p] = getattr(self, "target_" + p).value() * self._getScale(p)
         return args
 
     def setTargets(self, targets):
         for k, v in targets.items():
-            l = getattr(self, "target_" + k)
-            if k[1:] == "Position":
-                l.setText(f"{(v * M2MM):+01.03f}")
-            else:
-                l.setText(f"{(v * R2ARCSEC):+02.02f}")
+            getattr(self, "target_" + k).setValue(v / self._getScale(k))
 
     @asyncSlot()
     async def _moveMirror(self):
