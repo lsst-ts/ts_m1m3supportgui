@@ -54,6 +54,9 @@ class PositionWidget(QWidget):
         super().__init__()
         self.comm = comm
 
+        self._hpData = None
+        self._imsData = None
+
         self.layout = QVBoxLayout()
 
         dataLayout = QGridLayout()
@@ -78,9 +81,21 @@ class PositionWidget(QWidget):
                 "zRotation": Arcsec(),
             }
 
+        def createXYZRWarning():
+            return {
+                "xPosition": MmWarning(),
+                "yPosition": MmWarning(),
+                "zPosition": MmWarning(),
+                "xRotation": ArcsecWarning(),
+                "yRotation": ArcsecWarning(),
+                "zRotation": ArcsecWarning(),
+            }
+
         self.hpVariables = createXYZR()
 
         self.imsVariables = createXYZR()
+
+        self.diffs = createXYZRWarning()
 
         def addDataRow(variables, row, col=1):
             for k, v in variables.items():
@@ -94,6 +109,10 @@ class PositionWidget(QWidget):
         row += 1
         dataLayout.addWidget(QLabel("<b>IMS</b>"), row, 0)
         addDataRow(self.imsVariables, row)
+
+        row += 1
+        dataLayout.addWidget(QLabel("<b>Diff</b>"), row, 0)
+        addDataRow(self.diffs, row)
 
         row += 1
         dataLayout.addWidget(QLabel("<b>Target</b>"), row, 0)
@@ -133,28 +152,34 @@ class PositionWidget(QWidget):
             await self.comm.MTM1M3.cmd_positionM1M3.set_start(**args)
         except base.AckError as ackE:
             await QTHelpers.warning(
-                self,
-                f"Error executing positionM1M3({args})",
-                ackE.ackcmd.result,
+                self, f"Error executing positionM1M3({args})", ackE.ackcmd.result,
             )
         except RuntimeError as rte:
             await QTHelpers.warning(
-                self,
-                f"Error executing positionM1M3({args})",
-                str(rte),
+                self, f"Error executing positionM1M3({args})", str(rte),
             )
 
     def _fillRow(self, variables, data):
         for k, v in variables.items():
             v.setValue(getattr(data, k))
 
+    def _updateDiffs(self):
+        if self._hpData is None or self._imsData is None:
+            return
+        for k, v in self.diffs.items():
+            v.setValue(getattr(self._hpData, k) - getattr(self._imsData, k))
+
     @Slot(map)
     def hardpointActuatorData(self, data):
         self._fillRow(self.hpVariables, data)
+        self._hpData = data
+        self._updateDiffs()
 
     @Slot(map)
     def imsData(self, data):
         self._fillRow(self.imsVariables, data)
+        self._imsData = data
+        self._updateDiffs()
 
     @Slot(map)
     def detailedState(self, data):
