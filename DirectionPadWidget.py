@@ -42,37 +42,68 @@ class DirectionPadWidget(QWidget):
 
         def positionButton(icon, text, index, change):
             but = QPushButton(icon, text)
-            but.clicked.connect(_positionChanged(index, change))
+            but.clicked.connect(lambda: _positionChanged(index, change))
             return but
 
-        self.x_plus = positionButton(
-            QApplication.instance().style().standardIcon(QStyle.SP_ArrowUp),
-            "X+",
-            0,
-            0.001,
-        )
-        self.x_minus = positionButton(
-            QApplication.instance().style().standardIcon(QStyle.SP_ArrowDown),
-            "X-",
-            0,
-            -0.001,
-        )
-        self.y_plus = positionButton(
-            QApplication.instance().style().standardIcon(QStyle.SP_ArrowRight),
-            "Y+",
-            1,
-            0.001,
-        )
-        self.y_minus = positionButton(
-            QApplication.instance().style().standardIcon(QStyle.SP_ArrowLeft),
-            "Y-",
-            1,
-            -0.001,
-        )
+        style = QApplication.instance().style()
 
-        layout.addWidget(self.x_plus, 1, 2)
-        layout.addWidget(self.x_minus, 3, 2)
-        layout.addWidget(self.y_plus, 2, 3)
-        layout.addWidget(self.y_minus, 2, 1)
+        def addArrows(col, indexOffset, change):
+            layout.addWidget(
+                positionButton(
+                    style.standardIcon(QStyle.SP_ArrowUp), "X+", 0 + indexOffset, change
+                ),
+                1,
+                col + 2,
+            )
+            layout.addWidget(
+                positionButton(
+                    style.standardIcon(QStyle.SP_ArrowDown),
+                    "X-",
+                    0 + indexOffset,
+                    -change,
+                ),
+                3,
+                col + 2,
+            )
+            layout.addWidget(
+                positionButton(
+                    style.standardIcon(QStyle.SP_ArrowLeft),
+                    "Y-",
+                    1 + indexOffset,
+                    -change,
+                ),
+                2,
+                col + 1,
+            )
+            layout.addWidget(
+                positionButton(
+                    style.standardIcon(QStyle.SP_ArrowRight),
+                    "Y+",
+                    1 + indexOffset,
+                    change,
+                ),
+                2,
+                col + 3,
+            )
+            layout.addWidget(
+                positionButton(
+                    style.standardIcon(QStyle.SP_ArrowUp), "Z+", 2 + indexOffset, change
+                ),
+                1,
+                col + 4,
+            )
+            layout.addWidget(
+                positionButton(
+                    style.standardIcon(QStyle.SP_ArrowDown),
+                    "Z-",
+                    2 + indexOffset,
+                    -change,
+                ),
+                3,
+                col + 4,
+            )
+
+        addArrows(0, 0, 0.001)
+        addArrows(5, 3, 0.00024)
 
         self.setLayout(layout)
