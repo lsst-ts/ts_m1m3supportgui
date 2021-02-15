@@ -31,6 +31,7 @@ from asyncqt import asyncSlot
 
 from CustomLabels import *
 from UnitsConversions import *
+from DirectionPadWidget import *
 
 from lsst.ts.salobj import base
 from lsst.ts.idl.enums.MTM1M3 import DetailedState
@@ -135,6 +136,9 @@ class PositionWidget(QWidget):
         self.moveMirrorButton.clicked.connect(self._moveMirror)
 
         dataLayout.addWidget(self.moveMirrorButton, row, 1, 1, 3)
+
+        row += 1
+        dataLayout.addWidget(DirectionPadWidget(), row, 1, 2, 2)
 
         self.layout.addStretch()
 
