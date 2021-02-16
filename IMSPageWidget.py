@@ -1,8 +1,9 @@
 import QTHelpers
 import TimeChart
-import math
+from UnitsConversions import *
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
+from CustomLabels import Mm, Arcsec
 
 
 class IMSPageWidget(QWidget):
@@ -28,12 +29,12 @@ class IMSPageWidget(QWidget):
         self.rawNegativeXTangentLabel = QLabel("UNKNOWN")
         self.rawPositiveYAxialLabel = QLabel("UNKNOWN")
         self.rawPositiveYTangentLabel = QLabel("UNKNOWN")
-        self.xPositionLabel = QLabel("UNKNOWN")
-        self.yPositionLabel = QLabel("UNKNOWN")
-        self.zPositionLabel = QLabel("UNKNOWN")
-        self.xRotationLabel = QLabel("UNKNOWN")
-        self.yRotationLabel = QLabel("UNKNOWN")
-        self.zRotationLabel = QLabel("UNKNOWN")
+        self.xPositionLabel = Mm()
+        self.yPositionLabel = Mm()
+        self.zPositionLabel = Mm()
+        self.xRotationLabel = Arcsec()
+        self.yRotationLabel = Arcsec()
+        self.zRotationLabel = Arcsec()
 
         self.anyWarningLabel = QLabel("UNKNOWN")
         self.sensorReportsInvalidCommandLabel = QLabel("UNKNOWN")
@@ -63,12 +64,12 @@ class IMSPageWidget(QWidget):
         self.dataLayout.addWidget(QLabel("Y"), row, col + 2)
         self.dataLayout.addWidget(QLabel("Z"), row, col + 3)
         row += 1
-        self.dataLayout.addWidget(QLabel("Position (mm)"), row, col)
+        self.dataLayout.addWidget(QLabel("Position"), row, col)
         self.dataLayout.addWidget(self.xPositionLabel, row, col + 1)
         self.dataLayout.addWidget(self.yPositionLabel, row, col + 2)
         self.dataLayout.addWidget(self.zPositionLabel, row, col + 3)
         row += 1
-        self.dataLayout.addWidget(QLabel("Rotation (deg)"), row, col)
+        self.dataLayout.addWidget(QLabel("Rotation"), row, col)
         self.dataLayout.addWidget(self.xRotationLabel, row, col + 1)
         self.dataLayout.addWidget(self.yRotationLabel, row, col + 2)
         self.dataLayout.addWidget(self.zRotationLabel, row, col + 3)
@@ -165,7 +166,6 @@ class IMSPageWidget(QWidget):
         self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
         self.comm.imsData.connect(self.imsData)
 
-
     @Slot(bool)
     def displacementSensorWarning(self, anyWarning):
         QTHelpers.setWarningLabel(self.anyWarningLabel, anyWarning)
@@ -194,12 +194,12 @@ class IMSPageWidget(QWidget):
         self.rawNegativeXTangentLabel.setText("%0.3f" % (data.rawSensorData[5]))
         self.rawPositiveYAxialLabel.setText("%0.3f" % (data.rawSensorData[6]))
         self.rawPositiveYTangentLabel.setText("%0.3f" % (data.rawSensorData[7]))
-        self.xPositionLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-        self.yPositionLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-        self.zPositionLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-        self.xRotationLabel.setText("%0.3f" % (math.degrees(data.xRotation)))
-        self.yRotationLabel.setText("%0.3f" % (math.degrees(data.yRotation)))
-        self.zRotationLabel.setText("%0.3f" % (math.degrees(data.zRotation)))
+        self.xPositionLabel.setValue(data.xPosition)
+        self.yPositionLabel.setValue(data.yPosition)
+        self.zPositionLabel.setValue(data.zPosition)
+        self.xRotationLabel.setValue(data.xRotation)
+        self.yRotationLabel.setValue(data.yRotation)
+        self.zRotationLabel.setValue(data.zRotation)
 
         self.rawChart.append(
             data.timestamp,
@@ -218,11 +218,11 @@ class IMSPageWidget(QWidget):
         self.posChart.append(
             data.timestamp,
             [
-                ("Position (mm)", "X", data.xPosition * 1000),
-                ("Position (mm)", "Y", data.yPosition * 1000),
-                ("Position (mm)", "Z", data.zPosition * 1000),
-                ("Rotation (deg)", "X", math.degrees(data.xRotation)),
-                ("Rotation (deg)", "Y", math.degrees(data.yRotation)),
-                ("Rotation (deg)", "Z", math.degrees(data.zRotation)),
+                ("Position (mm)", "X", data.xPosition * M2MM),
+                ("Position (mm)", "Y", data.yPosition * M2MM),
+                ("Position (mm)", "Z", data.zPosition * M2MM),
+                ("Rotation (arcsec)", "X", data.xRotation * R2ARCSEC),
+                ("Rotation (arcsec)", "Y", data.yRotation * R2ARCSEC),
+                ("Rotation (arcsec)", "Z", data.zRotation * R2ARCSEC),
             ],
         )

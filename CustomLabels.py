@@ -20,7 +20,15 @@
 from PySide2.QtWidgets import QLabel
 import astropy.units as u
 
-__all__ = ["UnitLabel", "Force", "Mm", "WarningLabel"]
+__all__ = [
+    "UnitLabel",
+    "Force",
+    "Mm",
+    "Arcsec",
+    "ArcsecWarning",
+    "MmWarning",
+    "WarningLabel",
+]
 
 
 class UnitLabel(QLabel):
@@ -35,16 +43,37 @@ class UnitLabel(QLabel):
         Variable unit. Default is None - no unit
     convert : `astropy.units`, optional
         Convert values to this unit. Default is None - no unit. If provided, unit must be provided as well.
+    is_warn_func : `func`, optional
+        Function evaluated on each value. If true is returned, value is assumed to be in warning range and will be color coded (displayed in yellow text). Default is None - no color coded warning value.
+    is_err_func : `func`, optional
+        Function evaluated on each value. If true is returned, value is assumed to be in warning range and will be color coded (displayed in yellow text). Default is None - no color coded error value.
     """
 
-    def __init__(self, fmt="d", unit=None, convert=None):
+    def __init__(
+        self, fmt="d", unit=None, convert=None, is_warn_func=None, is_err_func=None
+    ):
         super().__init__()
         self.fmt = fmt
+        if convert is not None:
+            if unit is None:
+                raise RuntimeError("Cannot specify conversion without input units!")
+            self.scale = unit.to(convert)
+            self.unit_name = " " + convert.name
+        elif unit is not None:
+            self.scale = 1
+            self.unit_name = " " + unit.name
+        else:
+            self.scale = 1
+            self.unit_name = ""
         self.unit = unit
         self.convert = convert
+        self.is_warn_func = is_warn_func
+        self.is_err_func = is_err_func
 
     def __copy__(self):
-        return UnitLabel(self.fmt, self.unit, self.convert)
+        return UnitLabel(
+            self.fmt, self.unit, self.convert, self.is_warn_func, self.is_err_func
+        )
 
     def setValue(self, value):
         """Sets value. Transformation and formatting is done according to unit, convert and fmt constructor arguments.
@@ -54,12 +83,13 @@ class UnitLabel(QLabel):
         value : `float`
             Current (=to be displayed) variable value.
         """
-        if self.convert is not None:
-            self.setText(f"{((value * self.unit).to(self.convert)):{self.fmt}}")
-        elif self.unit is not None:
-            self.setText(f"{(value * self.unit):{self.fmt}}")
+        text = f"{(value * self.scale):{self.fmt}}{self.unit_name}"
+        if self.is_err_func is not None and self.is_err_func(value):
+            self.setText("<font color='red'>" + text + "</font>")
+        elif self.is_warn_func is not None and self.is_warn_func(value):
+            self.setText("<font color='yellow'>" + text + "</font>")
         else:
-            self.setText(f"{value:{self.fmt}}")
+            self.setText(text)
 
 
 class Force(UnitLabel):
@@ -84,8 +114,72 @@ class Mm(UnitLabel):
         Float formatting. Defaults to .04f.
     """
 
-    def __init__(self, fmt=".04f"):
-        super().__init__(fmt, u.meter, u.mm)
+    def __init__(self, fmt=".04f", is_warn_func=None, is_err_func=None):
+        super().__init__(fmt, u.meter, u.mm, is_warn_func, is_err_func)
+
+
+class MmWarning(Mm):
+    """Display meters as mm (millimeters). Shows values above threshold as
+    error / fault.
+
+    Parameters
+    ----------
+    fmt : `str`, optional
+        Float formatting. Defaults to .04f.
+    warning_threshold : `float`
+        If abs(value) is above the threshold, display value as warning (yellow text).
+    error_threshold : `float`
+        If abs(value) is above the threshold, display value as error (red text). 
+    """
+
+    def __init__(
+        self,
+        fmt=".04f",
+        warning_threshold=(4 * u.um).to(u.meter).value,
+        error_threshold=(8 * u.um).to(u.meter).value,
+    ):
+        super().__init__(
+            fmt,
+            lambda v: abs(v) > warning_threshold,
+            lambda v: abs(v) > error_threshold,
+        )
+
+
+class Arcsec(UnitLabel):
+    """Display radians as arcseconds.
+
+    Parameters
+    ----------
+    fmt : `str`, optional
+        Float formatting. Defaults to .02f.
+    """
+
+    def __init__(self, fmt="0.02f", is_warn_func=None, is_err_func=None):
+        super().__init__(fmt, u.rad, u.arcsec, is_warn_func, is_err_func)
+
+
+class ArcsecWarning(Arcsec):
+    """Display radians as arcseconds.
+
+    Parameters
+    ----------
+    fmt : `str`, optional
+        Float formatting. Defaults to 0.02f.
+    warning_threshold : `float`
+        If abs(value) is above the threshold, display value as warning (yellow text).
+    error_threshold : `float`
+        If abs(value) is above the threshold, display value as error (red text). 
+    """
+
+    def __init__(
+        self,
+        fmt="0.02f",
+        warning_level=(0.73 * u.arcsec).to(u.rad).value,
+        error_level=(1.45 * u.arcsec).to(u.rad).value,
+    ):
+        super().__init__(
+            fmt, lambda v: abs(v) > warning_level, lambda v: abs(v) > error_level
+        )
 
 
 class WarningLabel(QLabel):

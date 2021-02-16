@@ -77,10 +77,8 @@ class SALLogWidget(QWidget):
 
         self.comm.logLevel.connect(self.logLevel)
 
-
     def _levelToIndex(self, level):
         return min(int(level / 10), 5)
-
 
     @Slot()
     def setMaxBlock(self, i):
