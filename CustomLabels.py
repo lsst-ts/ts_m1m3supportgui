@@ -159,7 +159,8 @@ class Arcsec(UnitLabel):
 
 
 class ArcsecWarning(Arcsec):
-    """Display degrees as arcseconds.
+    """Display degrees as arcseconds. Shows values above threshold as error /
+    fault.
 
     Parameters
     ----------
