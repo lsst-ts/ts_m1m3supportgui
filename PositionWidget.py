@@ -164,7 +164,7 @@ class PositionWidget(QWidget):
         self.dirPad = DirectionPadWidget()
         self.dirPad.setEnabled(False)
         self.dirPad.positionChanged.connect(self._positionChanged)
-        dataLayout.addWidget(self.dirPad, row, 1, 3, 3)
+        dataLayout.addWidget(self.dirPad, row, 1, 3, 6)
 
         self.layout.addStretch()
 
