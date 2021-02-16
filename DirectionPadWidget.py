@@ -41,7 +41,10 @@ class DirectionPadWidget(QWidget):
 
     Shows buttons to translate and rotate shape in 3D space. Translation is in
     meters, with step size set in mm. Rotation is set in radians, with step
-    size in arcseconds.
+    size in arcseconds. Defaults are reasonable for mirror movement - 1mm step
+    in translation, and 10 arcsec step in rotation. Ranges are assumed to be
+    7mm for translation (M1M3 maximum is 6mm) and 60arcsec for rotation (where
+    max range is about 1arcmin).
     """
 
     """Emitted when user push a button/changes target position. Only parameter
@@ -79,11 +82,11 @@ class DirectionPadWidget(QWidget):
             deltaSB.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.MinimumExpanding)
 
             if title == "Translation":
-                deltaSB.setRange(-10, 10)
+                deltaSB.setRange(-7, 7)
                 deltaSB.setDecimals(3)
                 deltaSB.setValue(1.0)
             else:
-                deltaSB.setRange(-300, 300)
+                deltaSB.setRange(-60, 60)
                 deltaSB.setDecimals(2)
                 deltaSB.setValue(10.0)
 
@@ -166,8 +169,8 @@ class DirectionPadWidget(QWidget):
             return ret
 
         layout = QHBoxLayout()
-        layout.addWidget(addArrowsBox("Translation", 0, (1 * u.mm).to(u.meter).value))
-        layout.addWidget(addArrowsBox("Rotation", 3, (1 * u.arcsec).to(u.rad).value))
+        layout.addWidget(addArrowsBox("Translation", 0, u.mm.to(u.meter)))
+        layout.addWidget(addArrowsBox("Rotation", 3, u.arcsec.to(u.rad)))
 
         self.setLayout(layout)
 

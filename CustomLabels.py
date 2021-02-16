@@ -54,11 +54,11 @@ class UnitLabel(QLabel):
     ):
         super().__init__()
         self.fmt = fmt
-        if convert is not None and unit is not None:
-            self.scale = (1 * unit).to(convert).value
+        if convert is not None:
+            if unit is None:
+                raise RuntimeError("Cannot specify conversion without input units!")
+            self.scale = unit.to(convert)
             self.unit_name = " " + convert.name
-        elif convert is not None and unit is None:
-            raise RuntimeError("Cannot specify conversion without input units!")
         elif unit is not None:
             self.scale = 1
             self.unit_name = " " + unit.name
@@ -71,7 +71,9 @@ class UnitLabel(QLabel):
         self.is_err_func = is_err_func
 
     def __copy__(self):
-        return UnitLabel(self.fmt, self.unit, self.convert)
+        return UnitLabel(
+            self.fmt, self.unit, self.convert, self.is_warn_func, self.is_err_func
+        )
 
     def setValue(self, value):
         """Sets value. Transformation and formatting is done according to unit, convert and fmt constructor arguments.
