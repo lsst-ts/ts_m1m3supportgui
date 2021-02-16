@@ -53,33 +53,33 @@ class OverviewPageWidget(QWidget):
                 "forceMagnitude": Force(),
             }
 
-        def addDataRow(variables, row, col=1):
+        def createXYR():
+            return {
+                "xPosition": Mm(),
+                "yPosition": Mm(),
+                "zPosition": Mm(),
+                "xRotation": Arcsec(),
+                "yRotation": Arcsec(),
+                "zRotation": Arcsec(),
+            }
+
+        def addLabelRow(labels, row, col):
+            for l in labels:
+                dataLayout.addWidget(QLabel(f"<b>{l}</b>"), row, col)
+                col += 1
+
+        def addDataRow(variables, row, col):
             for k, v in variables.items():
                 dataLayout.addWidget(v, row, col)
                 col += 1
 
         self.faCommanded = createForces()
         self.faMeasured = createForces()
+        self.hpMeasured = createForces()
 
-        self.hpMeasuredXLabel = QLabel("UNKNOWN")
-        self.hpMeasuredYLabel = QLabel("UNKNOWN")
-        self.hpMeasuredZLabel = QLabel("UNKNOWN")
-        self.hpMeasuredMxLabel = QLabel("UNKNOWN")
-        self.hpMeasuredMyLabel = QLabel("UNKNOWN")
-        self.hpMeasuredMzLabel = QLabel("UNKNOWN")
-        self.hpMeasuredMagLabel = QLabel("UNKNOWN")
-        self.hpPositionXLabel = QLabel("UNKNOWN")
-        self.hpPositionYLabel = QLabel("UNKNOWN")
-        self.hpPositionZLabel = QLabel("UNKNOWN")
-        self.hpPositionRxLabel = QLabel("UNKNOWN")
-        self.hpPositionRyLabel = QLabel("UNKNOWN")
-        self.hpPositionRzLabel = QLabel("UNKNOWN")
-        self.imsPositionXLabel = QLabel("UNKNOWN")
-        self.imsPositionYLabel = QLabel("UNKNOWN")
-        self.imsPositionZLabel = QLabel("UNKNOWN")
-        self.imsPositionRxLabel = QLabel("UNKNOWN")
-        self.imsPositionRyLabel = QLabel("UNKNOWN")
-        self.imsPositionRzLabel = QLabel("UNKNOWN")
+        self.hpPosition = createXYR()
+        self.imsPosition = createXYR()
+
         self.accelationXLabel = QLabel("UNKNOWN")
         self.accelationYLabel = QLabel("UNKNOWN")
         self.accelationZLabel = QLabel("UNKNOWN")
@@ -144,13 +144,7 @@ class OverviewPageWidget(QWidget):
         row = 0
         col = 2
         dataLayout.addWidget(QLabel("<b>Forces</b>"), row, col)
-        dataLayout.addWidget(QLabel("<b>X</b>"), row, col + 1)
-        dataLayout.addWidget(QLabel("<b>Y</b>"), row, col + 2)
-        dataLayout.addWidget(QLabel("<b>Z</b>"), row, col + 3)
-        dataLayout.addWidget(QLabel("<b>Mx</b>"), row, col + 4)
-        dataLayout.addWidget(QLabel("<b>My</b>"), row, col + 5)
-        dataLayout.addWidget(QLabel("<b>Mz</b>"), row, col + 6)
-        dataLayout.addWidget(QLabel("<b>Mag</b>"), row, col + 7)
+        addLabelRow(["X", "Y", "Z", "Mx", "My", "Mz", "Magnitude"], row, col + 1)
 
         row += 1
         dataLayout.addWidget(QLabel("<b>Commanded</b>"), row, col)
@@ -161,38 +155,21 @@ class OverviewPageWidget(QWidget):
         addDataRow(self.faMeasured, row, col + 1)
 
         row += 1
-        dataLayout.addWidget(QLabel("Hardpoints"), row, col)
-        dataLayout.addWidget(self.hpMeasuredXLabel, row, col + 1)
-        dataLayout.addWidget(self.hpMeasuredYLabel, row, col + 2)
-        dataLayout.addWidget(self.hpMeasuredZLabel, row, col + 3)
-        dataLayout.addWidget(self.hpMeasuredMxLabel, row, col + 4)
-        dataLayout.addWidget(self.hpMeasuredMyLabel, row, col + 5)
-        dataLayout.addWidget(self.hpMeasuredMzLabel, row, col + 6)
-        dataLayout.addWidget(self.hpMeasuredMagLabel, row, col + 7)
+        dataLayout.addWidget(QLabel("<b>Hardpoints</b>"), row, col)
+        addDataRow(self.hpMeasured, row, col + 1)
+
         row += 1
-        dataLayout.addWidget(QLabel("Mirror Position"), row, col)
-        dataLayout.addWidget(QLabel("X (mm)"), row, col + 1)
-        dataLayout.addWidget(QLabel("Y (mm)"), row, col + 2)
-        dataLayout.addWidget(QLabel("Z (mm)"), row, col + 3)
-        dataLayout.addWidget(QLabel("Rx (mrad)"), row, col + 4)
-        dataLayout.addWidget(QLabel("Ry (mrad)"), row, col + 5)
-        dataLayout.addWidget(QLabel("Rz (mrad)"), row, col + 6)
+        dataLayout.addWidget(QLabel("<b>Mirror Position</b>"), row, col)
+        addLabelRow(["X", "Y", "Z", "Rx", "Ry", "Rz"], row, col + 1)
+
         row += 1
-        dataLayout.addWidget(QLabel("Hardpoints"), row, col)
-        dataLayout.addWidget(self.hpPositionXLabel, row, col + 1)
-        dataLayout.addWidget(self.hpPositionYLabel, row, col + 2)
-        dataLayout.addWidget(self.hpPositionZLabel, row, col + 3)
-        dataLayout.addWidget(self.hpPositionRxLabel, row, col + 4)
-        dataLayout.addWidget(self.hpPositionRyLabel, row, col + 5)
-        dataLayout.addWidget(self.hpPositionRzLabel, row, col + 6)
+        dataLayout.addWidget(QLabel("<b>Hardpoints</b>"), row, col)
+        addDataRow(self.hpPosition, row, col + 1)
+
         row += 1
-        dataLayout.addWidget(QLabel("IMS"), row, col)
-        dataLayout.addWidget(self.imsPositionXLabel, row, col + 1)
-        dataLayout.addWidget(self.imsPositionYLabel, row, col + 2)
-        dataLayout.addWidget(self.imsPositionZLabel, row, col + 3)
-        dataLayout.addWidget(self.imsPositionRxLabel, row, col + 4)
-        dataLayout.addWidget(self.imsPositionRyLabel, row, col + 5)
-        dataLayout.addWidget(self.imsPositionRzLabel, row, col + 6)
+        dataLayout.addWidget(QLabel("<b>IMS</b>"), row, col)
+        addDataRow(self.imsPosition, row, col + 1)
+
         row += 1
         dataLayout.addWidget(QLabel("Angular Acceleration"), row, col)
         dataLayout.addWidget(QLabel("X (?)"), row, col + 1)
@@ -353,28 +330,12 @@ class OverviewPageWidget(QWidget):
 
     @Slot(map)
     def hardpointActuatorData(self, data):
-        self.hpPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-        self.hpPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-        self.hpPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-        self.hpPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
-        self.hpPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
-        self.hpPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
-        self.hpMeasuredXLabel.setText("%0.3f" % (data.fx))
-        self.hpMeasuredYLabel.setText("%0.3f" % (data.fy))
-        self.hpMeasuredZLabel.setText("%0.3f" % (data.fz))
-        self.hpMeasuredMxLabel.setText("%0.3f" % (data.mx))
-        self.hpMeasuredMyLabel.setText("%0.3f" % (data.my))
-        self.hpMeasuredMzLabel.setText("%0.3f" % (data.mz))
-        self.hpMeasuredMagLabel.setText("%0.3f" % (data.forceMagnitude))
+        self._setValues(self.hpMeasured, data)
+        self._setValues(self.hpPosition, data)
 
     @Slot(map)
     def imsData(self, data):
-        self.imsPositionXLabel.setText("%0.3f" % (data.xPosition * 1000.0))
-        self.imsPositionYLabel.setText("%0.3f" % (data.yPosition * 1000.0))
-        self.imsPositionZLabel.setText("%0.3f" % (data.zPosition * 1000.0))
-        self.imsPositionRxLabel.setText("%0.3f" % (data.xRotation * 1000.0))
-        self.imsPositionRyLabel.setText("%0.3f" % (data.yRotation * 1000.0))
-        self.imsPositionRzLabel.setText("%0.3f" % (data.zRotation * 1000.0))
+        self._setValues(self.imsPosition, data)
 
     @Slot(map)
     def inclinometerData(self, data):
