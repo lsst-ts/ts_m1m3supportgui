@@ -52,7 +52,7 @@ class UnitLabel(QLabel):
     def __init__(
         self, fmt="d", unit=None, convert=None, is_warn_func=None, is_err_func=None
     ):
-        super().__init__()
+        super().__init__("---")
         self.fmt = fmt
         if convert is not None:
             if unit is None:
