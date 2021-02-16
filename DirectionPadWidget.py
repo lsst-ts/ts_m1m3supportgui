@@ -40,7 +40,7 @@ class DirectionPadWidget(QWidget):
     """Widget displaying direction pad - allows to move and rotate XYZ.
 
     Shows buttons to translate and rotate shape in 3D space. Translation is in
-    meters, with step size set in mm. Rotation is set in radians, with step
+    meters, with step size set in mm. Rotation is set in degrees, with step
     size in arcseconds. Defaults are reasonable for mirror movement - 1mm step
     in translation, and 10 arcsec step in rotation. Ranges are assumed to be
     7mm for translation (M1M3 maximum is 6mm) and 60arcsec for rotation (where
@@ -107,7 +107,6 @@ class DirectionPadWidget(QWidget):
                 ),
                 1,
                 1,
-                1,
             )
             layout.addWidget(
                 positionButton(
@@ -139,7 +138,6 @@ class DirectionPadWidget(QWidget):
                     deltaSB,
                     scale,
                 ),
-                2,
                 2,
                 2,
             )

@@ -135,8 +135,8 @@ class MmWarning(Mm):
     def __init__(
         self,
         fmt=".04f",
-        warning_threshold=(4 * u.um).to(u.meter).value,
-        error_threshold=(8 * u.um).to(u.meter).value,
+        warning_threshold=4 * u.um.to(u.meter),
+        error_threshold=8 * u.um.to(u.meter),
     ):
         super().__init__(
             fmt,
@@ -174,48 +174,13 @@ class ArcsecWarning(Arcsec):
     def __init__(
         self,
         fmt="0.02f",
-        warning_level=(0.73 * u.arcsec).to(u.deg).value,
-        error_level=(1.45 * u.arcsec).to(u.deg).value,
+        warning_threshold=0.73 * u.arcsec.to(u.deg),
+        error_threshold=1.45 * u.arcsec.to(u.deg),
     ):
         super().__init__(
-            fmt, lambda v: abs(v) > warning_threshold, lambda v: abs(v) > error_threshold
-        )
-
-
-class Arcsec(UnitLabel):
-    """Display radians as arcseconds.
-
-    Parameters
-    ----------
-    fmt : `str`, optional
-        Float formatting. Defaults to .02f.
-    """
-
-    def __init__(self, fmt="0.02f", is_warn_func=None, is_err_func=None):
-        super().__init__(fmt, u.rad, u.arcsec, is_warn_func, is_err_func)
-
-
-class ArcsecWarning(Arcsec):
-    """Display radians as arcseconds.
-
-    Parameters
-    ----------
-    fmt : `str`, optional
-        Float formatting. Defaults to 0.02f.
-    warning_threshold : `float`
-        If abs(value) is above the threshold, display value as warning (yellow text).
-    error_threshold : `float`
-        If abs(value) is above the threshold, display value as error (red text). 
-    """
-
-    def __init__(
-        self,
-        fmt="0.02f",
-        warning_level=(0.73 * u.arcsec).to(u.rad).value,
-        error_level=(1.45 * u.arcsec).to(u.rad).value,
-    ):
-        super().__init__(
-            fmt, lambda v: abs(v) > warning_level, lambda v: abs(v) > error_level
+            fmt,
+            lambda v: abs(v) > warning_threshold,
+            lambda v: abs(v) > error_threshold,
         )
 
 
