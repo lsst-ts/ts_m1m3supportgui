@@ -42,14 +42,14 @@ class OverviewPageWidget(QWidget):
         self.cellLightWarningLabel = QLabel("UNKNOWN")
         self.heartbeatLabel = QLabel("UNKNOWN")
 
-        def createForces():
+        def createForcesAndMoments():
             return {
                 "fx": Force(),
                 "fy": Force(),
                 "fz": Force(),
-                "mx": Force(),
-                "my": Force(),
-                "mz": Force(),
+                "mx": Moment(),
+                "my": Moment(),
+                "mz": Moment(),
                 "forceMagnitude": Force(),
             }
 
@@ -73,9 +73,9 @@ class OverviewPageWidget(QWidget):
                 dataLayout.addWidget(v, row, col)
                 col += 1
 
-        self.faCommanded = createForces()
-        self.faMeasured = createForces()
-        self.hpMeasured = createForces()
+        self.faCommanded = createForcesAndMoments()
+        self.faMeasured = createForcesAndMoments()
+        self.hpMeasured = createForcesAndMoments()
 
         self.hpPosition = createXYR()
         self.imsPosition = createXYR()

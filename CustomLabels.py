@@ -23,6 +23,7 @@ import astropy.units as u
 __all__ = [
     "UnitLabel",
     "Force",
+    "Moment",
     "Mm",
     "Arcsec",
     "ArcsecWarning",
@@ -58,10 +59,10 @@ class UnitLabel(QLabel):
             if unit is None:
                 raise RuntimeError("Cannot specify conversion without input units!")
             self.scale = unit.to(convert)
-            self.unit_name = " " + convert.name
+            self.unit_name = " " + convert.to_string()
         elif unit is not None:
             self.scale = 1
-            self.unit_name = " " + unit.name
+            self.unit_name = " " + unit.to_string()
         else:
             self.scale = 1
             self.unit_name = ""
@@ -105,6 +106,19 @@ class Force(UnitLabel):
         super().__init__(fmt, u.N)
 
 
+class Moment(UnitLabel):
+    """Displays moment in N*m (Newtons meters).
+
+    Parameters
+    ----------
+    fmt : `str`, optional
+        Float formatting. Defaults to .02f.
+    """
+
+    def __init__(self, fmt=".02f"):
+        super().__init__(fmt, u.N * u.m)
+
+
 class Mm(UnitLabel):
     """Display meters as mm (millimeters).
 
@@ -126,10 +140,12 @@ class MmWarning(Mm):
     ----------
     fmt : `str`, optional
         Float formatting. Defaults to .04f.
-    warning_threshold : `float`
-        If abs(value) is above the threshold, display value as warning (yellow text).
-    error_threshold : `float`
-        If abs(value) is above the threshold, display value as error (red text). 
+    warning_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as warning (yellow
+        text). Defaults to 4 microns, half allowed deviation.
+    error_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as error (red
+        text). Defaults to 8 microns, full sensor error budget.
     """
 
     def __init__(
@@ -166,10 +182,13 @@ class ArcsecWarning(Arcsec):
     ----------
     fmt : `str`, optional
         Float formatting. Defaults to 0.02f.
-    warning_threshold : `float`
-        If abs(value) is above the threshold, display value as warning (yellow text).
-    error_threshold : `float`
-        If abs(value) is above the threshold, display value as error (red text). 
+    warning_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as warning (yellow
+        text). Defaults to 0.73 arcsecond, half of the allowed measurement error.
+
+    error_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as error (red
+        text).  Defaults to 1.45 arcseconds, full measurement error budget.
     """
 
     def __init__(
