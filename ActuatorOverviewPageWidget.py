@@ -377,5 +377,5 @@ class ActuatorOverviewPageWidget(QWidget):
     def forceActuatorState(self, data):
         self.chartPercentage.append(
             data.timestamp,
-            [("Percentage", "Support Percentage", data.supportPercentage * 100)],
+            [("Percentage", "Support Percentage", data.supportPercentage)],
         )

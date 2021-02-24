@@ -193,7 +193,7 @@ class PositionWidget(QWidget):
             )
 
     def _getScale(self, label):
-        return MM2M if label[1:] == "Position" else ARCSEC2R
+        return MM2M if label[1:] == "Position" else ARCSEC2D
 
     def getTargets(self):
         """Return current target values (from form target box).
@@ -202,11 +202,11 @@ class PositionWidget(QWidget):
         -------
         args : `dict`
             Current target values. Contains POSITIONS keys. In default units
-            (mm, rad).
+            (mm, degrees).
         """
         args = {}
         for p in self.POSITIONS:
-            scale = MM2M if p[1:] == "Position" else ARCSEC2R
+            scale = MM2M if p[1:] == "Position" else ARCSEC2D
             args[p] = getattr(self, "target_" + p).value() * self._getScale(p)
         return args
 

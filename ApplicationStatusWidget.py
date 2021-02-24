@@ -58,11 +58,11 @@ class ApplicationStatusWidget(QWidget):
             detailedData.detailedState == MTM1M3.DetailedState.RAISING
             or detailedData.detailedState == MTM1M3.DetailedState.RAISINGENGINEERING
         ):
-            if data.supportPercentage >= 1:
+            if data.supportPercentage >= 100:
                 self.mirrorStateLabel.setText("Raising - positioning hardpoints")
             else:
                 self.mirrorStateLabel.setText(
-                    f"Raising ({data.supportPercentage * 100:.02f}%)"
+                    f"Raising ({data.supportPercentage:.02f}%)"
                 )
         elif (
             detailedData.detailedState == MTM1M3.DetailedState.LOWERING
@@ -72,11 +72,11 @@ class ApplicationStatusWidget(QWidget):
                 self.mirrorStateLabel.setText("Lowering - positioning hardpoints")
             else:
                 self.mirrorStateLabel.setText(
-                    f"Lowering ({data.supportPercentage * 100:.02f}%)"
+                    f"Lowering ({data.supportPercentage:.02f}%)"
                 )
         elif detailedData.detailedState == MTM1M3.DetailedState.LOWERINGFAULT:
             self.mirrorStateLabel.setText(
-                f"Lowering (fault, {data.supportPercentage * 100:.02f}%)"
+                f"Lowering (fault, {data.supportPercentage:.02f}%)"
             )
         else:
             self._disconnectRaiseLowering()
@@ -126,7 +126,7 @@ class ApplicationStatusWidget(QWidget):
             self._disconnectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.RAISING:
             modeStateText = "Automatic"
-            mirrorStateText = f"Raising ({self.comm.MTM1M3.evt_forceActuatorState.get().supportPercentage * 100:.03f}%)"
+            mirrorStateText = f"Raising ({self.comm.MTM1M3.evt_forceActuatorState.get().supportPercentage:.03f}%)"
             self._connectRaiseLowering()
         elif data.detailedState == MTM1M3.DetailedState.ACTIVE:
             modeStateText = "Automatic"

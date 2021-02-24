@@ -23,6 +23,7 @@ import astropy.units as u
 __all__ = [
     "UnitLabel",
     "Force",
+    "Moment",
     "Mm",
     "Arcsec",
     "ArcsecWarning",
@@ -52,16 +53,16 @@ class UnitLabel(QLabel):
     def __init__(
         self, fmt="d", unit=None, convert=None, is_warn_func=None, is_err_func=None
     ):
-        super().__init__()
+        super().__init__("---")
         self.fmt = fmt
         if convert is not None:
             if unit is None:
                 raise RuntimeError("Cannot specify conversion without input units!")
             self.scale = unit.to(convert)
-            self.unit_name = " " + convert.name
+            self.unit_name = " " + convert.to_string()
         elif unit is not None:
             self.scale = 1
-            self.unit_name = " " + unit.name
+            self.unit_name = " " + unit.to_string()
         else:
             self.scale = 1
             self.unit_name = ""
@@ -105,6 +106,19 @@ class Force(UnitLabel):
         super().__init__(fmt, u.N)
 
 
+class Moment(UnitLabel):
+    """Displays moment in N*m (Newtons meters).
+
+    Parameters
+    ----------
+    fmt : `str`, optional
+        Float formatting. Defaults to .02f.
+    """
+
+    def __init__(self, fmt=".02f"):
+        super().__init__(fmt, u.N * u.m)
+
+
 class Mm(UnitLabel):
     """Display meters as mm (millimeters).
 
@@ -126,17 +140,19 @@ class MmWarning(Mm):
     ----------
     fmt : `str`, optional
         Float formatting. Defaults to .04f.
-    warning_threshold : `float`
-        If abs(value) is above the threshold, display value as warning (yellow text).
-    error_threshold : `float`
-        If abs(value) is above the threshold, display value as error (red text). 
+    warning_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as warning (yellow
+        text). Defaults to 4 microns, half allowed deviation.
+    error_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as error (red
+        text). Defaults to 8 microns, full sensor error budget.
     """
 
     def __init__(
         self,
         fmt=".04f",
-        warning_threshold=(4 * u.um).to(u.meter).value,
-        error_threshold=(8 * u.um).to(u.meter).value,
+        warning_threshold=4 * u.um.to(u.meter),
+        error_threshold=8 * u.um.to(u.meter),
     ):
         super().__init__(
             fmt,
@@ -146,7 +162,7 @@ class MmWarning(Mm):
 
 
 class Arcsec(UnitLabel):
-    """Display radians as arcseconds.
+    """Display degrees as arcseconds.
 
     Parameters
     ----------
@@ -155,30 +171,36 @@ class Arcsec(UnitLabel):
     """
 
     def __init__(self, fmt="0.02f", is_warn_func=None, is_err_func=None):
-        super().__init__(fmt, u.rad, u.arcsec, is_warn_func, is_err_func)
+        super().__init__(fmt, u.deg, u.arcsec, is_warn_func, is_err_func)
 
 
 class ArcsecWarning(Arcsec):
-    """Display radians as arcseconds.
+    """Display degrees as arcseconds. Shows values above threshold as error /
+    fault.
 
     Parameters
     ----------
     fmt : `str`, optional
         Float formatting. Defaults to 0.02f.
-    warning_threshold : `float`
-        If abs(value) is above the threshold, display value as warning (yellow text).
-    error_threshold : `float`
-        If abs(value) is above the threshold, display value as error (red text). 
+    warning_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as warning (yellow
+        text). Defaults to 0.73 arcsecond, half of the allowed measurement error.
+
+    error_threshold : `float`, optional
+        If abs(value) is above the threshold, display value as error (red
+        text).  Defaults to 1.45 arcseconds, full measurement error budget.
     """
 
     def __init__(
         self,
         fmt="0.02f",
-        warning_level=(0.73 * u.arcsec).to(u.rad).value,
-        error_level=(1.45 * u.arcsec).to(u.rad).value,
+        warning_threshold=0.73 * u.arcsec.to(u.deg),
+        error_threshold=1.45 * u.arcsec.to(u.deg),
     ):
         super().__init__(
-            fmt, lambda v: abs(v) > warning_level, lambda v: abs(v) > error_level
+            fmt,
+            lambda v: abs(v) > warning_threshold,
+            lambda v: abs(v) > error_threshold,
         )
 
 
