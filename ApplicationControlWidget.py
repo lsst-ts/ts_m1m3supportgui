@@ -186,6 +186,7 @@ class ApplicationControlWidget(QWidget):
             self.raiseButton.setDefault(True)
         elif data.detailedState == DetailedState.ACTIVE:
             self._setTextEnable(self.raiseButton, self.TEXT_LOWER)
+            self._setTextEnable(self.engineeringButton, self.TEXT_ENTER_ENGINEERING)
             self.engineeringButton.setEnabled(True)
         elif data.detailedState == DetailedState.LOWERING:
             pass
@@ -199,6 +200,7 @@ class ApplicationControlWidget(QWidget):
         elif data.detailedState == DetailedState.ACTIVEENGINEERING:
             self._setTextEnable(self.raiseButton, self.TEXT_LOWER)
             self.engineeringButton.setEnabled(True)
+            self._setTextEnable(self.engineeringButton, self.TEXT_EXIT_ENGINEERING)
         elif data.detailedState == DetailedState.LOWERINGENGINEERING:
             pass
         elif data.detailedState == DetailedState.LOWERINGFAULT:
