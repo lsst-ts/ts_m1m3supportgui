@@ -266,10 +266,7 @@ class PositionWidget(QWidget):
 
     @Slot(map)
     def _detailedStateCallback(self, data):
-        enabled = data.detailedState in (
-            DetailedState.ACTIVEENGINEERING,
-            DetailedState.ACTIVE,
-        )
+        enabled = data.detailedState == DetailedState.ACTIVEENGINEERING
 
         self.moveMirrorButton.setEnabled(enabled)
         self.dirPad.setEnabled(enabled)
