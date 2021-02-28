@@ -40,6 +40,8 @@ from PySide2.QtWidgets import (
 )
 from asyncqt import asyncSlot
 
+from lsst.ts.idl.enums import MTM1M3
+
 
 class ForceActuatorBumpTestPageWidget(QWidget):
     """
@@ -262,7 +264,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     @Slot(map)
     def detailedState(self, data):
         """Called when detailedState event is received. Intercept to enable/disable form buttons."""
-        if data.detailedState == 9:  # DetailedStates.ParkedEngineeringState
+        if data.detailedState == MTM1M3.DetailedState.PARKEDENGINEERING:
             self.bumpTestAllButton.setEnabled(True)
             self.bumpTestButton.setEnabled(
                 self.actuatorsTable.currentItem() is not None

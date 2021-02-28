@@ -68,12 +68,12 @@ class Topics:
                 [
                     [
                         "Primary Cylinder Forces",
-                        lambda x: [i / 1000.0 for i in x.primaryCylinderForces],
+                        lambda x: x.primaryCylinderForces,
                         lambda: FATABLE_ZINDEX,
                     ],
                     [
                         "Secondary Cylinder Forces",
-                        lambda x: [i / 1000.0 for i in x.secondaryCylinderForces],
+                        lambda x: x.secondaryCylinderForces,
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
@@ -175,12 +175,12 @@ class Topics:
                 [
                     [
                         "Primary Cylinder Forces",
-                        lambda x: [i / 1000.0 for i in x.primaryCylinderForces],
+                        lambda x: x.primaryCylinderForces,
                         lambda: FATABLE_ZINDEX,
                     ],
                     [
                         "Secondary Cylinder Forces",
-                        lambda x: [i / 1000.0 for i in x.secondaryCylinderForces],
+                        lambda x: x.secondaryCylinderForces,
                         lambda: FATABLE_SINDEX,
                     ],
                 ],
@@ -245,29 +245,17 @@ class Topics:
                 [
                     [
                         "Primary Cylinder Forces",
-                        lambda x: [i / 1000.0 for i in x.primaryCylinderForce],
+                        lambda x: x.primaryCylinderForce,
                         lambda: FATABLE_ZINDEX,
                     ],
                     [
                         "Secondary Cylinder Forces",
-                        lambda x: [i / 1000.0 for i in x.secondaryCylinderForce],
+                        lambda x: x.secondaryCylinderForce,
                         lambda: FATABLE_SINDEX,
                     ],
-                    [
-                        "Z Forces",
-                        lambda x: [i / 1000.0 for i in x.zForce],
-                        lambda: FATABLE_ZINDEX,
-                    ],
-                    [
-                        "Y Forces",
-                        lambda x: [i / 1000.0 for i in x.yForce],
-                        lambda: FATABLE_YINDEX,
-                    ],
-                    [
-                        "X Forces",
-                        lambda x: [i / 1000.0 for i in x.xForce],
-                        lambda: FATABLE_XINDEX,
-                    ],
+                    ["Z Forces", lambda x: x.zForce, lambda: FATABLE_ZINDEX,],
+                    ["Y Forces", lambda x: x.yForce, lambda: FATABLE_YINDEX,],
+                    ["X Forces", lambda x: x.xForce, lambda: FATABLE_XINDEX,],
                 ],
                 "forceActuatorData",
                 False,
@@ -583,6 +571,82 @@ class Topics:
                     ],
                 ],
                 "forceActuatorForceWarning",
+            ),
+            TopicData(
+                "FA Setpoint Warning",
+                [
+                    [
+                        "Safety limit",
+                        lambda x: x.safetyLimitWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Near neighbor",
+                        lambda x: x.nearNeighborWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Far neighbor",
+                        lambda x: x.farNeighborWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Elevation force",
+                        lambda x: x.elevationForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Azimuth force",
+                        lambda x: x.azimuthForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Thermal force",
+                        lambda x: x.thermalForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Balance force",
+                        lambda x: x.balanceForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Acceleration force",
+                        lambda x: x.accelerationForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Active optic",
+                        lambda x: x.activeOpticForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Static force",
+                        lambda x: x.staticForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Aberration force",
+                        lambda x: x.aberrationForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Offset force",
+                        lambda x: x.offsetForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Velocity force",
+                        lambda x: x.velocityForceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Force setpoint",
+                        lambda x: x.forceWarning,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                ],
+                "forceSetpointWarning",
             ),
             TopicData(
                 "FA Bump Test",
