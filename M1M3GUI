@@ -8,6 +8,7 @@ from ApplicationControlWidget import ApplicationControlWidget
 from ApplicationStatusWidget import ApplicationStatusWidget
 from ApplicationPaginationWidget import ApplicationPaginationWidget
 
+from AccelerometersPageWidget import AccelerometersPageWidget
 from ActuatorOverviewPageWidget import ActuatorOverviewPageWidget
 from AirPageWidget import AirPageWidget
 from CellLightPageWidget import CellLightPageWidget
@@ -43,7 +44,7 @@ class EUI(QDialog):
         self.topLayerLayout = QHBoxLayout()
 
         self.comm = SALComm.create(
-            {"MTM1M3": None, "MTMount": ["azimuth", "elevation"]}
+            {"MTM1M3": None, "MTMount": ["azimuth", "elevation"], "MTVMS": ["m1m3"]}
         )
 
         self.applicationControlLayout = QVBoxLayout()
@@ -83,6 +84,7 @@ class EUI(QDialog):
         )
         self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
         self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.comm))
+        self.addPage("Accelerometers", AccelerometersPageWidget(self.comm))
         self.addPage("SAL Log", SALLogWidget(self.comm))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
