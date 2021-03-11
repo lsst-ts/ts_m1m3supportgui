@@ -343,8 +343,8 @@ class OverviewPageWidget(QWidget):
 
     @Slot(map)
     def azimuth(self, data):
-        self.tmaAzimuthLabel.setText("%0.3f" % (data.actualAngle))
+        self.tmaAzimuthLabel.setText("%0.3f" % (data.angleActual))
 
     @Slot(map)
     def elevation(self, data):
-        self.tmaElevationLabel.setText("%0.3f" % (data.actualAngle))
+        self.tmaElevationLabel.setText("%0.3f" % (data.angleActual))
