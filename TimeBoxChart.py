@@ -31,7 +31,9 @@ __all__ = ["TimeBoxChart", "TimeChartView"]
 
 class TimeBoxChart(QtCharts.QChart):
     """Class with time axis and value(s). Keeps last n/dt items. Holds axis
-    titles and series, and handle axis auto scaling.
+    titles and series, and handle axis auto scaling. Plots multiple values
+    passed in append method as box charts with upper/lower extremes and
+    quantiles and median value marked.
 
     Data to the graph shall be added with the append method. The class does the
     rest, creates axis/series and autoscale them as needed.
@@ -66,7 +68,8 @@ class TimeBoxChart(QtCharts.QChart):
         return s
 
     def append(self, timestamp, series):
-        """Add data to a serie. Creates axis and serie if needed. Shrink if more than expected elements are stored.
+        """Add data to a serie. Creates axis and serie if needed. Shrink if
+        more than expected elements are stored.
 
         Parameters
         ----------
