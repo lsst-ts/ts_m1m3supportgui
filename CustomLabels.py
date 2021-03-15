@@ -17,8 +17,11 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtWidgets import QLabel
+from PySide2.QtCore import Slot, QRect, Qt
+from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QProgressBar, QSizePolicy
+from PySide2.QtGui import QPainter, QColor, QPalette, QBrush
 import astropy.units as u
+from datetime import datetime
 
 __all__ = [
     "UnitLabel",
@@ -29,6 +32,7 @@ __all__ = [
     "ArcsecWarning",
     "MmWarning",
     "WarningLabel",
+    "Heartbeat",
 ]
 
 
@@ -225,3 +229,35 @@ class WarningLabel(QLabel):
             self.setText(f"<font color='red'>On</font>")
         else:
             self.setText(f"<font color='green'>Off</font>")
+
+
+class Heartbeat(QWidget):
+    """Display heartbeat"""
+
+    def __init__(self):
+        super().__init__()
+
+        self.hbIndicator = QProgressBar()
+        self.hbIndicator.setRange(0, 2)
+        self.hbIndicator.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+
+        self.timestamp = QLabel("---")
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.hbIndicator)
+        layout.addWidget(self.timestamp)
+        self.setLayout(layout)
+
+    @Slot(map)
+    def heartbeat(self, data):
+        v = data.private_seqNum % 3
+        if v == 0 or v == 1:
+            self.hbIndicator.setValue(1)
+            self.hbIndicator.setInvertedAppearance(v == 1)
+        else:
+            self.hbIndicator.setValue(2)
+
+        self.hbIndicator.setFormat(str(data.private_seqNum % 100000))
+        self.timestamp.setText(
+            datetime.fromtimestamp(data.private_sndStamp).strftime("%H:%M:%S.%f")
+        )

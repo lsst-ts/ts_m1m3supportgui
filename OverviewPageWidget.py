@@ -40,7 +40,7 @@ class OverviewPageWidget(QWidget):
         self.airSupplyWarningLabel = QLabel("UNKNOWN")
         self.imsWarningLabel = QLabel("UNKNOWN")
         self.cellLightWarningLabel = QLabel("UNKNOWN")
-        self.heartbeatLabel = QLabel("UNKNOWN")
+        self.heartbeatLabel = Heartbeat()
 
         def createForcesAndMoments():
             return {
@@ -217,7 +217,7 @@ class OverviewPageWidget(QWidget):
         comm.gyroWarning.connect(self.gyroWarning)
         comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
         comm.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
-        comm.heartbeat.connect(self.heartbeat)
+        comm.heartbeat.connect(self.heartbeatLabel.heartbeat)
         comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
         comm.interlockWarning.connect(self.interlockWarning)
         comm.powerWarning.connect(self.powerWarning)
@@ -295,12 +295,6 @@ class OverviewPageWidget(QWidget):
     @Slot(map)
     def hardpointMonitorWarning(self, data):
         QTHelpers.setWarningLabel(self.hardpointMonitorWarningLabel, data.anyWarning)
-
-    @Slot(map)
-    def heartbeat(self, data):
-        self.heartbeatLabel.setText(
-            datetime.fromtimestamp(data.private_sndStamp).strftime("%H:%M:%S.%f")
-        )
 
     @Slot(map)
     def inclinometerSensorWarning(self, data):
