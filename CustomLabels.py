@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtCore import Slot, QRect, Qt
+from PySide2.QtCore import Slot, QRect, QTimer
 from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QProgressBar, QSizePolicy
 from PySide2.QtGui import QPainter, QColor, QPalette, QBrush
 import astropy.units as u
@@ -241,12 +241,31 @@ class Heartbeat(QWidget):
         self.hbIndicator.setRange(0, 2)
         self.hbIndicator.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
-        self.timestamp = QLabel("---")
+        self.timestamp = QLabel("- waiting -")
 
         layout = QVBoxLayout()
         layout.addWidget(self.hbIndicator)
         layout.addWidget(self.timestamp)
         self.setLayout(layout)
+
+        self._timeoutTimer = None
+        self._initTimer(3000)
+
+    def _initTimer(self, timeout=2001):
+        if self._timeoutTimer is not None:
+            self._timeoutTimer.stop()
+
+        self._timeoutTimer = QTimer(self)
+        self._timeoutTimer.setSingleShot(True)
+        self._timeoutTimer.timeout.connect(self.timeouted)
+        self._timeoutTimer.start(timeout)
+
+    @Slot()
+    def timeouted(self):
+        self.hbIndicator.setFormat("")
+        self.hbIndicator.setValue(0)
+        self.hbIndicator.setInvertedAppearance(False)
+        self.timestamp.setText("<font color='red'>- timeouted -</font>")
 
     @Slot(map)
     def heartbeat(self, data):
@@ -257,7 +276,19 @@ class Heartbeat(QWidget):
         else:
             self.hbIndicator.setValue(2)
 
-        self.hbIndicator.setFormat(str(data.private_seqNum % 100000))
-        self.timestamp.setText(
-            datetime.fromtimestamp(data.private_sndStamp).strftime("%H:%M:%S.%f")
-        )
+        self.hbIndicator.setFormat(f"{data.private_seqNum % int(1e12):012d}")
+        diff = data.private_rcvStamp - data.private_sndStamp
+        if abs(diff) > 0.5:
+            self.timestamp.setText(
+                datetime.fromtimestamp(data.private_sndStamp).strftime(
+                    f"<font color='red'>%H:%M:%S ({diff:0.1f})</font>"
+                )
+            )
+        else:
+            self.timestamp.setText(
+                datetime.fromtimestamp(data.private_sndStamp).strftime(
+                    "<font color='green'>%H:%M:%S.%f</font>"
+                )
+            )
+
+        self._initTimer(2001)
