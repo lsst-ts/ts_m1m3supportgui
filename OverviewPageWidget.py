@@ -298,7 +298,9 @@ class OverviewPageWidget(QWidget):
 
     @Slot(map)
     def heartbeat(self, data):
-        self.heartbeatLabel.setText(datetime.now().strftime("%H:%M:%S.%f"))
+        self.heartbeatLabel.setText(
+            datetime.fromtimestamp(data.private_sndStamp).strftime("%H:%M:%S.%f")
+        )
 
     @Slot(map)
     def inclinometerSensorWarning(self, data):
