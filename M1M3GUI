@@ -44,8 +44,10 @@ class EUI(QDialog):
         self.topLayerLayout = QHBoxLayout()
 
         self.comm = SALComm.create(
-            {"MTM1M3": None, "MTMount": ["azimuth", "elevation"], "MTVMS": ["m1m3"]}
+            {"MTM1M3": None, "MTMount": ["azimuth", "elevation"]}
         )
+
+        self.vms = SALComm.create({"MTVMS": None})
 
         self.applicationControlLayout = QVBoxLayout()
         self.applicationControl = ApplicationControlWidget(self.comm)
@@ -84,8 +86,9 @@ class EUI(QDialog):
         )
         self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
         self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.comm))
-        self.addPage("Accelerometers", AccelerometersPageWidget(self.comm))
-        self.addPage("SAL Log", SALLogWidget(self.comm))
+        self.addPage("Accelerometers", AccelerometersPageWidget(self.vms))
+        self.addPage("M1M3 Log", SALLogWidget(self.comm))
+        self.addPage("VMS Log", SALLogWidget(self.vms))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
         self.layout.addLayout(self.topLayerLayout)
