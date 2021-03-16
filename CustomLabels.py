@@ -35,6 +35,9 @@ __all__ = [
     "Heartbeat",
 ]
 
+WARNING = "#FF6700"
+"""Warning color"""
+
 
 class UnitLabel(QLabel):
     """Qt Label that can display and convert Astropy units.
@@ -47,12 +50,16 @@ class UnitLabel(QLabel):
     unit : `astropy.units`, optional
         Variable unit. Default is None - no unit
     convert : `astropy.units`, optional
-        Convert values to this unit. Default is None - no unit. If provided, unit must be provided as well.
+        Convert values to this unit. Default is None - no unit. If provided,
+        unit must be provided as well.
     is_warn_func : `func`, optional
-        Function evaluated on each value. If true is returned, value is assumed to be in warning range and will be color coded (displayed in yellow text). Default is None - no color coded warning value.
+        Function evaluated on each value. If true is returned, value is assumed
+        to be in warning range and will be color coded (displayed in warning
+        text). Default is None - no color coded warning value.
     is_err_func : `func`, optional
-        Function evaluated on each value. If true is returned, value is assumed to be in warning range and will be color coded (displayed in yellow text). Default is None - no color coded error value.
-    """
+        Function evaluated on each value. If true is returned, value is assumed
+        to be in warning range and will be color coded (displayed in warning
+        text). Default is None - no color coded error value.  """
 
     def __init__(
         self, fmt="d", unit=None, convert=None, is_warn_func=None, is_err_func=None
@@ -92,7 +99,7 @@ class UnitLabel(QLabel):
         if self.is_err_func is not None and self.is_err_func(value):
             self.setText("<font color='red'>" + text + "</font>")
         elif self.is_warn_func is not None and self.is_warn_func(value):
-            self.setText("<font color='yellow'>" + text + "</font>")
+            self.setText(f"<font color='{WARNING}>{text}</font>")
         else:
             self.setText(text)
 
@@ -145,7 +152,7 @@ class MmWarning(Mm):
     fmt : `str`, optional
         Float formatting. Defaults to .04f.
     warning_threshold : `float`, optional
-        If abs(value) is above the threshold, display value as warning (yellow
+        If abs(value) is above the threshold, display value as warning (bright
         text). Defaults to 4 microns, half allowed deviation.
     error_threshold : `float`, optional
         If abs(value) is above the threshold, display value as error (red
@@ -187,7 +194,7 @@ class ArcsecWarning(Arcsec):
     fmt : `str`, optional
         Float formatting. Defaults to 0.02f.
     warning_threshold : `float`, optional
-        If abs(value) is above the threshold, display value as warning (yellow
+        If abs(value) is above the threshold, display value as warning (bright
         text). Defaults to 0.73 arcsecond, half of the allowed measurement error.
 
     error_threshold : `float`, optional
@@ -232,10 +239,41 @@ class WarningLabel(QLabel):
 
 
 class Heartbeat(QWidget):
-    """Display heartbeat"""
+    """Display heartbeat. Shows warning/errors if heartbeats are missed. Show
+    error if receiving and sending timestamps differs.
 
-    def __init__(self):
-        super().__init__()
+    Parameters
+    ----------
+    parent : `QWidget`, optional
+        Parent widget. Defaults to None.
+
+    Slots
+    -----
+    heartbeat(data)
+        Shall be connected to heartbeat signal.
+
+    Example
+    -------
+
+    .. code-block:: python
+       import SALComm
+       from CustomLabels import *
+
+       ...
+
+       comm = SALComm.create("<subsystem>": None)
+
+       ...
+
+       hbWidget = Heartbeat()
+       comm.<subsystem>.heartbeat.connect(hbWIdget.heartbeat)
+    """
+
+    difftime_error = 0.5
+    difftime_warning = 0.01
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self.hbIndicator = QProgressBar()
         self.hbIndicator.setRange(0, 2)
@@ -244,6 +282,7 @@ class Heartbeat(QWidget):
         self.timestamp = QLabel("- waiting -")
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.hbIndicator)
         layout.addWidget(self.timestamp)
         self.setLayout(layout)
@@ -269,6 +308,13 @@ class Heartbeat(QWidget):
 
     @Slot(map)
     def heartbeat(self, data):
+        """Slot to connect to heartbeat data signal.
+
+        Parameters
+        ----------
+        data : `object`
+            Heartbeat event. As only private fields are used, can be any
+            salobj. But needs to be received at least once per second."""
         v = data.private_seqNum % 3
         if v == 0 or v == 1:
             self.hbIndicator.setValue(1)
@@ -278,10 +324,16 @@ class Heartbeat(QWidget):
 
         self.hbIndicator.setFormat(f"{data.private_seqNum % int(1e12):012d}")
         diff = data.private_rcvStamp - data.private_sndStamp
-        if abs(diff) > 0.5:
+        if abs(diff) > self.difftime_error:
             self.timestamp.setText(
                 datetime.fromtimestamp(data.private_sndStamp).strftime(
-                    f"<font color='red'>%H:%M:%S ({diff:0.1f})</font>"
+                    f"<font color='red'>%H:%M:%S ({diff:0.3f})</font>"
+                )
+            )
+        elif abs(diff) > self.difftime_warning:
+            self.timestamp.setText(
+                datetime.fromtimestamp(data.private_sndStamp).strftime(
+                    f"<font color='{WARNING}'>%H:%M:%S ({diff:0.3f})</font>"
                 )
             )
         else:
