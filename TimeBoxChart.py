@@ -26,7 +26,7 @@ import time
 import numpy as np
 
 
-__all__ = ["TimeBoxChart", "TimeChartView"]
+__all__ = ["TimeBoxChart"]
 
 
 class TimeBoxChart(QtCharts.QChart):
