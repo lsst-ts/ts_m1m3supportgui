@@ -50,6 +50,7 @@ class SALLogMessages(QPlainTextEdit):
         self.comm = comm
         self.setReadOnly(True)
         self.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.setCenterOnScroll(True)
         font = QFont("Monospace")
         font.setStyleHint(QFont.TypeWriter)
         self.setFont(font)
@@ -65,3 +66,4 @@ class SALLogMessages(QPlainTextEdit):
         self.appendHtml(
             f"{date} [<b>{self.LEVELS_IDS[level]}</b>] <span style='{self.LEVEL_TEXT_STYLE[level]}'>{data.message}</span>"
         )
+        self.ensureCursorVisible()

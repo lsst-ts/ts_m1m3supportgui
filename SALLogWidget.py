@@ -54,7 +54,7 @@ class SALLogWidget(QWidget):
         self.level.addItems(self.LEVELS)
         self.level.currentIndexChanged.connect(self.changeLevel)
 
-        self.currentLevel = QLabel()
+        self.currentLevel = QLabel("---")
 
         self.maxBlock = QSpinBox()
         self.maxBlock.setMaximum(1000000)
