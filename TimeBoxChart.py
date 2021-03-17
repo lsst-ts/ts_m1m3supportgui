@@ -100,7 +100,7 @@ class TimeBoxChart(QtCharts.QChart):
             s.append(boxSet)
 
         self.createDefaultAxes()
-        self.axes(Qt.Vertical)[0].setRange(-0.01, 0.01)
+        self.axes(Qt.Vertical)[0].setRange(-10, +10)
 
     def clearData(self):
         """Removes all data from the chart."""
