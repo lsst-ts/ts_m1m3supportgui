@@ -110,8 +110,8 @@ class PSDWidget(QWidget):
 
             self.psdSerie.replace(
                 [
-                    QPointF((r / len(data)) / SAMPLE_TIME, data[r])
-                    for r in range(len(data))
+                    QPointF( 1 / ((r + 1) * SAMPLE_TIME), data[r])
+                    for r in range(dl)
                 ]
             )
             self.chart.axes(Qt.Horizontal)[0].setRange(1 / st, 1 / SAMPLE_TIME)
