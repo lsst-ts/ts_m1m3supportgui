@@ -19,15 +19,25 @@
 
 import TimeChart
 import TimeBoxChart
-from PySide2.QtWidgets import QWidget, QGridLayout
-from PySide2.QtCore import Slot
+from VMSCache import *
+from TimeChart import TimeChartView
+from PySide2.QtCore import Qt, Slot, QPointF
+from PySide2.QtWidgets import QWidget, QTabWidget, QGridLayout, QLabel
+from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
 
+import asyncio
+from datetime import datetime
+import numpy as np
+import time
 
-class AccelerometersPageWidget(QWidget):
+SAMPLE_TIME = 0.001
+"""Sample time (seconds)"""
+
+
+class TimeChartWidget(QWidget):
     def __init__(self, comm):
         super().__init__()
-
         self.layout = QGridLayout()
         self.setLayout(self.layout)
 
@@ -64,3 +74,78 @@ class AccelerometersPageWidget(QWidget):
                     ),
                 ],
             )
+
+
+class PSDWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        layout = QGridLayout()
+        self.setLayout(layout)
+
+        self.chart = QtCharts.QChart()
+
+        self.psdSerie = QtCharts.QLineSeries()
+        self.psdSerie.setName("PSD 1X")
+        self.chart.addSeries(self.psdSerie)
+        self.chart.createDefaultAxes()
+
+        layout.addWidget(TimeChartView(self.chart), 0, 0)
+
+        self.updateTask = asyncio.Future()
+        self.updateTask.set_result(None)
+
+    def plot(self, cache):
+        async def update(cache, cut=10000):
+            # sample time
+            st = len(cache["1X"]) * SAMPLE_TIME
+            data = np.abs(np.fft.fft(cache["1X"])) ** 2
+            offset = cache.size - len(data)
+
+            self.psdSerie.setName(
+                f"PSD 1X {datetime.strftime(datetime.fromtimestamp(cache['timestamp'][-1]), '%H:%M:%S')}"
+            )
+
+            dl = len(data)
+
+            self.psdSerie.replace(
+                [
+                    QPointF((r / len(data)) / SAMPLE_TIME, data[r])
+                    for r in range(len(data))
+                ]
+            )
+            self.chart.axes(Qt.Horizontal)[0].setRange(1 / st, 1 / SAMPLE_TIME)
+            self.chart.axes(Qt.Vertical)[0].setRange(min(data), max(data))
+
+        if self.updateTask.done():
+            self.updateTask = asyncio.create_task(update(cache))
+
+
+class AccelerometersPageWidget(QTabWidget):
+    SENSORS = [
+        f"sensor{s}{a}Acceleration" for s in range(1, 7) for a in ["X", "Y", "Z"]
+    ]
+
+    def __init__(self, comm):
+        super().__init__()
+
+        self.timeChart = TimeChartWidget(comm)
+        self.psd = PSDWidget()
+
+        self.addTab(self.timeChart, "Box plots")
+        self.addTab(self.psd, "PSD")
+
+        self.cache = VMSCache()
+
+        comm.m1m3.connect(self.m1m3)
+
+    @Slot(map)
+    def m1m3(self, data):
+        ts = data.timestamp
+        for i in range(len(getattr(data, self.SENSORS[0]))):
+            row = (ts,)
+            ts += SAMPLE_TIME
+            row += tuple([getattr(data, s)[i] for s in self.SENSORS])
+            self.cache.append(row)
+
+        self.psd.plot(self.cache)

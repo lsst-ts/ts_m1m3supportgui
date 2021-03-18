@@ -24,13 +24,13 @@ import numpy as np
 
 
 class VMSCache:
-    """Cache for large float data. Holds rolling time window of records."""
+    """Cache for large float data. Holds rolling time window of records. Act as
+    dictionary, where keys are accelerometer number and axis (1X,1Y,1Z,..,6Z)"""
 
     def __init__(self, size=50000, sensors=6):
-        items = []
-        for s in range(1, sensors + 1):
-            for a in ["X", "Y", "Z"]:
-                items.append((str(s) + a, "f8"))
+        items = [
+            (f"{s}{a}", "f8") for s in range(1, sensors + 1) for a in ["X", "Y", "Z"]
+        ]
         self.size = size
         self.data = np.zeros((self.size), [("timestamp", "f8")] + items)
         self.current_index = 0
@@ -43,10 +43,13 @@ class VMSCache:
         self.data[self.current_index] = A
         self.current_index += 1
 
-    def column(self, column):
+    def __getitem__(self, key):
         if self.filled:
-            return list(self.data[self.current_index + 1 :][column]) + list(
-                self.data[: self.current_index][column]
+            return list(self.data[self.current_index + 1 :][key]) + list(
+                self.data[: self.current_index][key]
             )
         else:
-            return list(self.data[: self.current_index][column])
+            return list(self.data[: self.current_index][key])
+
+    def __len__(self):
+        return self.size if self.filled else self.current_index
