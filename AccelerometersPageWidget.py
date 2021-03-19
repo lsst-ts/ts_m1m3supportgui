@@ -21,7 +21,7 @@ import TimeChart
 import TimeBoxChart
 from VMSCache import *
 from TimeChart import TimeChartView
-from PySide2.QtCore import Qt, Slot, QPointF
+from PySide2.QtCore import Qt, Slot, Signal, QPointF
 from PySide2.QtWidgets import QWidget, QTabWidget, QGridLayout, QLabel
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
@@ -152,6 +152,8 @@ class AccelerometersPageWidget(QTabWidget):
         f"sensor{s}{a}Acceleration" for s in range(1, 7) for a in ["X", "Y", "Z"]
     ]
 
+    cacheUpdated = Signal(int, float, float)
+
     def __init__(self, comm):
         super().__init__()
 
@@ -189,6 +191,10 @@ class AccelerometersPageWidget(QTabWidget):
             ts += SAMPLE_TIME
             row += tuple([getattr(data, s)[i] for s in self.SENSORS])
             self.cache.append(row)
+
+        self.cacheUpdated.emit(
+            len(self.cache), self.cache.startTime(), self.cache.endTime()
+        )
 
         for i in range(len(self.psds)):
             self.psds[i].data(self.cache)

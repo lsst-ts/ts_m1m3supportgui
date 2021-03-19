@@ -7,10 +7,21 @@ from AccelerometersPageWidget import AccelerometersPageWidget
 
 import SALComm
 
-from PySide2.QtWidgets import QApplication, QMainWindow
+from PySide2.QtCore import Slot
+from PySide2.QtWidgets import QApplication, QMainWindow, QLabel
 
 from asyncqt import QEventLoop, asyncClose
 import asyncio
+from datetime import datetime
+
+class CacheStatusWidget(QLabel):
+    def __init__(self):
+        super().__init__("Size: 0 --- - ---")
+
+    @Slot(int,float,float)
+    def cacheUpdated(self,length,start,end):
+        self.setText(f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')}")
+
 
 class EUI(QMainWindow):
     def __init__(self):
@@ -18,7 +29,13 @@ class EUI(QMainWindow):
 
         self.comm = SALComm.create({"MTVMS": ["m1m3"]})
 
-        self.setCentralWidget(AccelerometersPageWidget(self.comm))
+        acWidget = AccelerometersPageWidget(self.comm)
+        cacheStatus = CacheStatusWidget()
+        acWidget.cacheUpdated.connect(cacheStatus.cacheUpdated)
+
+        self.setCentralWidget(acWidget)
+
+        self.statusBar().addWidget(cacheStatus)
 
         self.setMinimumSize(700, 400)
 

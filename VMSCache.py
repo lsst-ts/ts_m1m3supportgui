@@ -43,6 +43,23 @@ class VMSCache:
         self.data[self.current_index] = A
         self.current_index += 1
 
+    def startTime(self):
+        if self.filled is False:
+            if self.current_index > 0:
+                return self.data[0]["timestamp"]
+            return None
+
+        if self.current_index >= self.size:
+            return self.data[0]["timestamp"]
+        return self.data[self.current_index]["timestamp"]
+
+    def endTime(self):
+        if self.current_index == 0:
+            if self.filled is False:
+                return None
+            return self.data[-1]["timestamp"]
+        return self.data[self.current_index - 1]["timestamp"]
+
     def __getitem__(self, key):
         if self.filled:
             return list(self.data[self.current_index + 1 :][key]) + list(
