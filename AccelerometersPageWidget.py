@@ -104,7 +104,7 @@ class PSDWidget(QWidget):
 
         layout.addWidget(TimeChartView(self.chart), 0, 0)
 
-    def plot(self, cache):
+    def data(self, cache):
         async def plot(serie, signal, cut=500):
             """
             signal - data
@@ -138,10 +138,20 @@ class AccelerometersPageWidget(QTabWidget):
         super().__init__()
 
         self.timeChart = TimeChartWidget(comm)
-        self.psd = PSDWidget()
+        self.psds = [
+            PSDWidget([i + axis for i in ["1", "2", "3"]]) for axis in ["X", "Y", "Z"]
+        ]
 
         self.addTab(self.timeChart, "Box plots")
-        self.addTab(self.psd, "PSD")
+
+        self.allPSDs = QWidget()
+
+        gridLayout = QGridLayout()
+        for r in range(3):
+            gridLayout.addWidget(self.psds[r], r, 0)
+
+        self.allPSDs.setLayout(gridLayout)
+        self.addTab(self.allPSDs, "PSD")
 
         self.cache = VMSCache()
 
@@ -156,4 +166,5 @@ class AccelerometersPageWidget(QTabWidget):
             row += tuple([getattr(data, s)[i] for s in self.SENSORS])
             self.cache.append(row)
 
-        self.psd.plot(self.cache)
+        for psd in self.psds:
+            psd.data(self.cache)
