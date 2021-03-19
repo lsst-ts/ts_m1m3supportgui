@@ -102,6 +102,8 @@ class PSDWidget(QWidget):
 
         self.chart.createDefaultAxes()
 
+        self.chart.legend().setAlignment(Qt.AlignLeft)
+
         layout.addWidget(TimeChartView(self.chart), 0, 0)
 
     def data(self, cache, mean=False):
