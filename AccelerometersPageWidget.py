@@ -77,48 +77,56 @@ class TimeChartWidget(QWidget):
 
 
 class PSDWidget(QWidget):
-    def __init__(self):
+    def __init__(self, samples=["1X", "2X", "3X"]):
         super().__init__()
+
+        self.samples = samples
 
         layout = QGridLayout()
         self.setLayout(layout)
 
         self.chart = QtCharts.QChart()
 
-        self.psdSerie = QtCharts.QLineSeries()
-        self.psdSerie.setName("PSD 1X")
-        self.chart.addSeries(self.psdSerie)
+        self.psdSeries = []
+        self.updateTasks = []
+
+        for s in samples:
+            serie = QtCharts.QLineSeries()
+            serie.setName(s)
+            self.psdSeries.append(serie)
+            self.chart.addSeries(serie)
+
+            task = asyncio.Future()
+            task.set_result(None)
+            self.updateTasks.append(task)
+
         self.chart.createDefaultAxes()
 
         layout.addWidget(TimeChartView(self.chart), 0, 0)
 
-        self.updateTask = asyncio.Future()
-        self.updateTask.set_result(None)
-
     def plot(self, cache):
-        async def update(cache, cut=10000):
+        async def plot(serie, signal, cut=500):
+            """
+            signal - data
+            cut - frequency cut
+            """
             # sample time
-            st = len(cache["1X"]) * SAMPLE_TIME
-            data = np.abs(np.fft.fft(cache["1X"])) ** 2
-            offset = cache.size - len(data)
-
-            self.psdSerie.setName(
-                f"PSD 1X {datetime.strftime(datetime.fromtimestamp(cache['timestamp'][-1]), '%H:%M:%S')}"
-            )
+            st = len(signal) * SAMPLE_TIME
+            data = np.abs(np.fft.fft(signal))
 
             dl = len(data)
 
-            self.psdSerie.replace(
-                [
-                    QPointF( 1 / ((r + 1) * SAMPLE_TIME), data[r])
-                    for r in range(dl)
-                ]
+            self.psdSeries[serie].replace(
+                [QPointF((r / SAMPLE_TIME) / (dl - 1), data[r]) for r in range(dl)]
             )
-            self.chart.axes(Qt.Horizontal)[0].setRange(1 / st, 1 / SAMPLE_TIME)
+            self.chart.axes(Qt.Horizontal)[0].setRange(0, cut)
             self.chart.axes(Qt.Vertical)[0].setRange(min(data), max(data))
 
-        if self.updateTask.done():
-            self.updateTask = asyncio.create_task(update(cache))
+        for i in range(len(self.updateTasks)):
+            if self.updateTasks[i].done():
+                self.updateTasks[i] = asyncio.create_task(
+                    plot(i, cache[self.samples[i]])
+                )
 
 
 class AccelerometersPageWidget(QTabWidget):
