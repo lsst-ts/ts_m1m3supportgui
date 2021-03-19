@@ -104,7 +104,7 @@ class PSDWidget(QWidget):
 
         layout.addWidget(TimeChartView(self.chart), 0, 0)
 
-    def data(self, cache):
+    def data(self, signals):
         async def plot(serie, signal, cut=500):
             """
             signal - data
@@ -124,9 +124,7 @@ class PSDWidget(QWidget):
 
         for i in range(len(self.updateTasks)):
             if self.updateTasks[i].done():
-                self.updateTasks[i] = asyncio.create_task(
-                    plot(i, cache[self.samples[i]])
-                )
+                self.updateTasks[i] = asyncio.create_task(plot(i, signals[i]))
 
 
 class AccelerometersPageWidget(QTabWidget):
@@ -138,9 +136,8 @@ class AccelerometersPageWidget(QTabWidget):
         super().__init__()
 
         self.timeChart = TimeChartWidget(comm)
-        self.psds = [
-            PSDWidget([i + axis for i in ["1", "2", "3"]]) for axis in ["X", "Y", "Z"]
-        ]
+        self.samples = [[i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]]
+        self.psds = [PSDWidget(spls) for spls in self.samples]
 
         self.addTab(self.timeChart, "Box plots")
 
@@ -166,5 +163,5 @@ class AccelerometersPageWidget(QTabWidget):
             row += tuple([getattr(data, s)[i] for s in self.SENSORS])
             self.cache.append(row)
 
-        for psd in self.psds:
-            psd.data(self.cache)
+        for i in range(len(self.psds)):
+            self.psds[i].data([self.cache[s] for s in self.samples[i]])
