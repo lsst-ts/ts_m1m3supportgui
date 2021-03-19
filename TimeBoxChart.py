@@ -79,6 +79,8 @@ class TimeBoxChart(QtCharts.QChart):
             Axis name, serie name and data. Serie name will be shown as data
             label. Data is an array of one box values."""
 
+        d_min = d_max = 0
+
         for d in series:
             axis, serie, data = d
             try:
@@ -99,8 +101,12 @@ class TimeBoxChart(QtCharts.QChart):
 
             s.append(boxSet)
 
+            for bs in s.boxSets():
+                d_min = min(bs.at(QtCharts.QBoxSet.LowerExtreme), d_min)
+                d_max = max(bs.at(QtCharts.QBoxSet.UpperExtreme), d_max)
+
         self.createDefaultAxes()
-        self.axes(Qt.Vertical)[0].setRange(-10, +10)
+        self.axes(Qt.Vertical)[0].setRange(d_min, d_max)
 
     def clearData(self):
         """Removes all data from the chart."""
