@@ -27,6 +27,7 @@ from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
 
 import asyncio
+import concurrent.futures
 from datetime import datetime
 import numpy as np
 import time
@@ -88,7 +89,10 @@ class PSDWidget(QWidget):
         self.chart = QtCharts.QChart()
 
         self.psdSeries = []
-        self.updateTasks = []
+        self.updateTask = asyncio.Future()
+        self.updateTask.set_result(None)
+
+        self.update_after = 0
 
         for s in samples:
             serie = QtCharts.QLineSeries()
@@ -96,35 +100,49 @@ class PSDWidget(QWidget):
             self.psdSeries.append(serie)
             self.chart.addSeries(serie)
 
-            task = asyncio.Future()
-            task.set_result(None)
-            self.updateTasks.append(task)
-
         self.chart.createDefaultAxes()
 
         layout.addWidget(TimeChartView(self.chart), 0, 0)
 
-    def data(self, signals):
-        async def plot(serie, signal, cut=500):
+    def data(self, cache, mean=False):
+        def plot(serie, signal, cut=500):
             """
             signal - data
             cut - frequency cut
             """
-            # sample time
-            st = len(signal) * SAMPLE_TIME
             data = np.abs(np.fft.fft(signal))
+            if len(data) > 4000:
+                s = int(len(data) / 2000)
+                data = [np.average(data[i : i + s]) for i in range(0, len(data), s)]
 
-            dl = len(data)
-
-            self.psdSeries[serie].replace(
-                [QPointF((r / SAMPLE_TIME) / (dl - 1), data[r]) for r in range(dl)]
-            )
             self.chart.axes(Qt.Horizontal)[0].setRange(0, cut)
             self.chart.axes(Qt.Vertical)[0].setRange(min(data), max(data))
 
-        for i in range(len(self.updateTasks)):
-            if self.updateTasks[i].done():
-                self.updateTasks[i] = asyncio.create_task(plot(i, signals[i]))
+            dl = len(data)
+            points = [QPointF((r / SAMPLE_TIME) / (dl - 1), data[r]) for r in range(dl)]
+            self.psdSeries[serie].replace(points)
+
+        def plotAll(cache, mean):
+            if mean:
+                plot(
+                    0,
+                    np.mean(
+                        [cache[s + self.samples[0]] for s in ["1", "2", "3"]], axis=0
+                    ),
+                )
+                return
+
+            for i in range(len(self.samples)):
+                plot(i, cache[self.samples[i]])
+
+        if not (self.update_after is None):
+            if self.update_after < time.monotonic():
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    self.updateTask = pool.submit(plotAll, cache, mean)
+                self.update_after = None
+        elif self.updateTask.done():
+            self.updateTask.result()
+            self.update_after = time.monotonic() + 1
 
 
 class AccelerometersPageWidget(QTabWidget):
@@ -141,14 +159,21 @@ class AccelerometersPageWidget(QTabWidget):
 
         self.addTab(self.timeChart, "Box plots")
 
-        self.allPSDs = QWidget()
-
+        allPSDs = QWidget()
         gridLayout = QGridLayout()
         for r in range(3):
             gridLayout.addWidget(self.psds[r], r, 0)
+        allPSDs.setLayout(gridLayout)
+        self.addTab(allPSDs, "PSD")
 
-        self.allPSDs.setLayout(gridLayout)
-        self.addTab(self.allPSDs, "PSD")
+        self.meanPSDs = [PSDWidget([a]) for a in ["X", "Y", "Z"]]
+
+        allMeans = QWidget()
+        gridLayout = QGridLayout()
+        for r in range(3):
+            gridLayout.addWidget(self.meanPSDs[r], r, 0)
+        allMeans.setLayout(gridLayout)
+        self.addTab(allMeans, "Mean PSD")
 
         self.cache = VMSCache()
 
@@ -164,4 +189,7 @@ class AccelerometersPageWidget(QTabWidget):
             self.cache.append(row)
 
         for i in range(len(self.psds)):
-            self.psds[i].data([self.cache[s] for s in self.samples[i]])
+            self.psds[i].data(self.cache)
+
+        for i in range(len(self.meanPSDs)):
+            self.meanPSDs[i].data(self.cache, True)
