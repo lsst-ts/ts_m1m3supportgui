@@ -78,7 +78,7 @@ class TimeChartWidget(QWidget):
 
 
 class PSDWidget(QWidget):
-    def __init__(self, samples=["1X", "2X", "3X"]):
+    def __init__(self, samples):
         super().__init__()
 
         self.samples = samples
