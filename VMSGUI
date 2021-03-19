@@ -13,6 +13,16 @@ from PySide2.QtWidgets import QApplication, QMainWindow
 
 from asyncqt import QEventLoop, asyncClose
 import asyncio
+from datetime import datetime
+
+class CacheStatusWidget(QLabel):
+    def __init__(self):
+        super().__init__("Size: 0 --- - ---")
+
+    @Slot(int,float,float)
+    def cacheUpdated(self,length,start,end):
+        self.setText(f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')}")
+
 
 
 class EUI(QMainWindow):
