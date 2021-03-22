@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
+from SALLogWidget import SALLogWidget
 import TimeChart
 import TimeBoxChart
 from VMSCache import *
@@ -112,7 +113,7 @@ class PSDWidget(QWidget):
             signal - data
             cut - frequency cut
             """
-            data = np.abs(np.fft.fft(signal))
+            data = np.abs(np.fft.fft(signal)) ** 2
             if len(data) > 4000:
                 s = int(len(data) / 2000)
                 data = [np.average(data[i : i + s]) for i in range(0, len(data), s)]
@@ -178,6 +179,9 @@ class AccelerometersPageWidget(QTabWidget):
             gridLayout.addWidget(self.meanPSDs[r], r, 0)
         allMeans.setLayout(gridLayout)
         self.addTab(allMeans, "Mean PSD")
+
+        log = SALLogWidget(comm)
+        self.addTab(log, "SAL Log")
 
         self.cache = VMSCache()
 

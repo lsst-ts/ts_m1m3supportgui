@@ -8,7 +8,6 @@ from ApplicationControlWidget import ApplicationControlWidget
 from ApplicationStatusWidget import ApplicationStatusWidget
 from ApplicationPaginationWidget import ApplicationPaginationWidget
 
-from AccelerometersPageWidget import AccelerometersPageWidget
 from ActuatorOverviewPageWidget import ActuatorOverviewPageWidget
 from AirPageWidget import AirPageWidget
 from CellLightPageWidget import CellLightPageWidget
@@ -86,9 +85,7 @@ class EUI(QDialog):
         )
         self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
         self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.comm))
-        self.addPage("Accelerometers", AccelerometersPageWidget(self.vms))
-        self.addPage("M1M3 Log", SALLogWidget(self.comm))
-        self.addPage("VMS Log", SALLogWidget(self.vms))
+        self.addPage("SAL Log", SALLogWidget(self.comm))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
         self.layout.addLayout(self.topLayerLayout)

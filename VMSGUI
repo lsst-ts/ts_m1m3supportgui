@@ -8,32 +8,45 @@ from AccelerometersPageWidget import AccelerometersPageWidget
 import SALComm
 
 from PySide2.QtCore import Slot
-from PySide2.QtWidgets import QApplication, QMainWindow, QLabel
+from PySide2.QtWidgets import QApplication, QMainWindow, QLabel, QToolBar, QStyle
 
 from asyncqt import QEventLoop, asyncClose
 import asyncio
 from datetime import datetime
 
+
+class ToolBar(QToolBar):
+    def __init__(self):
+        super().__init__()
+
+        self.addAction(self.style().standardIcon(QStyle.SP_MediaStop), "Stop")
+
+
 class CacheStatusWidget(QLabel):
     def __init__(self):
         super().__init__("Size: 0 --- - ---")
 
-    @Slot(int,float,float)
-    def cacheUpdated(self,length,start,end):
-        self.setText(f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')}")
+    @Slot(int, float, float)
+    def cacheUpdated(self, length, start, end):
+        self.setText(
+            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')}"
+        )
 
 
 class EUI(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.comm = SALComm.create({"MTVMS": ["m1m3"]})
+        self.comm = SALComm.create({"MTVMS": None})
 
         acWidget = AccelerometersPageWidget(self.comm)
         cacheStatus = CacheStatusWidget()
         acWidget.cacheUpdated.connect(cacheStatus.cacheUpdated)
 
         self.setCentralWidget(acWidget)
+
+        toolBar = ToolBar()
+        self.addToolBar(toolBar)
 
         self.statusBar().addWidget(cacheStatus)
 
@@ -43,6 +56,7 @@ class EUI(QMainWindow):
     async def closeEvent(self, event):
         await self.comm.close()
         event.accept()
+
 
 if __name__ == "__main__":
     # Create the Qt Application
