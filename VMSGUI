@@ -15,13 +15,23 @@ from asyncqt import QEventLoop, asyncClose
 import asyncio
 from datetime import datetime
 
+
+class ToolBar(QToolBar):
+    def __init__(self):
+        super().__init__()
+
+        self.addAction(self.style().standardIcon(QStyle.SP_MediaStop), "Stop")
+
+
 class CacheStatusWidget(QLabel):
     def __init__(self):
         super().__init__("Size: 0 --- - ---")
 
-    @Slot(int,float,float)
-    def cacheUpdated(self,length,start,end):
-        self.setText(f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')}")
+    @Slot(int, float, float)
+    def cacheUpdated(self, length, start, end):
+        self.setText(
+            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')}"
+        )
 
 
 
@@ -58,6 +68,7 @@ class EUI(QMainWindow):
         self.toolBar.storeSettings()
         await self.comm.close()
         super().closeEvent(event)
+
 
 
 if __name__ == "__main__":
