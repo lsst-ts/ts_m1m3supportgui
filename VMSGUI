@@ -7,8 +7,15 @@ from AccelerometersPageWidget import AccelerometersPageWidget
 
 import SALComm
 
-from PySide2.QtCore import Slot
-from PySide2.QtWidgets import QApplication, QMainWindow, QLabel, QToolBar, QStyle
+from PySide2.QtCore import Slot, Signal
+from PySide2.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QLabel,
+    QToolBar,
+    QStyle,
+    QDoubleSpinBox,
+)
 
 from asyncqt import QEventLoop, asyncClose
 import asyncio
@@ -16,10 +23,41 @@ from datetime import datetime
 
 
 class ToolBar(QToolBar):
+
+    frequencyChanged = Signal(float, float)
+
     def __init__(self):
         super().__init__()
 
         self.addAction(self.style().standardIcon(QStyle.SP_MediaStop), "Stop")
+
+        self.addWidget(QLabel("Frequency"))
+
+        self.minFreq = QDoubleSpinBox()
+        self.minFreq.setDecimals(1)
+        self.minFreq.setRange(0, 10000)
+        self.minFreq.setSingleStep(5)
+        self.minFreq.setValue(0)
+        self.minFreq.valueChanged.connect(self.minChanged)
+        self.addWidget(self.minFreq)
+
+        self.addWidget(QLabel("-"))
+
+        self.maxFreq = QDoubleSpinBox()
+        self.maxFreq.setDecimals(1)
+        self.maxFreq.setRange(0.1, 10000)
+        self.maxFreq.setSingleStep(5)
+        self.maxFreq.setValue(200)
+        self.maxFreq.valueChanged.connect(self.maxChnaged)
+        self.addWidget(self.maxFreq)
+
+    @Slot(float)
+    def minChanged(self, d):
+        self.frequencyChanged.emit(d, self.maxFreq.value())
+
+    @Slot(float)
+    def maxChnaged(self, d):
+        self.frequencyChanged.emit(self.minFreq.value(), d)
 
 
 class CacheStatusWidget(QLabel):
@@ -29,7 +67,7 @@ class CacheStatusWidget(QLabel):
     @Slot(int, float, float)
     def cacheUpdated(self, length, start, end):
         self.setText(
-            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')}"
+            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')} {end-start:.03f}s"
         )
 
 
