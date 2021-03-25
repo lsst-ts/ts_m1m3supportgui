@@ -21,6 +21,7 @@ from SALLogWidget import SALLogWidget
 import TimeChart
 import TimeBoxChart
 from VMSCache import *
+from VMSGUI import ToolBar
 from TimeChart import TimeChartView
 from PySide2.QtCore import Qt, Slot, Signal, QPointF
 from PySide2.QtWidgets import QWidget, QTabWidget, QGridLayout, QLabel
@@ -108,17 +109,15 @@ class PSDWidget(QWidget):
         layout.addWidget(TimeChartView(self.chart), 0, 0)
 
     def data(self, cache, mean=False):
-        def plot(serie, signal, cut=500):
+        def plot(serie, signal):
             """
             signal - data
-            cut - frequency cut
             """
             data = np.abs(np.fft.fft(signal)) ** 2
             if len(data) > 4000:
                 s = int(len(data) / 2000)
                 data = [np.average(data[i : i + s]) for i in range(0, len(data), s)]
 
-            self.chart.axes(Qt.Horizontal)[0].setRange(0, cut)
             self.chart.axes(Qt.Vertical)[0].setRange(min(data), max(data))
 
             dl = len(data)
@@ -147,6 +146,10 @@ class PSDWidget(QWidget):
             self.updateTask.result()
             self.update_after = time.monotonic() + 1
 
+    @Slot(float, float)
+    def frequencyChanged(self, low, high):
+        self.chart.axes(Qt.Horizontal)[0].setRange(low, high)
+
 
 class AccelerometersPageWidget(QTabWidget):
     SENSORS = [
@@ -155,12 +158,14 @@ class AccelerometersPageWidget(QTabWidget):
 
     cacheUpdated = Signal(int, float, float)
 
-    def __init__(self, comm):
+    def __init__(self, comm, toolbar):
         super().__init__()
 
         self.timeChart = TimeChartWidget(comm)
         self.samples = [[i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]]
         self.psds = [PSDWidget(spls) for spls in self.samples]
+        for w in self.psds:
+            toolbar.frequencyChanged.connect(w.frequencyChanged)
 
         self.addTab(self.timeChart, "Box plots")
 
@@ -172,6 +177,8 @@ class AccelerometersPageWidget(QTabWidget):
         self.addTab(allPSDs, "PSD")
 
         self.meanPSDs = [PSDWidget([a]) for a in ["X", "Y", "Z"]]
+        for w in self.meanPSDs:
+            toolbar.frequencyChanged.connect(w.frequencyChanged)
 
         allMeans = QWidget()
         gridLayout = QGridLayout()
