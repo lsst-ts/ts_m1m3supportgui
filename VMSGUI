@@ -21,10 +21,10 @@ class EUI(QMainWindow):
 
         self.comm = SALComm.create({"MTVMS": None})
 
-        toolBar = ToolBar()
-        self.addToolBar(toolBar)
+        self.toolBar = ToolBar()
+        self.addToolBar(self.toolBar)
 
-        acWidget = AccelerometersPageWidget(self.comm, toolBar)
+        acWidget = AccelerometersPageWidget(self.comm, self.toolBar)
         cacheStatus = CacheStatusWidget()
         acWidget.cacheUpdated.connect(cacheStatus.cacheUpdated)
 
@@ -46,6 +46,7 @@ class EUI(QMainWindow):
         settings = QSettings("LSST.TS", "VMSGUI")
         settings.setValue("geometry", self.saveGeometry())
         settings.setValue("windowState", self.saveState())
+        self.toolBar.storeSettings()
         await self.comm.close()
         super().closeEvent(event)
 

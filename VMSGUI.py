@@ -19,7 +19,7 @@
 
 __all__ = ["ToolBar", "CacheStatusWidget"]
 
-from PySide2.QtCore import Slot, Signal
+from PySide2.QtCore import Slot, Signal, QSettings
 from PySide2.QtWidgets import QWidget, QLabel, QToolBar, QStyle, QDoubleSpinBox
 
 from datetime import datetime
@@ -35,6 +35,8 @@ class ToolBar(QToolBar):
     def __init__(self):
         super().__init__()
 
+        settings = QSettings("LSST.TS", "VMSGUI")
+
         self.setObjectName("VMSToolBar")
 
         self.addAction(self.style().standardIcon(QStyle.SP_MediaStop), "Stop")
@@ -45,7 +47,7 @@ class ToolBar(QToolBar):
         self.minFreq.setDecimals(1)
         self.minFreq.setRange(0, 10000)
         self.minFreq.setSingleStep(5)
-        self.minFreq.setValue(0)
+        self.minFreq.setValue(float(settings.value("minFreq", 0)))
         self.minFreq.editingFinished.connect(self.minMaxChanged)
         self.addWidget(self.minFreq)
 
@@ -55,7 +57,7 @@ class ToolBar(QToolBar):
         self.maxFreq.setDecimals(1)
         self.maxFreq.setRange(0.1, 10000)
         self.maxFreq.setSingleStep(5)
-        self.maxFreq.setValue(200)
+        self.maxFreq.setValue(float(settings.value("maxFreq", 200)))
         self.maxFreq.editingFinished.connect(self.minMaxChanged)
         self.addWidget(self.maxFreq)
 
@@ -65,11 +67,17 @@ class ToolBar(QToolBar):
         self.interval.setDecimals(3)
         self.interval.setRange(0.001, 3600)
         self.interval.setSingleStep(0.1)
-        self.interval.setValue(50)
+        self.interval.setValue(float(settings.value("interval", 50.0)))
         self.interval.editingFinished.connect(self.newInterval)
         self.addWidget(self.interval)
 
         self.frequencyChanged.emit(self.minFreq.value(), self.maxFreq.value())
+
+    def storeSettings(self):
+        settings = QSettings("LSST.TS", "VMSGUI")
+        settings.setValue("minFreq", self.minFreq.value())
+        settings.setValue("maxFreq", self.maxFreq.value())
+        settings.setValue("interval", self.interval.value())
 
     @Slot()
     def minMaxChanged(self):

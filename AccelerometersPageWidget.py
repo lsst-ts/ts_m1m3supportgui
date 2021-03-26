@@ -198,9 +198,10 @@ class AccelerometersPageWidget(QTabWidget):
         log = SALLogWidget(comm)
         self.addTab(log, "SAL Log")
 
-        toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
-
         toolbar.intervalChanged.connect(self.intervalChanged)
+
+        toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
+        toolbar.intervalChanged.emit(toolbar.interval.value())
 
         comm.m1m3.connect(self.m1m3)
 
