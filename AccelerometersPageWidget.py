@@ -22,19 +22,19 @@ import TimeChart
 import TimeBoxChart
 from VMSCache import *
 from VMSGUI import ToolBar
-from TimeChart import TimeChartView
 from PySide2.QtCore import Qt, Slot, Signal, QPointF
 from PySide2.QtWidgets import QWidget, QTabWidget, QGridLayout, QLabel
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
 
+import astropy.units as u
 import asyncio
 import concurrent.futures
 from datetime import datetime
 import numpy as np
 import time
 
-SAMPLE_TIME = 0.001
+SAMPLE_TIME = 1 * u.ms.to(u.s)
 """Sample time (seconds)"""
 
 
@@ -107,7 +107,7 @@ class PSDWidget(QWidget):
 
         self.chart.legend().setAlignment(Qt.AlignLeft)
 
-        layout.addWidget(TimeChartView(self.chart), 0, 0)
+        layout.addWidget(TimeChart.TimeChartView(self.chart), 0, 0)
 
     def data(self, mean=False):
         def plot(serie, signal):

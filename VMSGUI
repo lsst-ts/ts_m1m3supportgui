@@ -8,7 +8,7 @@ from VMSGUI import *
 
 import SALComm
 
-from PySide2.QtCore import Slot, Signal
+from PySide2.QtCore import Slot, Signal, QSettings
 from PySide2.QtWidgets import QApplication, QMainWindow
 
 from asyncqt import QEventLoop, asyncClose
@@ -34,10 +34,20 @@ class EUI(QMainWindow):
 
         self.setMinimumSize(700, 400)
 
+        settings = QSettings("LSST.TS", "VMSGUI")
+        try:
+            self.restoreGeometry(settings.value("geometry"))
+            self.restoreState(settings.value("windowState"))
+        except AttributeError:
+            self.resize(1000, 700)
+
     @asyncClose
     async def closeEvent(self, event):
+        settings = QSettings("LSST.TS", "VMSGUI")
+        settings.setValue("geometry", self.saveGeometry())
+        settings.setValue("windowState", self.saveState())
         await self.comm.close()
-        event.accept()
+        super().closeEvent(event)
 
 
 if __name__ == "__main__":
