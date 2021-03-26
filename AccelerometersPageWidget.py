@@ -247,6 +247,7 @@ class PSDWidget(QWidget):
     @Slot(float, float)
     def frequencyChanged(self, low, high):
         self.chart.axes(Qt.Horizontal)[0].setRange(low, high)
+        self.chart.axes(Qt.Horizontal)[0].applyNiceNumbers()
 
 
 class AccelerometersPageWidget(QTabWidget):
