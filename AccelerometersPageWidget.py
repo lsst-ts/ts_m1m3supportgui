@@ -303,6 +303,9 @@ class AccelerometersPageWidget(QTabWidget):
 
         toolbar.intervalChanged.connect(self.intervalChanged)
 
+        toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
+        toolbar.intervalChanged.emit(toolbar.interval.value())
+
         comm.m1m3.connect(self.m1m3)
 
     @Slot(map)
