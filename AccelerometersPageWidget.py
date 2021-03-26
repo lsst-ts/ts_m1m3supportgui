@@ -80,10 +80,11 @@ class TimeChartWidget(QWidget):
 
 
 class PSDWidget(QWidget):
-    def __init__(self, samples):
+    def __init__(self, samples, cache):
         super().__init__()
 
         self.samples = samples
+        self.cache = cache
 
         layout = QGridLayout()
         self.setLayout(layout)
@@ -108,7 +109,7 @@ class PSDWidget(QWidget):
 
         layout.addWidget(TimeChartView(self.chart), 0, 0)
 
-    def data(self, cache, mean=False):
+    def data(self, mean=False):
         def plot(serie, signal):
             """
             signal - data
@@ -124,23 +125,24 @@ class PSDWidget(QWidget):
             points = [QPointF((r / SAMPLE_TIME) / (dl - 1), data[r]) for r in range(dl)]
             self.psdSeries[serie].replace(points)
 
-        def plotAll(cache, mean):
+        def plotAll(mean):
             if mean:
                 plot(
                     0,
                     np.mean(
-                        [cache[s + self.samples[0]] for s in ["1", "2", "3"]], axis=0
+                        [self.cache[s + self.samples[0]] for s in ["1", "2", "3"]],
+                        axis=0,
                     ),
                 )
                 return
 
             for i in range(len(self.samples)):
-                plot(i, cache[self.samples[i]])
+                plot(i, self.cache[self.samples[i]])
 
         if not (self.update_after is None):
             if self.update_after < time.monotonic():
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    self.updateTask = pool.submit(plotAll, cache, mean)
+                    self.updateTask = pool.submit(plotAll, mean)
                 self.update_after = None
         elif self.updateTask.done():
             self.updateTask.result()
@@ -161,9 +163,11 @@ class AccelerometersPageWidget(QTabWidget):
     def __init__(self, comm, toolbar):
         super().__init__()
 
+        self.cache = VMSCache()
+
         self.timeChart = TimeChartWidget(comm)
         self.samples = [[i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]]
-        self.psds = [PSDWidget(spls) for spls in self.samples]
+        self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
             toolbar.frequencyChanged.connect(w.frequencyChanged)
 
@@ -176,7 +180,7 @@ class AccelerometersPageWidget(QTabWidget):
         allPSDs.setLayout(gridLayout)
         self.addTab(allPSDs, "PSD")
 
-        self.meanPSDs = [PSDWidget([a]) for a in ["X", "Y", "Z"]]
+        self.meanPSDs = [PSDWidget([a], self.cache) for a in ["X", "Y", "Z"]]
         for w in self.meanPSDs:
             toolbar.frequencyChanged.connect(w.frequencyChanged)
 
@@ -189,8 +193,6 @@ class AccelerometersPageWidget(QTabWidget):
 
         log = SALLogWidget(comm)
         self.addTab(log, "SAL Log")
-
-        self.cache = VMSCache()
 
         comm.m1m3.connect(self.m1m3)
 
@@ -208,7 +210,7 @@ class AccelerometersPageWidget(QTabWidget):
         )
 
         for i in range(len(self.psds)):
-            self.psds[i].data(self.cache)
+            self.psds[i].data()
 
         for i in range(len(self.meanPSDs)):
-            self.meanPSDs[i].data(self.cache, True)
+            self.meanPSDs[i].data(True)
