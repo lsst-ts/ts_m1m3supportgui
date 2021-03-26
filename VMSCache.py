@@ -19,7 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtCore import Slot
 import numpy as np
 
 
@@ -28,16 +27,34 @@ class VMSCache:
     dictionary, where keys are accelerometer number and axis (1X,1Y,1Z,..,6Z)"""
 
     def __init__(self, size=50000, sensors=6):
-        items = [
+        items = [("timestamp", "f8")] + [
             (f"{s}{a}", "f8") for s in range(1, sensors + 1) for a in ["X", "Y", "Z"]
         ]
-        self.size = size
-        self.data = np.zeros((self.size), [("timestamp", "f8")] + items)
+        self._size = size
+        self.data = np.zeros((self._size), items)
+        self.clear()
+
+    def clear(self):
         self.current_index = 0
         self.filled = False
 
+    def resize(self, size):
+        newdata = np.zeros(size, self.data.dtype)
+        rows = self.rows()
+        r = 0
+        for s in self.rows():
+            newdata[r] = s
+            r += 1
+            if r >= size:
+                break
+        self.current_index = r
+        self.filled = r >= size
+
+        self.data = newdata
+        self._size = size
+
     def append(self, A):
-        if self.current_index >= self.size:
+        if self.current_index >= self._size:
             self.current_index = 0
             self.filled = True
         self.data[self.current_index] = A
@@ -49,7 +66,7 @@ class VMSCache:
                 return self.data[0]["timestamp"]
             return None
 
-        if self.current_index >= self.size:
+        if self.current_index >= self._size:
             return self.data[0]["timestamp"]
         return self.data[self.current_index]["timestamp"]
 
@@ -60,6 +77,13 @@ class VMSCache:
             return self.data[-1]["timestamp"]
         return self.data[self.current_index - 1]["timestamp"]
 
+    def rows(self):
+        if self.filled:
+            for r in range(self.current_index + 1, self._size):
+                yield self.data[r]
+        for r in range(0, self.current_index):
+            yield self.data[r]
+
     def __getitem__(self, key):
         if self.filled:
             return list(self.data[self.current_index + 1 :][key]) + list(
@@ -69,4 +93,4 @@ class VMSCache:
             return list(self.data[: self.current_index][key])
 
     def __len__(self):
-        return self.size if self.filled else self.current_index
+        return self._size if self.filled else self.current_index

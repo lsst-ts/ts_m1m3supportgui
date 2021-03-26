@@ -24,10 +24,13 @@ from PySide2.QtWidgets import QWidget, QLabel, QToolBar, QStyle, QDoubleSpinBox
 
 from datetime import datetime
 
+import AccelerometersPageWidget
+
 
 class ToolBar(QToolBar):
 
     frequencyChanged = Signal(float, float)
+    intervalChanged = Signal(float)
 
     def __init__(self):
         super().__init__()
@@ -43,7 +46,7 @@ class ToolBar(QToolBar):
         self.minFreq.setRange(0, 10000)
         self.minFreq.setSingleStep(5)
         self.minFreq.setValue(0)
-        self.minFreq.valueChanged.connect(self.minChanged)
+        self.minFreq.editingFinished.connect(self.minMaxChanged)
         self.addWidget(self.minFreq)
 
         self.addWidget(QLabel("-"))
@@ -53,32 +56,28 @@ class ToolBar(QToolBar):
         self.maxFreq.setRange(0.1, 10000)
         self.maxFreq.setSingleStep(5)
         self.maxFreq.setValue(200)
-        self.maxFreq.valueChanged.connect(self.maxChanged)
+        self.maxFreq.editingFinished.connect(self.minMaxChanged)
         self.addWidget(self.maxFreq)
 
         self.addWidget(QLabel("Interval:"))
 
         self.interval = QDoubleSpinBox()
         self.interval.setDecimals(3)
-        self.interval.setRange(10, 3600)
+        self.interval.setRange(0.001, 3600)
         self.interval.setSingleStep(0.1)
         self.interval.setValue(50)
-        self.interval.valueChanged.connect(self.intervalChanged)
+        self.interval.editingFinished.connect(self.newInterval)
         self.addWidget(self.interval)
 
         self.frequencyChanged.emit(self.minFreq.value(), self.maxFreq.value())
 
-    @Slot(float)
-    def minChanged(self, d):
-        self.frequencyChanged.emit(d, self.maxFreq.value())
+    @Slot()
+    def minMaxChanged(self):
+        self.frequencyChanged.emit(*self.getFrequencyRange())
 
-    @Slot(float)
-    def maxChanged(self, d):
-        self.frequencyChanged.emit(self.minFreq.value(), d)
-
-    @Slot(float)
-    def intervalChanged(self, d):
-        pass
+    @Slot()
+    def newInterval(self):
+        self.intervalChanged.emit(self.interval.value())
 
     def getFrequencyRange(self):
         return (self.minFreq.value(), self.maxFreq.value())
@@ -91,5 +90,5 @@ class CacheStatusWidget(QLabel):
     @Slot(int, float, float)
     def cacheUpdated(self, length, start, end):
         self.setText(
-            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')} {end-start:.03f}s"
+            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')} {end-start+AccelerometersPageWidget.SAMPLE_TIME:.03f}s"
         )

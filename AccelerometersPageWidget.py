@@ -200,6 +200,8 @@ class AccelerometersPageWidget(QTabWidget):
 
         toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
 
+        toolbar.intervalChanged.connect(self.intervalChanged)
+
         comm.m1m3.connect(self.m1m3)
 
     @Slot(map)
@@ -220,3 +222,7 @@ class AccelerometersPageWidget(QTabWidget):
 
         for i in range(len(self.meanPSDs)):
             self.meanPSDs[i].data(True)
+
+    @Slot(float)
+    def intervalChanged(self, interval):
+        self.cache.resize(int(np.ceil(interval / SAMPLE_TIME)))
