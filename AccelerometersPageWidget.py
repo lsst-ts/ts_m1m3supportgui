@@ -141,9 +141,10 @@ class PSDWidget(QWidget):
             fMax = self.chart.axes(Qt.Horizontal)[0].max()
 
             N = len(signal)
-            psd = np.abs(np.fft.fft(signal)) ** 2 * SAMPLE_TIME / N
+            # only half of FFT - second half is mirrored first
+            psd = np.abs(np.fft.fft(signal)[:N // 2]) ** 2 * SAMPLE_TIME / N
             deltaFreq = (1 / SAMPLE_TIME) / N
-            frequencies = deltaFreq * np.arange(N)
+            frequencies = deltaFreq * np.arange(N // 2)
 
             rMin = int(np.floor(fMin / deltaFreq))
             rMax = int(np.ceil(fMax / deltaFreq))
