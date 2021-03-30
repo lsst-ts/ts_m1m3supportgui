@@ -24,9 +24,17 @@ import numpy as np
 
 class VMSCache:
     """Cache for large float data. Holds rolling time window of records. Act as
-    dictionary, where keys are accelerometer number and axis (1X,1Y,1Z,..,6Z)"""
+    dictionary, where keys are accelerometer number and axis (1X,1Y,1Z,..,6Z).
 
-    def __init__(self, size=50000, sensors=6):
+    Parameters
+    ----------
+    size : `int`
+        Cache size.
+    sensors : `int`
+        Number of sensors.
+    """
+
+    def __init__(self, size, sensors=6):
         items = [("timestamp", "f8")] + [
             (f"{s}{a}", "f8") for s in range(1, sensors + 1) for a in ["X", "Y", "Z"]
         ]
@@ -35,20 +43,31 @@ class VMSCache:
         self.clear()
 
     def clear(self):
+        """Clear cache."""
         self.current_index = 0
         self.filled = False
 
     def resize(self, size):
+        """Change cache size. Data are preserved - either all rows are used
+        when expanding, or the most recent ones are stored when shrinking.
+
+        Parameters
+        ----------
+        size : `int`
+            New size.
+        """
+        clength = len(self)
+        if size == clength:
+            return
         newdata = np.zeros(size, self.data.dtype)
-        rows = self.rows()
-        r = 0
-        for s in self.rows():
+        n_current = r = min(clength, size)
+        for s in self.rows_reverse():
+            r -= 1
             newdata[r] = s
-            r += 1
-            if r >= size:
+            if r == 0:
                 break
-        self.current_index = r
-        self.filled = r >= size
+        self.filled = (n_current == size) and (clength > 0)
+        self.current_index = n_current
 
         self.data = newdata
         self._size = size
@@ -77,12 +96,12 @@ class VMSCache:
             return self.data[-1]["timestamp"]
         return self.data[self.current_index - 1]["timestamp"]
 
-    def rows(self):
-        if self.filled:
-            for r in range(self.current_index + 1, self._size):
-                yield self.data[r]
-        for r in range(0, self.current_index):
+    def rows_reverse(self):
+        for r in range(self.current_index - 1, -1, -1):
             yield self.data[r]
+        if self.filled:
+            for r in range(self._size - 1, self.current_index - 1, -1):
+                yield self.data[r]
 
     def __getitem__(self, key):
         if self.filled:

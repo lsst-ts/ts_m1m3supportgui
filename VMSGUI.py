@@ -17,10 +17,17 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["ToolBar", "CacheStatusWidget"]
+__all__ = ["ToolBar", "StatusBar"]
 
 from PySide2.QtCore import Slot, Signal, QSettings
-from PySide2.QtWidgets import QWidget, QLabel, QToolBar, QStyle, QDoubleSpinBox
+from PySide2.QtWidgets import (
+    QWidget,
+    QLabel,
+    QToolBar,
+    QStyle,
+    QDoubleSpinBox,
+    QStatusBar,
+)
 
 from datetime import datetime
 
@@ -28,6 +35,9 @@ import AccelerometersPageWidget
 
 
 class ToolBar(QToolBar):
+    """Toolbar for VMS. Provides widget to setup frequency range and window
+    width.
+    """
 
     frequencyChanged = Signal(float, float)
     intervalChanged = Signal(float)
@@ -67,13 +77,14 @@ class ToolBar(QToolBar):
         self.interval.setDecimals(3)
         self.interval.setRange(0.001, 3600)
         self.interval.setSingleStep(0.1)
-        self.interval.setValue(float(settings.value("interval", 50.0)))
+        self.interval.setValue(int(settings.value("interval", 50.0)))
         self.interval.editingFinished.connect(self.newInterval)
         self.addWidget(self.interval)
 
         self.frequencyChanged.emit(self.minFreq.value(), self.maxFreq.value())
 
     def storeSettings(self):
+        """Store settings through QSettings."""
         settings = QSettings("LSST.TS", "VMSGUI")
         settings.setValue("minFreq", self.minFreq.value())
         settings.setValue("maxFreq", self.maxFreq.value())
@@ -91,12 +102,27 @@ class ToolBar(QToolBar):
         return (self.minFreq.value(), self.maxFreq.value())
 
 
-class CacheStatusWidget(QLabel):
+class StatusBar(QStatusBar):
+    """Displays cache status on status bar."""
+
     def __init__(self):
-        super().__init__("Size: 0 --- - ---")
+        super().__init__()
+        self.cacheStatus = QLabel("Size: 0 --- - ---")
+        self.addWidget(self.cacheStatus)
 
     @Slot(int, float, float)
     def cacheUpdated(self, length, start, end):
-        self.setText(
+        """Emitted when cache is updated.
+
+        Parameters
+        ----------
+        length : `int`
+            Number of points cached.
+        start : `float`
+            Start timestamp.
+        end : `float`
+            End timestamp.
+        """
+        self.cacheStatus.setText(
             f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')} {end-start+AccelerometersPageWidget.SAMPLE_TIME:.03f}s"
         )

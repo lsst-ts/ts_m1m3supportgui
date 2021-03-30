@@ -25,12 +25,11 @@ class EUI(QMainWindow):
         self.addToolBar(self.toolBar)
 
         acWidget = AccelerometersPageWidget(self.comm, self.toolBar)
-        cacheStatus = CacheStatusWidget()
-        acWidget.cacheUpdated.connect(cacheStatus.cacheUpdated)
+        statusBar = StatusBar()
+        acWidget.cacheUpdated.connect(statusBar.cacheUpdated)
+        self.setStatusBar(statusBar)
 
         self.setCentralWidget(acWidget)
-
-        self.statusBar().addWidget(cacheStatus)
 
         self.setMinimumSize(700, 400)
 

@@ -22,7 +22,7 @@ import TimeChart
 import TimeBoxChart
 from VMSCache import *
 from VMSGUI import ToolBar
-from PySide2.QtCore import Qt, Slot, Signal, QPointF
+from PySide2.QtCore import Qt, Slot, Signal, QPointF, QSettings
 from PySide2.QtWidgets import QWidget, QTabWidget, QGridLayout, QLabel
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
@@ -39,14 +39,14 @@ SAMPLE_TIME = 1 * u.ms.to(u.s)
 
 
 class TimeChartWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, comm, sensors):
         super().__init__()
         self.layout = QGridLayout()
         self.setLayout(self.layout)
 
         self.chart = []
 
-        for sensor in range(6):
+        for sensor in range(sensors):
             self.chart.append(TimeBoxChart.TimeBoxChart())
             self.layout.addWidget(
                 TimeChart.TimeChartView(self.chart[sensor]), sensor / 2, sensor % 2
@@ -56,7 +56,7 @@ class TimeChartWidget(QWidget):
 
     @Slot(map)
     def m1m3(self, data):
-        for sensor in range(1, 7):
+        for sensor in range(1, 4):
             self.chart[sensor - 1].append(
                 data.timestamp,
                 [
@@ -167,9 +167,9 @@ class AccelerometersPageWidget(QTabWidget):
     def __init__(self, comm, toolbar):
         super().__init__()
 
-        self.cache = VMSCache()
+        self.cache = VMSCache(3)
 
-        self.timeChart = TimeChartWidget(comm)
+        self.timeChart = TimeChartWidget(comm, 3)
         self.samples = [[i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]]
         self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
