@@ -137,15 +137,21 @@ class PSDWidget(QWidget):
             """
             signal - data
             """
-            data = np.abs(np.fft.fft(signal)) ** 2
-            if len(data) > 4000:
-                s = int(len(data) / 2000)
-                data = [np.average(data[i : i + s]) for i in range(0, len(data), s)]
+            N = len(signal)
+            psd = np.abs(np.fft.fft(signal)) ** 2 * SAMPLE_TIME / N
+            frequencies = (1 / SAMPLE_TIME) / (len(psd) - 1) * np.arange(N)
+            if N > 4000:
+                s = int(N / 2000)
+                psd = [np.average(psd[i : i + s]) for i in range(0, N, s)]
+                frequencies = [
+                    (frequencies[i] + frequencies[min(i + s, N - 1)]) / 2
+                    for i in range(0, N, s)
+                ]
 
-            self.chart.axes(Qt.Vertical)[0].setRange(min(data), max(data))
+            self.chart.axes(Qt.Vertical)[0].setRange(min(psd), max(psd))
 
-            dl = len(data)
-            points = [QPointF((r / SAMPLE_TIME) / (dl - 1), data[r]) for r in range(dl)]
+            dl = len(psd)
+            points = [QPointF(frequencies[r], psd[r]) for r in range(dl)]
             self.psdSeries[serie].replace(points)
 
         def plotAll(mean):
