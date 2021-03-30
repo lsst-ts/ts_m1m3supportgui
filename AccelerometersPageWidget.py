@@ -137,12 +137,23 @@ class PSDWidget(QWidget):
             """
             signal - data
             """
+            fMin = self.chart.axes(Qt.Horizontal)[0].min()
+            fMax = self.chart.axes(Qt.Horizontal)[0].max()
+
             N = len(signal)
             psd = np.abs(np.fft.fft(signal)) ** 2 * SAMPLE_TIME / N
-            frequencies = (1 / SAMPLE_TIME) / (len(psd) - 1) * np.arange(N)
-            if N > 4000:
-                s = int(N / 2000)
-                psd = [np.average(psd[i : i + s]) for i in range(0, N, s)]
+            deltaFreq = (1 / SAMPLE_TIME) / N
+            frequencies = deltaFreq * np.arange(N)
+
+            rMin = int(np.floor(fMin / deltaFreq))
+            rMax = int(np.ceil(fMax / deltaFreq))
+            psd = psd[rMin:rMax]
+            frequencies = frequencies[rMin:rMax]
+            dpP = len(psd) / self.chart.plotArea().width()
+            if dpP > 0.5:
+                s = int(np.floor(dpP * 2.0))
+                N = len(psd)
+                psd = [max(psd[i : i + s]) for i in range(0, N, s)]
                 frequencies = [
                     (frequencies[i] + frequencies[min(i + s, N - 1)]) / 2
                     for i in range(0, N, s)
@@ -150,8 +161,7 @@ class PSDWidget(QWidget):
 
             self.chart.axes(Qt.Vertical)[0].setRange(min(psd), max(psd))
 
-            dl = len(psd)
-            points = [QPointF(frequencies[r], psd[r]) for r in range(dl)]
+            points = [QPointF(frequencies[r], psd[r]) for r in range(len(psd))]
             self.psdSeries[serie].replace(points)
 
         def plotAll(mean):
@@ -180,7 +190,6 @@ class PSDWidget(QWidget):
     @Slot(float, float)
     def frequencyChanged(self, low, high):
         self.chart.axes(Qt.Horizontal)[0].setRange(low, high)
-        self.chart.axes(Qt.Horizontal)[0].applyNiceNumbers()
 
 
 class AccelerometersPageWidget(QTabWidget):
