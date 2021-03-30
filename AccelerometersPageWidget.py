@@ -160,7 +160,7 @@ class PSDWidget(QWidget):
             deltaFreq = (1 / SAMPLE_TIME) / N
 
             rMin = int(np.floor(fMin / deltaFreq))
-            rMax = int(np.ceil(fMax / deltaFreq))
+            rMax = int(np.ceil(fMax / deltaFreq)) + 1
             psd = psd[rMin:rMax]
             frequencies = (deltaFreq * np.arange(N // 2))[rMin:rMax]
             dataPerPixel = len(psd) / self.chart.plotArea().width()
@@ -261,13 +261,30 @@ class AccelerometersPageWidget(QTabWidget):
 
     cacheUpdated = Signal(int, float, float)
 
-    def __init__(self, comm, toolbar):
+    def __init__(self, comm, module, toolbar):
         super().__init__()
 
-        self.cache = VMSCache(0, 3)
+        if module == "m2":
+            numSensors = 6
+            self.samples = [
+                [i + axis for i in ["1", "2", "3", "4", "5", "6"]]
+                for axis in ["X", "Y", "Z"]
+            ]
+        else:
+            numSensors = 3
+            self.samples = [
+                [i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]
+            ]
 
-        self.timeChart = TimeChartWidget(comm, 3)
-        self.samples = [[i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]]
+        self.SENSORS = [
+            f"sensor{s}{a}Acceleration"
+            for s in range(1, numSensors + 1)
+            for a in ["X", "Y", "Z"]
+        ]
+
+        self.cache = VMSCache(0, numSensors)
+        self.timeChart = TimeChartWidget(comm, numSensors)
+
         self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
             toolbar.frequencyChanged.connect(w.frequencyChanged)
@@ -308,7 +325,7 @@ class AccelerometersPageWidget(QTabWidget):
         comm.m1m3.connect(self.m1m3)
 
     @Slot(map)
-    def m1m3(self, data):
+    def data(self, data):
         ts = data.timestamp
         for i in range(len(getattr(data, self.SENSORS[0]))):
             row = (ts,)
