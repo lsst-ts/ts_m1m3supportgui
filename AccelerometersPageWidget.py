@@ -39,6 +39,16 @@ SAMPLE_TIME = 1 * u.ms.to(u.s)
 
 
 class TimeChartWidget(QWidget):
+    """Display box chart with accelerometer data.
+
+    Parameters
+    ----------
+    comm : `SALComm`
+        Communication object.
+    
+    sensors : `[str]`
+        Name of sensors (data indices) to display."""
+
     def __init__(self, comm, sensors):
         super().__init__()
         self.layout = QGridLayout()
@@ -80,6 +90,16 @@ class TimeChartWidget(QWidget):
 
 
 class PSDWidget(QWidget):
+    """Display signal PSD.
+
+    Parameters
+    ----------
+    samples ; `[str]`
+        Name of cache columns which will be displayed.
+    cache : `VMSCache`
+        Data cache.
+    """
+
     def __init__(self, samples, cache):
         super().__init__()
 

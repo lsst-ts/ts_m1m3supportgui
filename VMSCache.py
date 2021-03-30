@@ -24,7 +24,8 @@ import numpy as np
 
 class VMSCache:
     """Cache for large float data. Holds rolling time window of records. Act as
-    dictionary, where keys are accelerometer number and axis (1X,1Y,1Z,..,6Z).
+    dictionary, where keys are accelerometer number and axis
+    (1X,1Y,1Z,..,<sensors>Z). [] and len operators are supported.
 
     Parameters
     ----------
@@ -73,6 +74,13 @@ class VMSCache:
         self._size = size
 
     def append(self, A):
+        """Append new row to end of data.
+
+        Parameters
+        ----------
+        A: `tupple`
+            New row data.
+        """
         if self.current_index >= self._size:
             self.current_index = 0
             self.filled = True
@@ -80,6 +88,12 @@ class VMSCache:
         self.current_index += 1
 
     def startTime(self):
+        """Return timestamp of the last data point.
+
+        Returns
+        -------
+        endTime : `float`
+            None if cache is empty. Otherwise timestamp of the first data point."""
         if self.filled is False:
             if self.current_index > 0:
                 return self.data[0]["timestamp"]
@@ -90,6 +104,12 @@ class VMSCache:
         return self.data[self.current_index]["timestamp"]
 
     def endTime(self):
+        """Return timestamp of the last data point.
+
+        Returns
+        -------
+        endTime : `float`
+            None if cache is empty. Otherwise timestamp of the last data point."""
         if self.current_index == 0:
             if self.filled is False:
                 return None
@@ -97,6 +117,7 @@ class VMSCache:
         return self.data[self.current_index - 1]["timestamp"]
 
     def rows_reverse(self):
+        """Yelds reversed row iterator."""
         for r in range(self.current_index - 1, -1, -1):
             yield self.data[r]
         if self.filled:
