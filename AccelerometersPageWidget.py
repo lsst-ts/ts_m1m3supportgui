@@ -45,9 +45,9 @@ class TimeChartWidget(QWidget):
     ----------
     comm : `SALComm`
         Communication object.
-    
-    sensors : `[str]`
-        Name of sensors (data indices) to display."""
+    sensors : `int`
+        Number of sensors (and hence number of charts). Chart is created to
+        display X,Y and Z values per sensor."""
 
     def __init__(self, comm, sensors):
         super().__init__()
@@ -94,8 +94,10 @@ class PSDWidget(QWidget):
 
     Parameters
     ----------
-    samples ; `[str]`
-        Name of cache columns which will be displayed.
+    samples : `[str]`
+        Name of cache columns which will be displayed. Cache columns are two
+        letters n[XYZ], where n is sensor (1 to 3 or to 6 for 6 channels) and
+        X, Y or Z is sensor axis.
     cache : `VMSCache`
         Data cache.
     """
@@ -112,6 +114,7 @@ class PSDWidget(QWidget):
         self.chart = QtCharts.QChart()
 
         self.psdSeries = []
+        # processing task. Set to done to save "is not None" check.
         self.updateTask = asyncio.Future()
         self.updateTask.set_result(None)
 
@@ -133,32 +136,62 @@ class PSDWidget(QWidget):
         layout.addWidget(TimeChart.TimeChartView(self.chart), 0, 0)
 
     def data(self, mean=False):
-        def plot(serie, signal):
-            """
-            signal - data
+        """Process and plot data.
+
+        Parameters
+        ----------
+        mean : `bool`
+            Instead of plotting PSD from all channels, plot PSD from mean of the channels."""
+
+        def downsample(psd, N):
+            """Downsample PSD so no too many points are plot. Replace PSD with max of subarray and frequency with mean frequency.
+            Parameters
+            ----------
+            psd : `[float]`
+                Original, full scale PSD. len(psd) ~= N // 2
+            N : `int`
+                Size of original signal.
             """
             fMin = self.chart.axes(Qt.Horizontal)[0].min()
             fMax = self.chart.axes(Qt.Horizontal)[0].max()
 
-            N = len(signal)
-            # only half of FFT - second half is mirrored first
-            psd = np.abs(np.fft.fft(signal)[:N // 2]) ** 2 * SAMPLE_TIME / N
             deltaFreq = (1 / SAMPLE_TIME) / N
-            frequencies = deltaFreq * np.arange(N // 2)
 
             rMin = int(np.floor(fMin / deltaFreq))
             rMax = int(np.ceil(fMax / deltaFreq))
             psd = psd[rMin:rMax]
-            frequencies = frequencies[rMin:rMax]
-            dpP = len(psd) / self.chart.plotArea().width()
-            if dpP > 0.5:
-                s = int(np.floor(dpP * 2.0))
+            frequencies = (deltaFreq * np.arange(N // 2))[rMin:rMax]
+            dataPerPixel = len(psd) / self.chart.plotArea().width()
+            # downsample if points are less than 2 pixels apart, so the points
+            # are at least 2 pixels apart
+            if dataPerPixel > 0.5:
+                s = int(np.floor(dataPerPixel * 2.0))
                 N = len(psd)
                 psd = [max(psd[i : i + s]) for i in range(0, N, s)]
+                # frequencies are monotonic constant step. So to calculate
+                # average, only took boundary members and divide by two
                 frequencies = [
                     (frequencies[i] + frequencies[min(i + s, N - 1)]) / 2
                     for i in range(0, N, s)
                 ]
+            return (psd, frequencies)
+
+        def plot(serie, signal):
+            """Calculates and plot PSD - Power Spectral Density. Downsamples
+            the calculated PSD so reasonable number of points is displayed.
+
+            Parameters
+            ----------
+            serie : `int`
+                PSD number.
+            signal : `[float]`
+                Input signal.
+            """
+            N = len(signal)
+            # only half of FFT - second half is mirrored first
+            psd = np.abs(np.fft.fft(signal)[: N // 2]) ** 2 * SAMPLE_TIME / N
+
+            (psd, frequencies) = downsample(psd, N)
 
             self.chart.axes(Qt.Vertical)[0].setRange(min(psd), max(psd))
 
@@ -166,6 +199,13 @@ class PSDWidget(QWidget):
             self.psdSeries[serie].replace(points)
 
         def plotAll(mean):
+            """Plot all signals. Run as task in thread.
+
+            Parameters
+            ----------
+            mean : `bool`
+                Use mean of input signals instead of independent signals."""
+
             if mean:
                 plot(
                     0,
@@ -194,6 +234,11 @@ class PSDWidget(QWidget):
 
 
 class AccelerometersPageWidget(QTabWidget):
+    """Displays all VMS widgets.
+
+    TODO: replace with a generic widget, allowing user to customize what
+    he/she would like to see."""
+
     SENSORS = [
         f"sensor{s}{a}Acceleration" for s in range(1, 7) for a in ["X", "Y", "Z"]
     ]
@@ -203,7 +248,7 @@ class AccelerometersPageWidget(QTabWidget):
     def __init__(self, comm, toolbar):
         super().__init__()
 
-        self.cache = VMSCache(3)
+        self.cache = VMSCache(0, 3)
 
         self.timeChart = TimeChartWidget(comm, 3)
         self.samples = [[i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]]

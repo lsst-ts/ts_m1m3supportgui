@@ -35,7 +35,7 @@ class VMSCache:
         Number of sensors.
     """
 
-    def __init__(self, size, sensors=6):
+    def __init__(self, size, sensors):
         items = [("timestamp", "f8")] + [
             (f"{s}{a}", "f8") for s in range(1, sensors + 1) for a in ["X", "Y", "Z"]
         ]
@@ -73,18 +73,18 @@ class VMSCache:
         self.data = newdata
         self._size = size
 
-    def append(self, A):
+    def append(self, data):
         """Append new row to end of data.
 
         Parameters
         ----------
-        A: `tupple`
+        data : `tupple`
             New row data.
         """
         if self.current_index >= self._size:
             self.current_index = 0
             self.filled = True
-        self.data[self.current_index] = A
+        self.data[self.current_index] = data
         self.current_index += 1
 
     def startTime(self):
