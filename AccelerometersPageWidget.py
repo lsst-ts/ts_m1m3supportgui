@@ -141,10 +141,12 @@ class PSDWidget(QWidget):
         Parameters
         ----------
         mean : `bool`
-            Instead of plotting PSD from all channels, plot PSD from mean of the channels."""
+            Instead of plotting PSD from all channels, plot PSD from mean of
+            the channels."""
 
         def downsample(psd, N):
-            """Downsample PSD so no too many points are plot. Replace PSD with max of subarray and frequency with mean frequency.
+            """Downsample PSD so no too many points are plot. Replace PSD with
+            max of subarray and frequency with mean frequency.
             Parameters
             ----------
             psd : `[float]`
@@ -188,8 +190,8 @@ class PSDWidget(QWidget):
                 Input signal.
             """
             N = len(signal)
-            # only half of FFT - second half is mirrored first
-            psd = np.abs(np.fft.fft(signal)[: N // 2]) ** 2 * SAMPLE_TIME / N
+            # take only half of FFT - second half, negative frequencies, are not displayed
+            psd = np.abs(np.fft.fft(signal, N // 2)) ** 2 * SAMPLE_TIME / N
 
             (psd, frequencies) = downsample(psd, N)
 
@@ -240,7 +242,7 @@ class AccelerometersPageWidget(QTabWidget):
     he/she would like to see."""
 
     SENSORS = [
-        f"sensor{s}{a}Acceleration" for s in range(1, 7) for a in ["X", "Y", "Z"]
+        f"sensor{s}{a}Acceleration" for s in range(1, 4) for a in ["X", "Y", "Z"]
     ]
 
     cacheUpdated = Signal(int, float, float)
