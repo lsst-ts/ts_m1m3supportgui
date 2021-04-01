@@ -77,7 +77,7 @@ class ToolBar(QToolBar):
         self.interval.setDecimals(3)
         self.interval.setRange(0.001, 3600)
         self.interval.setSingleStep(0.1)
-        self.interval.setValue(int(settings.value("interval", 50.0)))
+        self.interval.setValue(float(settings.value("interval", 50.0)))
         self.interval.editingFinished.connect(self.newInterval)
         self.addWidget(self.interval)
 

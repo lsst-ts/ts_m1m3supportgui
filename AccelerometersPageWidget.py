@@ -188,6 +188,13 @@ class PSDWidget(QWidget):
                 PSD number.
             signal : `[float]`
                 Input signal.
+
+            Returns
+            -------
+            min : `float`
+                PSD subplot minimum value.
+            max : `float`
+                PSD subplot maximum value.
             """
             N = len(signal)
             # take only half of FFT - second half, negative frequencies, are not displayed
@@ -195,10 +202,10 @@ class PSDWidget(QWidget):
 
             (psd, frequencies) = downsample(psd, N)
 
-            self.chart.axes(Qt.Vertical)[0].setRange(min(psd), max(psd))
-
             points = [QPointF(frequencies[r], psd[r]) for r in range(len(psd))]
             self.psdSeries[serie].replace(points)
+
+            return min(psd), max(psd)
 
         def plotAll(mean):
             """Plot all signals. Run as task in thread.
@@ -209,17 +216,24 @@ class PSDWidget(QWidget):
                 Use mean of input signals instead of independent signals."""
 
             if mean:
-                plot(
+                min_psd, max_psd = plot(
                     0,
                     np.mean(
                         [self.cache[s + self.samples[0]] for s in ["1", "2", "3"]],
                         axis=0,
                     ),
                 )
-                return
+                self.chart.axes(Qt.Vertical)[0].setRange(min_psd, max_psd)
 
-            for i in range(len(self.samples)):
-                plot(i, self.cache[self.samples[i]])
+            else:
+                min_psd = []
+                max_psd = []
+                for i in range(len(self.samples)):
+                    min_p, max_p = plot(i, self.cache[self.samples[i]])
+                    min_psd.append(min_p)
+                    max_psd.append(max_p)
+
+                self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
 
         if not (self.update_after is None):
             if self.update_after < time.monotonic():
