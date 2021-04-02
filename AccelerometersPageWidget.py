@@ -43,47 +43,48 @@ class TimeChartWidget(QWidget):
 
     Parameters
     ----------
-    comm : `SALComm`
-        Communication object.
-    sensors : `int`
+    signal : `Signal(map)`
+        Signal emitted when new data are received.
+    numSensors : `int`
         Number of sensors (and hence number of charts). Chart is created to
         display X,Y and Z values per sensor."""
 
-    def __init__(self, comm, sensors):
+    def __init__(self, signal, numSensors):
         super().__init__()
+        self.numSensors = numSensors
         self.layout = QGridLayout()
         self.setLayout(self.layout)
 
         self.chart = []
 
-        for sensor in range(sensors):
+        for sensor in range(self.numSensors):
             self.chart.append(TimeBoxChart.TimeBoxChart())
             self.layout.addWidget(
                 TimeChart.TimeChartView(self.chart[sensor]), sensor / 2, sensor % 2
             )
 
-        comm.m1m3.connect(self.m1m3)
+        signal.connect(self.data)
 
     @Slot(map)
-    def m1m3(self, data):
-        for sensor in range(1, 4):
+    def data(self, data):
+        for sensor in range(1, self.numSensors + 1):
             self.chart[sensor - 1].append(
                 data.timestamp,
                 [
                     (
                         "Acceleration (m/s<sup>2</sup>)",
                         f"{sensor}X",
-                        getattr(data, f"sensor{sensor}XAcceleration"),
+                        getattr(data, f"accelerationXSensor{sensor}"),
                     ),
                     (
                         "Acceleration (m/s<sup>2</sup>)",
                         f"{sensor}Y",
-                        getattr(data, f"sensor{sensor}YAcceleration"),
+                        getattr(data, f"accelerationYSensor{sensor}"),
                     ),
                     (
                         "Acceleration (m/s<sup>2</sup>)",
                         f"{sensor}Z",
-                        getattr(data, f"sensor{sensor}ZAcceleration"),
+                        getattr(data, f"accelerationZSensor{sensor}"),
                     ),
                 ],
             )
@@ -198,7 +199,7 @@ class PSDWidget(QWidget):
             """
             N = len(signal)
             # take only half of FFT - second half, negative frequencies, are not displayed
-            psd = np.abs(np.fft.fft(signal, N // 2)) ** 2 * SAMPLE_TIME / N
+            psd = np.abs(np.fft.fft(signal)[: N // 2]) ** 2 * SAMPLE_TIME / N
 
             (psd, frequencies) = downsample(psd, N)
 
@@ -256,7 +257,7 @@ class AccelerometersPageWidget(QTabWidget):
     he/she would like to see."""
 
     SENSORS = [
-        f"sensor{s}{a}Acceleration" for s in range(1, 4) for a in ["X", "Y", "Z"]
+        f"acceleration{a}Sensor{s}" for s in range(1, 4) for a in ["X", "Y", "Z"]
     ]
 
     cacheUpdated = Signal(int, float, float)
@@ -277,13 +278,13 @@ class AccelerometersPageWidget(QTabWidget):
             ]
 
         self.SENSORS = [
-            f"sensor{s}{a}Acceleration"
+            f"acceleration{a}Sensor{s}"
             for s in range(1, numSensors + 1)
             for a in ["X", "Y", "Z"]
         ]
 
         self.cache = VMSCache(0, numSensors)
-        self.timeChart = TimeChartWidget(comm, numSensors)
+        self.timeChart = TimeChartWidget(getattr(comm, module), numSensors)
 
         self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
@@ -322,7 +323,7 @@ class AccelerometersPageWidget(QTabWidget):
         toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
         toolbar.intervalChanged.emit(toolbar.interval.value())
 
-        comm.m1m3.connect(self.m1m3)
+        getattr(comm, module).connect(self.data)
 
     @Slot(map)
     def data(self, data):

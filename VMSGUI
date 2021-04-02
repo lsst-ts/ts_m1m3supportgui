@@ -15,7 +15,6 @@ from asyncqt import QEventLoop, asyncClose
 import asyncio
 
 
-
 class EUI(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -25,7 +24,7 @@ class EUI(QMainWindow):
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
 
-        acWidget = AccelerometersPageWidget(self.comm, "m2", self.toolBar)
+        acWidget = AccelerometersPageWidget(self.comm, "m1m3", self.toolBar)
         statusBar = StatusBar()
         acWidget.cacheUpdated.connect(statusBar.cacheUpdated)
         self.setStatusBar(statusBar)
@@ -49,7 +48,6 @@ class EUI(QMainWindow):
         self.toolBar.storeSettings()
         await self.comm.close()
         super().closeEvent(event)
-
 
 
 if __name__ == "__main__":
