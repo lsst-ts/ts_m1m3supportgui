@@ -158,12 +158,26 @@ class PSDWidget(QWidget):
             fMin = self.chart.axes(Qt.Horizontal)[0].min()
             fMax = self.chart.axes(Qt.Horizontal)[0].max()
 
-            deltaFreq = (1 / SAMPLE_TIME) / N
+            frequencies = np.fft.rfftfreq(N, SAMPLE_TIME)
 
-            rMin = int(np.floor(fMin / deltaFreq))
-            rMax = int(np.ceil(fMax / deltaFreq)) + 1
+            f = iter(frequencies)
+            rMin = 0
+            try:
+                while next(f) < fMin:
+                    rMin += 1
+                rMax = rMin
+                try:
+                    while next(f) < fMax:
+                        rMax += 1
+                except StopIteration:
+                    pass
+                rMin = max(0, rMin - 2)
+                rMax = min(len(frequencies) - 1, rMax + 2)
+            except StopIteration:
+                return (psd[-2:-1], frequencies[-2:-1])
+
             psd = psd[rMin:rMax]
-            frequencies = (deltaFreq * np.arange(N // 2))[rMin:rMax]
+            frequencies = frequencies[rMin:rMax]
             dataPerPixel = len(psd) / self.chart.plotArea().width()
             # downsample if points are less than 2 pixels apart, so the points
             # are at least 2 pixels apart
@@ -198,8 +212,8 @@ class PSDWidget(QWidget):
                 PSD subplot maximum value.
             """
             N = len(signal)
-            # take only half of FFT - second half, negative frequencies, are not displayed
-            psd = np.abs(np.fft.fft(signal)[: N // 2]) ** 2 * SAMPLE_TIME / N
+            # as input is real only, fft is sytemtric; rfft is enough
+            psd = np.abs(np.fft.rfft(signal)) ** 2 * SAMPLE_TIME / N
 
             (psd, frequencies) = downsample(psd, N)
 
