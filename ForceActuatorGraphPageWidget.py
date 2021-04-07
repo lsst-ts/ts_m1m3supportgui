@@ -9,16 +9,16 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
     Draw distribution of force actuators, and selected value. Intercept events callbacks to trigger updates.
     """
 
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         self.mirrorWidget = MirrorWidget()
-        super().__init__(comm, self.mirrorWidget)
+        super().__init__(m1m3, self.mirrorWidget)
 
         self.mirrorWidget.mirrorView.selectionChanged.connect(
             self.updateSelectedActuator
         )
 
     def updateValues(self, data):
-        warningData = self.comm.MTM1M3.evt_forceActuatorWarning.get()
+        warningData = self.m1m3.remote.evt_forceActuatorWarning.get()
         points = []
 
         if data is None:

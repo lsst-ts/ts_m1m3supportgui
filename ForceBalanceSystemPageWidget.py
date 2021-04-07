@@ -13,9 +13,9 @@ from asyncqt import asyncSlot
 
 
 class ForceBalanceSystemPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self._balanceData = None
         self._hardpointData = None
@@ -149,9 +149,9 @@ class ForceBalanceSystemPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.balanceChartView)
 
-        self.comm.appliedBalanceForces.connect(self.appliedBalanceForces)
-        self.comm.forceActuatorWarning.connect(self.forceActuatorWarning)
-        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
+        self.m1m3.appliedBalanceForces.connect(self.appliedBalanceForces)
+        self.m1m3.forceActuatorWarning.connect(self.forceActuatorWarning)
+        self.m1m3.hardpointActuatorData.connect(self.hardpointActuatorData)
 
     @Slot(map)
     def appliedBalanceForces(self, data):
@@ -205,11 +205,11 @@ class ForceBalanceSystemPageWidget(QWidget):
 
     @asyncSlot()
     async def issueCommandEnableHardpointCorrections(self):
-        await self.comm.MTM1M3.cmd_enableHardpointCorrections.start()
+        await self.m1m3.remote.cmd_enableHardpointCorrections.start()
 
     @asyncSlot()
     async def issueCommandDisableHardpointCorrections(self):
-        await self.comm.MTM1M3.cmd_disableHardpointCorrections.start()
+        await self.m1m3.remote.cmd_disableHardpointCorrections.start()
 
     def _setTotalForces(self):
         if self._balanceData is None or self._hardpointData is None:

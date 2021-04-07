@@ -5,9 +5,9 @@ from PySide2.QtCore import Slot
 
 
 class DCAccelerometerPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -99,8 +99,8 @@ class DCAccelerometerPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chart_view)
 
-        self.comm.accelerometerWarning.connect(self.accelerometerWarning)
-        self.comm.accelerometerData.connect(self.accelerometerData)
+        self.m1m3.accelerometerWarning.connect(self.accelerometerWarning)
+        self.m1m3.accelerometerData.connect(self.accelerometerData)
 
     @Slot(map)
     def accelerometerWarning(self, data):

@@ -136,10 +136,10 @@ class DataWidget(QWidget):
 
 
 class ForceActuatorValuePageWidget(ForceActuatorWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         self.dataWidget = DataWidget()
 
-        super().__init__(comm, self.dataWidget)
+        super().__init__(m1m3, self.dataWidget)
 
     def updateValues(self, data):
         if data is None:

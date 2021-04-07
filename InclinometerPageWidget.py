@@ -5,9 +5,9 @@ from PySide2.QtCore import Slot
 
 
 class InclinometerPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -75,8 +75,8 @@ class InclinometerPageWidget(QWidget):
 
         self.setLayout(self.layout)
 
-        self.comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
-        self.comm.inclinometerData.connect(self.inclinometerData)
+        self.m1m3.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
+        self.m1m3.inclinometerData.connect(self.inclinometerData)
 
     @Slot(bool)
     def inclinometerSensorWarning(self, anyWarning):

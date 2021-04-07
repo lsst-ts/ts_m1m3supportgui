@@ -6,9 +6,9 @@ from asyncqt import asyncSlot
 
 
 class PowerPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -293,9 +293,9 @@ class PowerPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chartView)
 
-        self.comm.powerWarning.connect(self.powerWarning)
-        self.comm.powerStatus.connect(self.powerStatus)
-        self.comm.powerSupplyData.connect(self.powerSupplyData)
+        self.m1m3.powerWarning.connect(self.powerWarning)
+        self.m1m3.powerStatus.connect(self.powerStatus)
+        self.m1m3.powerSupplyData.connect(self.powerSupplyData)
 
     @Slot(map)
     def powerWarning(self, data):
@@ -378,96 +378,96 @@ class PowerPageWidget(QWidget):
 
     @asyncSlot()
     async def issueCommandTurnMainAOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             True, False, False, False, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnMainAOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             True, False, False, False, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnMainBOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             False, True, False, False, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnMainBOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             False, True, False, False, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnMainCOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             False, False, True, False, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnMainCOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             False, False, True, False, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnMainDOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             False, False, False, True, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnMainDOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             False, False, False, True, False, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxAOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             False, False, False, False, True, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxAOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             False, False, False, False, True, False, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxBOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             False, False, False, False, False, True, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxBOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             False, False, False, False, False, True, False, False
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxCOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             False, False, False, False, False, False, True, False
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxCOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             False, False, False, False, False, False, True, False
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxDOn(self):
-        await self.comm.MTM1M3.cmd_turnPowerOn.set_start(
+        await self.m1m3.remote.cmd_turnPowerOn.set_start(
             False, False, False, False, False, False, False, True
         )
 
     @asyncSlot()
     async def issueCommandTurnAuxDOff(self):
-        await self.comm.MTM1M3.cmd_turnPowerOff.set_start(
+        await self.m1m3.remote.cmd_turnPowerOff.set_start(
             False, False, False, False, False, False, False, True
         )

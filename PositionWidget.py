@@ -49,7 +49,7 @@ class PositionWidget(QWidget):
 
     Parameters
     ----------
-    comm : `SALComm`
+    m1m3 : `SALComm`
         Proxy class for SAL/DDS communication. See SALComm.py for details.
     """
 
@@ -62,9 +62,9 @@ class PositionWidget(QWidget):
         "zRotation",
     ]
 
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self._hpData = None
         self._imsData = None
@@ -168,9 +168,9 @@ class PositionWidget(QWidget):
 
         self.layout.addStretch()
 
-        self.comm.hardpointActuatorData.connect(self._hardpointActuatorDataCallback)
-        self.comm.imsData.connect(self._imsDataCallback)
-        self.comm.detailedState.connect(self._detailedStateCallback)
+        self.m1m3.hardpointActuatorData.connect(self._hardpointActuatorDataCallback)
+        self.m1m3.imsData.connect(self._imsDataCallback)
+        self.m1m3.detailedState.connect(self._detailedStateCallback)
 
     async def moveMirror(self, **kwargs):
         """Move mirror. Calls positionM1M3 command.
@@ -182,7 +182,7 @@ class PositionWidget(QWidget):
             positionM1M3 command.
         """
         try:
-            await self.comm.MTM1M3.cmd_positionM1M3.set_start(**kwargs)
+            await self.m1m3.remote.cmd_positionM1M3.set_start(**kwargs)
         except base.AckError as ackE:
             await QTHelpers.warning(
                 self, f"Error executing positionM1M3({kwargs})", ackE.ackcmd.result,

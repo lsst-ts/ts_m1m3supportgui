@@ -5,9 +5,8 @@ from PySide2.QtCore import Slot
 
 
 class PIDPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -288,8 +287,8 @@ class PIDPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chartView)
 
-        self.comm.pidInfo.connect(self.pidInfo)
-        self.comm.pidData.connect(self.pidData)
+        m1m3.pidInfo.connect(self.pidInfo)
+        m1m3.pidData.connect(self.pidData)
 
     @Slot(map)
     def pidInfo(self, data):

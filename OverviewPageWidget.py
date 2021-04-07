@@ -18,7 +18,7 @@ class OverviewPageWidget(QWidget):
 
     FORCES = ["fx", "fy", "fz", "mx", "my", "mz", "forceMagnitude"]
 
-    def __init__(self, comm):
+    def __init__(self, m1m3, mtmount):
         super().__init__()
 
         self.layout = QHBoxLayout()
@@ -207,30 +207,30 @@ class OverviewPageWidget(QWidget):
         dataLayout.addWidget(self.inclinometerLabel, row, col + 1)
         dataLayout.addWidget(self.tmaElevationLabel, row, col + 2)
 
-        comm.accelerometerWarning.connect(self.accelerometerWarning)
-        comm.airSupplyWarning.connect(self.airSupplyWarning)
-        comm.appliedForces.connect(self.appliedForces)
-        comm.cellLightWarning.connect(self.cellLightWarning)
-        comm.detailedState.connect(self.detailedState)
-        comm.displacementSensorWarning.connect(self.displacementSensorWarning)
-        comm.forceActuatorWarning.connect(self.forceActuatorWarning)
-        comm.gyroWarning.connect(self.gyroWarning)
-        comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
-        comm.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
-        comm.heartbeat.connect(self.heartbeatLabel.heartbeat)
-        comm.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
-        comm.interlockWarning.connect(self.interlockWarning)
-        comm.powerWarning.connect(self.powerWarning)
+        m1m3.accelerometerWarning.connect(self.accelerometerWarning)
+        m1m3.airSupplyWarning.connect(self.airSupplyWarning)
+        m1m3.appliedForces.connect(self.appliedForces)
+        m1m3.cellLightWarning.connect(self.cellLightWarning)
+        m1m3.detailedState.connect(self.detailedState)
+        m1m3.displacementSensorWarning.connect(self.displacementSensorWarning)
+        m1m3.forceActuatorWarning.connect(self.forceActuatorWarning)
+        m1m3.gyroWarning.connect(self.gyroWarning)
+        m1m3.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
+        m1m3.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
+        m1m3.heartbeat.connect(self.heartbeatLabel.heartbeat)
+        m1m3.inclinometerSensorWarning.connect(self.inclinometerSensorWarning)
+        m1m3.interlockWarning.connect(self.interlockWarning)
+        m1m3.powerWarning.connect(self.powerWarning)
 
-        comm.accelerometerData.connect(self.accelerometerData)
-        comm.forceActuatorData.connect(self.forceActuatorData)
-        comm.gyroData.connect(self.gyroData)
-        comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        comm.imsData.connect(self.imsData)
-        comm.inclinometerData.connect(self.inclinometerData)
+        m1m3.accelerometerData.connect(self.accelerometerData)
+        m1m3.forceActuatorData.connect(self.forceActuatorData)
+        m1m3.gyroData.connect(self.gyroData)
+        m1m3.hardpointActuatorData.connect(self.hardpointActuatorData)
+        m1m3.imsData.connect(self.imsData)
+        m1m3.inclinometerData.connect(self.inclinometerData)
 
-        comm.azimuth.connect(self.azimuth)
-        comm.elevation.connect(self.elevation)
+        mtmount.azimuth.connect(self.azimuth)
+        mtmount.elevation.connect(self.elevation)
 
     def accelerometerWarning(self, data):
         QTHelpers.setWarningLabel(self.accelerometerWarningLabel, data.anyWarning)

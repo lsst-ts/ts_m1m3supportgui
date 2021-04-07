@@ -5,9 +5,9 @@ from asyncqt import asyncSlot
 
 
 class CellLightPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -53,8 +53,8 @@ class CellLightPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
         self.warningLayout.addWidget(self.cellLightSensorMismatchLabel, row, col + 1)
 
-        self.comm.cellLightWarning.connect(self.cellLightWarning)
-        self.comm.cellLightStatus.connect(self.cellLightStatus)
+        self.m1m3.cellLightWarning.connect(self.cellLightWarning)
+        self.m1m3.cellLightStatus.connect(self.cellLightStatus)
 
     @Slot(map)
     def cellLightWarning(self, data):
@@ -70,8 +70,8 @@ class CellLightPageWidget(QWidget):
 
     @asyncSlot()
     async def issueCommandTurnLightsOn(self):
-        await self.comm.MTM1M3.cmd_turnLightsOn.start()
+        await self.m1m3.remote.cmd_turnLightsOn.start()
 
     @asyncSlot()
     async def issueCommandTurnLightsOff(self):
-        await self.comm.MTM1M3.cmd_turnLightsOff.start()
+        await self.m1m3.remote.cmd_turnLightsOff.start()

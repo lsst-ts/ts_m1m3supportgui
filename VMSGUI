@@ -19,7 +19,8 @@ class EUI(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.m1m3 = SALComm.create("MTVMS", index=1)
+        self.m1m3 = SALComm.create("MTVMS", index=1, queue_len=400)
+        #self.m1m3 = SALComm.create("MTVMS", queue_len=400)
 
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)

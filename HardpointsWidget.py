@@ -41,9 +41,9 @@ class HardpointsWidget(QWidget):
     """Displays hardpoint data - encoders and calculated position, hardpoint
     state, and M1M3 displacement."""
 
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
 
@@ -169,17 +169,17 @@ class HardpointsWidget(QWidget):
 
         self.layout.addStretch()
 
-        self.comm.detailedState.connect(self.detailedState)
-        self.comm.hardpointActuatorData.connect(self.hardpointActuatorData)
-        self.comm.hardpointActuatorState.connect(self.hardpointActuatorState)
-        self.comm.hardpointMonitorData.connect(self.hardpointMonitorData)
-        self.comm.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
+        self.m1m3.detailedState.connect(self.detailedState)
+        self.m1m3.hardpointActuatorData.connect(self.hardpointActuatorData)
+        self.m1m3.hardpointActuatorState.connect(self.hardpointActuatorState)
+        self.m1m3.hardpointMonitorData.connect(self.hardpointMonitorData)
+        self.m1m3.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
 
     @asyncSlot()
     async def _moveHP(self):
         steps = list(map(lambda x: x.value(), self.hpOffsets))
         try:
-            await self.comm.MTM1M3.cmd_moveHardpointActuators.set_start(steps=steps)
+            await self.m1m3.remote.cmd_moveHardpointActuators.set_start(steps=steps)
         except base.AckError as ackE:
             await QTHelpers.warning(
                 self,

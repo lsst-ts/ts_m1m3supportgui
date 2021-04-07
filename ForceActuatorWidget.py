@@ -42,7 +42,7 @@ class ForceActuatorWidget(QWidget):
     Parameters
     ----------
 
-    comm : `SALComm`
+    m1m3 : `SALComm`
         SALComm instance to communicate with SAL.
     userWidget : `QWidget`
         Widget to be displayed on left from value selection. Its content shall
@@ -57,9 +57,9 @@ class ForceActuatorWidget(QWidget):
         then no data has been received for selected read topic.
     """
 
-    def __init__(self, comm, userWidget):
+    def __init__(self, m1m3, userWidget):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.fieldDataIndex = None
 
@@ -166,9 +166,9 @@ class ForceActuatorWidget(QWidget):
         self.fieldGetter = field[1]
         self.fieldDataIndex = field[2]()
         try:
-            self.topics.changeTopic(topicIndex, self.dataChanged, self.comm)
+            self.topics.changeTopic(topicIndex, self.dataChanged, self.m1m3)
 
-            data = getattr(self.comm.MTM1M3, topic.getTopic()).get()
+            data = getattr(self.m1m3.remote, topic.getTopic()).get()
             self.dataChanged(data)
         except RuntimeError as err:
             print("ForceActuatorWidget._changeField", err)

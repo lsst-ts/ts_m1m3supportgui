@@ -45,9 +45,8 @@ class SALLogMessages(QPlainTextEdit):
         "color:red; font-weight:bold;",
     ]
 
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
         self.setReadOnly(True)
         self.setLineWrapMode(QPlainTextEdit.NoWrap)
         self.setCenterOnScroll(True)
@@ -55,7 +54,7 @@ class SALLogMessages(QPlainTextEdit):
         font.setStyleHint(QFont.TypeWriter)
         self.setFont(font)
 
-        self.comm.logMessage.connect(self.logMessage)
+        m1m3.logMessage.connect(self.logMessage)
 
     @Slot()
     def logMessage(self, data):
