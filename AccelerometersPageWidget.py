@@ -67,27 +67,17 @@ class TimeChartWidget(QWidget):
 
     @Slot(map)
     def data(self, data):
-        for sensor in range(1, self.numSensors + 1):
-            self.chart[sensor - 1].append(
-                data.timestamp,
-                [
-                    (
-                        "Acceleration (m/s<sup>2</sup>)",
-                        f"{sensor}X",
-                        getattr(data, f"accelerationXSensor{sensor}"),
-                    ),
-                    (
-                        "Acceleration (m/s<sup>2</sup>)",
-                        f"{sensor}Y",
-                        getattr(data, f"accelerationYSensor{sensor}"),
-                    ),
-                    (
-                        "Acceleration (m/s<sup>2</sup>)",
-                        f"{sensor}Z",
-                        getattr(data, f"accelerationZSensor{sensor}"),
-                    ),
-                ],
-            )
+        self.chart[data.sensor - 1].append(
+            data.timestamp,
+            [
+                (
+                    "Acceleration (m/s<sup>2</sup>)",
+                    f"{data.sensor}{a}",
+                    getattr(data, f"acceleration{a}"),
+                )
+                for a in ["X", "Y", "Z"]
+            ],
+        )
 
 
 class PSDWidget(QWidget):
@@ -298,7 +288,7 @@ class AccelerometersPageWidget(QTabWidget):
         ]
 
         self.cache = VMSCache(0, numSensors)
-        self.timeChart = TimeChartWidget(getattr(comm, module), numSensors)
+        self.timeChart = TimeChartWidget(comm.data, numSensors)
 
         self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
@@ -337,26 +327,22 @@ class AccelerometersPageWidget(QTabWidget):
         toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
         toolbar.intervalChanged.emit(toolbar.interval.value())
 
-        getattr(comm, module).connect(self.data)
+        comm.data.connect(self.data)
 
     @Slot(map)
     def data(self, data):
         ts = data.timestamp
-        for i in range(len(getattr(data, self.SENSORS[0]))):
-            row = (ts,)
-            ts += SAMPLE_TIME
-            row += tuple([getattr(data, s)[i] for s in self.SENSORS])
-            self.cache.append(row)
+        added, chunk_removed = self.cache.newChunk(data, SAMPLE_TIME)
+        if added:
+            self.cacheUpdated.emit(
+                len(self.cache), self.cache.startTime(), self.cache.endTime()
+            )
 
-        self.cacheUpdated.emit(
-            len(self.cache), self.cache.startTime(), self.cache.endTime()
-        )
+            for i in range(len(self.psds)):
+                self.psds[i].data()
 
-        for i in range(len(self.psds)):
-            self.psds[i].data()
-
-        for i in range(len(self.meanPSDs)):
-            self.meanPSDs[i].data(True)
+            for i in range(len(self.meanPSDs)):
+                self.meanPSDs[i].data(True)
 
     @Slot(float)
     def intervalChanged(self, interval):

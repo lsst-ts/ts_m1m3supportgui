@@ -75,7 +75,7 @@ class ToolBar(QToolBar):
 
         self.interval = QDoubleSpinBox()
         self.interval.setDecimals(3)
-        self.interval.setRange(0.001, 3600)
+        self.interval.setRange(0.01, 3600)
         self.interval.setSingleStep(0.1)
         self.interval.setValue(float(settings.value("interval", 50.0)))
         self.interval.editingFinished.connect(self.newInterval)

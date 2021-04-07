@@ -19,12 +19,12 @@ class EUI(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.comm = SALComm.create({"MTVMS": None})
+        self.m1m3 = SALComm.create("MTVMS", index=1)
 
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
 
-        acWidget = AccelerometersPageWidget(self.comm, "m1m3", self.toolBar)
+        acWidget = AccelerometersPageWidget(self.m1m3, "m1m3", self.toolBar)
         statusBar = StatusBar()
         acWidget.cacheUpdated.connect(statusBar.cacheUpdated)
         self.setStatusBar(statusBar)
@@ -46,7 +46,7 @@ class EUI(QMainWindow):
         settings.setValue("geometry", self.saveGeometry())
         settings.setValue("windowState", self.saveState())
         self.toolBar.storeSettings()
-        await self.comm.close()
+        await self.m1m3.close()
         super().closeEvent(event)
 
 
