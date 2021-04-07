@@ -23,6 +23,9 @@
 import abc
 from PySide2.QtCore import QObject, Signal
 from lsst.ts.salobj import Domain, Remote
+from lsst.ts.salobj.topics import RemoteTelemetry, RemoteEvent
+
+import asyncio
 import functools
 
 __all__ = ["create"]
@@ -40,7 +43,29 @@ class MetaSAL(type(QObject)):
     def __new__(mcs, classname, bases, dictionary):
         dictionary["domain"] = Domain()
 
-        dictionary["remote"] = Remote(dictionary["domain"], **dictionary["_args"])
+        if dictionary["_manual"] is None:
+            dictionary["remote"] = Remote(dictionary["domain"], **dictionary["_args"])
+        else:
+            dictionary["remote"] = Remote(
+                dictionary["domain"],
+                start=False,
+                exclude=dictionary["_manual"].keys(),
+                **dictionary["_args"],
+            )
+            for name, args in dictionary["_manual"].items():
+                if name in dictionary["remote"].salinfo.telemetry_names:
+                    tel = RemoteTelemetry(dictionary["remote"].salinfo, name, **args)
+                    setattr(dictionary["remote"], tel.attr_name, tel)
+                elif name in dictionary["remote"].salinfo.event_names:
+                    evt = RemoteEvent(dictionary["remote"].salinfo, name, **args)
+                    setattr(dictionary["remote"], evt.attr_name, tel)
+                else:
+                    print(f"Unknown manual {name} - is not a telemetry or event topics")
+
+            dictionary["remote"].start_task = asyncio.create_task(
+                dictionary["remote"].start()
+            )
+
         for m in filter(
             lambda m: m.startswith("tel_") or m.startswith("evt_"),
             dir(dictionary["remote"]),
@@ -84,7 +109,7 @@ class MetaSAL(type(QObject)):
         return newclass
 
 
-def create(name, **kvargs):
+def create(name, manual=None, **kvargs):
     """Creates SALComm instance for given remote(s). The returned object
     contains PySide2.QtCore.Signal class variables. Those signals are emitted
     when SAL callback occurs, effectively linking SAL/DDS and Qt word. Signals
@@ -97,9 +122,13 @@ def create(name, **kvargs):
     Parameters
     ----------
     name : `str`
-       Remote name.
+        Remote name.
+    manual : `hash`
+        Events and telemetry topics created with optional arguments. Keys are
+        events and telemetry names, values is a hash of additional arguments.
+
     **kvargs : `dict`
-       Optional parameters passed to remote.
+        Optional parameters passed to remote.
 
     Usage
     -----
@@ -117,11 +146,19 @@ def create(name, **kvargs):
 
        my_mount = SALComm.create("MTMount")
 
+       # tel_data will be created with 400 items queue
+       my_vms = SALComm.create("MTVMS", index=1, manual={"data" : {"queue_len" : 400}})
+
        @Slot(map)
        def update_labels_azimuth(data):
            ...
 
+       @Slot(map)
+       def update_data(data):
+           ...
+
        my_mount.azimuth.connect(update_labels_azimuth)
+       my_vms.data.connect(update_data)
 
        ...
 
@@ -139,6 +176,7 @@ def create(name, **kvargs):
 
         _args = kvargs
         _args["name"] = name
+        _manual = manual
 
         def __init__(self):
             super().__init__()
