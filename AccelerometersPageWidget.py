@@ -266,10 +266,10 @@ class AccelerometersPageWidget(QTabWidget):
 
     cacheUpdated = Signal(int, float, float)
 
-    def __init__(self, m1m3, module, toolbar):
+    def __init__(self, comm, module, toolbar):
         super().__init__()
 
-        if module == "m2":
+        if module == "M2":
             numSensors = 6
             self.samples = [
                 [i + axis for i in ["1", "2", "3", "4", "5", "6"]]
@@ -288,7 +288,7 @@ class AccelerometersPageWidget(QTabWidget):
         ]
 
         self.cache = VMSCache(0, numSensors)
-        self.timeChart = TimeChartWidget(m1m3.data, numSensors)
+        self.timeChart = TimeChartWidget(comm.data, numSensors)
 
         self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
@@ -314,7 +314,7 @@ class AccelerometersPageWidget(QTabWidget):
         allMeans.setLayout(gridLayout)
         self.addTab(allMeans, "Mean PSD")
 
-        log = SALLogWidget(m1m3)
+        log = SALLogWidget(comm)
         self.addTab(log, "SAL Log")
 
         toolbar.intervalChanged.connect(self.intervalChanged)
@@ -327,7 +327,7 @@ class AccelerometersPageWidget(QTabWidget):
         toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
         toolbar.intervalChanged.emit(toolbar.interval.value())
 
-        m1m3.data.connect(self.data)
+        comm.data.connect(self.data)
 
     @Slot(map)
     def data(self, data):

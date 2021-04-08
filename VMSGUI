@@ -8,7 +8,7 @@ from VMSGUI import *
 
 import SALComm
 
-from PySide2.QtCore import Slot, Signal, QSettings
+from PySide2.QtCore import Slot, Signal, QSettings, QCommandLineParser
 from PySide2.QtWidgets import QApplication, QMainWindow
 
 from asyncqt import QEventLoop, asyncClose
@@ -16,18 +16,26 @@ import asyncio
 
 
 class EUI(QMainWindow):
-    def __init__(self):
+    def __init__(self, system):
         super().__init__()
 
-        self.m1m3 = SALComm.create(
-            "MTVMS", index=1, manual={"data": {"queue_len": 400}}
+        systems = ["M1M3", "M2", "CAMERAROTATOR"]
+
+        try:
+            index = systems.index(system) + 1
+        except ValueError:
+            print(f"Invalid system name {system} - expected one of {str(systems)}")
+            sys.exit(1)
+
+        self.comm = SALComm.create(
+            "MTVMS", index=index, manual={"data": {"queue_len": 400}}
         )
 
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
 
-        acWidget = AccelerometersPageWidget(self.m1m3, "m1m3", self.toolBar)
-        statusBar = StatusBar()
+        acWidget = AccelerometersPageWidget(self.comm, system, self.toolBar)
+        statusBar = StatusBar(f"{system}:{index}")
         acWidget.cacheUpdated.connect(statusBar.cacheUpdated)
         self.setStatusBar(statusBar)
 
@@ -48,18 +56,36 @@ class EUI(QMainWindow):
         settings.setValue("geometry", self.saveGeometry())
         settings.setValue("windowState", self.saveState())
         self.toolBar.storeSettings()
-        await self.m1m3.close()
+        await self.comm.close()
         super().closeEvent(event)
 
 
 if __name__ == "__main__":
     # Create the Qt Application
     app = QApplication(sys.argv)
+
+    parser = QCommandLineParser()
+    parser.addHelpOption()
+    parser.addVersionOption()
+    parser.addPositionalArgument(
+        "system",
+        QApplication.translate("main", "VMS subsystem"),
+        "[M1M3|M2|cameraRotator]",
+    )
+    parser.process(app)
+
+    args = parser.positionalArguments()
+    if args[0] > "":
+        system = args[0].upper()
+    else:
+        system = "M1M3"
+    app.setApplicationName(f"VMSGUI {system}")
+
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
 
     # Create EUI
-    eui = EUI()
+    eui = EUI(system)
     eui.show()
 
     def handler(signum, frame):

@@ -105,8 +105,9 @@ class ToolBar(QToolBar):
 class StatusBar(QStatusBar):
     """Displays cache status on status bar."""
 
-    def __init__(self):
+    def __init__(self, system):
         super().__init__()
+        self.addWidget(QLabel(system))
         self.cacheStatus = QLabel("Size: 0 --- - ---")
         self.addWidget(self.cacheStatus)
 
