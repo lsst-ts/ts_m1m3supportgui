@@ -75,7 +75,7 @@ if __name__ == "__main__":
     parser.process(app)
 
     args = parser.positionalArguments()
-    if args[0] > "":
+    if len(args) > 0:
         system = args[0].upper()
     else:
         system = "M1M3"
