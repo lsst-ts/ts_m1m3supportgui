@@ -202,7 +202,7 @@ class PSDWidget(QWidget):
                 PSD subplot maximum value.
             """
             N = len(signal)
-            # as input is real only, fft is sytemtric; rfft is enough
+            # as input is real only, fft is symmetric; rfft is enough
             psd = np.abs(np.fft.rfft(signal)) ** 2 * SAMPLE_TIME / N
 
             (psd, frequencies) = downsample(psd, N)
