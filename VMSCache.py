@@ -148,18 +148,18 @@ class VMSCache:
                         1
                     ][s - 1].accelerationZ[start : start + l]
 
-            l = self.current_index + dl - self._size
+            l = min(dl, self._size - self.current_index)
             if l > 0:
-                copy_data(0, self._size - self.current_index)
+                copy_data(0, l)
+                self.current_index += l
+                dl -= l
+
+            if dl > 0:
                 self.current_index = 0
                 self.filled = True
-                l -= 1
-                dl -= l
-            else:
-                l = 0
-            copy_data(l, dl)
+                copy_data(l, dl)
+                self.current_index = dl
 
-            self.current_index += dl
             self._receiving.remove(r)
             added = True
 
