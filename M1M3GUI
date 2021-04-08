@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -'''- coding: utf-8 -'''-
 
+import signal
 import sys
 import time
 
@@ -99,7 +100,9 @@ class EUI(QDialog):
 
     @asyncClose
     async def closeEvent(self, event):
+        await self.vms.close()
         await self.comm.close()
+        event.accept()
 
 
 if __name__ == "__main__":
@@ -111,6 +114,13 @@ if __name__ == "__main__":
     # Create EUI
     eui = EUI(loop)
     eui.show()
+
+    def handler(signum, frame):
+        print(f"Catching signal {signum}, exiting")
+        loop.call_soon(eui.close)
+
+    for signum in [signal.SIGINT, signal.SIGHUP, signal.SIGTERM]:
+        signal.signal(signum, handler)
 
     # Run the main Qt loop
     with loop:
