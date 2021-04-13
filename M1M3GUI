@@ -22,9 +22,9 @@ from HardpointsWidget import HardpointsWidget
 from IMSPageWidget import IMSPageWidget
 from InclinometerPageWidget import InclinometerPageWidget
 from InterlockPageWidget import InterlockPageWidget
+from OffsetsWidget import OffsetsWidget
 from OverviewPageWidget import OverviewPageWidget
 from PIDPageWidget import PIDPageWidget
-from PositionWidget import PositionWidget
 from PowerPageWidget import PowerPageWidget
 from SALLogWidget import SALLogWidget
 
@@ -67,7 +67,7 @@ class EUI(QDialog):
         self.addPage("Overview", OverviewPageWidget(self.m1m3, self.mtmount))
         self.addPage("Actuator Overview", ActuatorOverviewPageWidget(self.m1m3))
         self.addPage("Hardpoints", HardpointsWidget(self.m1m3))
-        self.addPage("Position", PositionWidget(self.m1m3))
+        self.addPage("Offsets", OffsetsWidget(self.m1m3))
         self.addPage("DC Accelerometers", DCAccelerometerPageWidget(self.m1m3))
         self.addPage("Gyro", GyroPageWidget(self.m1m3))
         self.addPage("IMS", IMSPageWidget(self.m1m3))

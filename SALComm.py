@@ -22,13 +22,14 @@
 # Generated from MTM1M3_Events, MTM1M3_Telemetry and MTMount_Telemetry
 import abc
 from PySide2.QtCore import QObject, Signal
-from lsst.ts.salobj import Domain, Remote
+from PySide2.QtWidgets import QMessageBox
+from lsst.ts.salobj import Domain, Remote, base
 from lsst.ts.salobj.topics import RemoteTelemetry, RemoteEvent
 
 import asyncio
 import functools
 
-__all__ = ["create"]
+__all__ = ["create", "SALCommand"]
 
 
 def _filterEvtTel(m):
@@ -184,3 +185,59 @@ def create(name, manual=None, **kvargs):
             self.connect_callbacks()
 
     return SALComm()
+
+
+def warning(parent, title, description):
+    """Creates future with QMessageBox. Enables use of QMessageBox with asyncqt/asyncio. Mimics QMessageBox.warning behaviour - but QMessageBox cannot be used, as it blocks Qt loops from executing (as all modal dialogs does).
+
+    Parameters
+    ----------
+    parent : `QtWidget`
+        Parent widget.
+    title : `str`
+        Message window title.
+    description : `str`
+        Descrption of warning occured.
+    """
+
+    future = asyncio.Future()
+    dialog = QMessageBox(parent)
+    dialog.setWindowTitle(title)
+    dialog.setText(description)
+    dialog.setIcon(QMessageBox.Warning)
+    dialog.finished.connect(lambda r: future.set_result(r))
+    dialog.open()
+    return future
+
+
+def SALCommand(cmd):
+    """Decorator to run a command and display error dialog when in troubles. To
+    be for QtWidget child method. Decorates a remote, not function call (as
+    command cannot be taken out of 
+
+    Parameters
+    ----------
+    cmd : `RemoteCommand`
+        SAL command
+    **kwargs : `dict`
+        Arguments passed to SAL command.
+    """
+
+    async def wrapper(self, **kwargs):
+        called = cmd(self)
+        try:
+            await called.set_start(**kwargs)
+        except base.AckError as ackE:
+            warning(
+                self,
+                f"Error executing {called.name}",
+                f"Executing SAL/DDS command <i>{called.name}({kwargs}</i>):<br/>{ackE.ackcmd.result}",
+            )
+        except RuntimeError as rte:
+            warning(
+                self,
+                f"Error executing {called.name}",
+                f"Executing SAL/DDS command <b>{called.name}</b>(<i>{kwargs}</i>):<br/>{str(rte)}",
+            )
+
+    return wrapper

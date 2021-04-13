@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-import TimeChart
 from PySide2.QtWidgets import (
     QWidget,
     QLabel,
@@ -32,15 +31,16 @@ from asyncqt import asyncSlot
 from CustomLabels import *
 from UnitsConversions import *
 from DirectionPadWidget import *
+from SALComm import SALCommand
 
-from lsst.ts.salobj import base
 from lsst.ts.idl.enums.MTM1M3 import DetailedState
 
 import QTHelpers
 
 
-class PositionWidget(QWidget):
-    """Displays position data - measured and target position, allows to offset (jog) the mirror.
+class OffsetsWidget(QWidget):
+    """Displays position data - measured and target position, allows to offset
+    (jog) the mirror using position/rotation and force/moment offsets.
 
     POSITIONS
     ---------
@@ -172,7 +172,8 @@ class PositionWidget(QWidget):
         self.m1m3.imsData.connect(self._imsDataCallback)
         self.m1m3.detailedState.connect(self._detailedStateCallback)
 
-    async def moveMirror(self, **kwargs):
+    @SALCommand
+    def moveMirror(self, **kwargs):
         """Move mirror. Calls positionM1M3 command.
 
         Parameters
@@ -181,16 +182,18 @@ class PositionWidget(QWidget):
             New target position. Needs to have POSITIONS keys. Passed to
             positionM1M3 command.
         """
-        try:
-            await self.m1m3.remote.cmd_positionM1M3.set_start(**kwargs)
-        except base.AckError as ackE:
-            await QTHelpers.warning(
-                self, f"Error executing positionM1M3({kwargs})", ackE.ackcmd.result,
-            )
-        except RuntimeError as rte:
-            await QTHelpers.warning(
-                self, f"Error executing positionM1M3({kwargs})", str(rte),
-            )
+        return self.m1m3.remote.cmd_positionM1M3
+
+    @SALCommand
+    def offsetForcesByMirrorForce(self, **kwargs):
+        """Apply mirror offset forces.
+
+        Parameters
+        ----------
+        **kwargs : `dict`
+            Offsets specified as forces and moments.
+        """
+        return self.m1m3.remote.cmd_offsetForcesByMirrorForce
 
     def _getScale(self, label):
         return MM2M if label[1:] == "Position" else ARCSEC2D
