@@ -92,6 +92,11 @@ class OverviewPageWidget(QWidget):
         self.tmaAzimuthLabel = QLabel("UNKNOWN")
         self.tmaElevationLabel = QLabel("UNKNOWN")
 
+        self.cscVersion = QLabel("---")
+        self.salVersion = QLabel("---")
+        self.xmlVersion = QLabel("---")
+        self.osplVersion = QLabel("---")
+
         row = 0
         col = 0
         dataLayout.addWidget(QLabel("Summary State"), row, col)
@@ -202,10 +207,19 @@ class OverviewPageWidget(QWidget):
         dataLayout.addWidget(QLabel("Azimuth (deg)"), row, col)
         dataLayout.addWidget(QLabel("-"), row, col + 1)
         dataLayout.addWidget(self.tmaAzimuthLabel, row, col + 2)
+        dataLayout.addWidget(QLabel("<b>CsC</b>"), row, col + 4)
+        dataLayout.addWidget(QLabel("<b>SAL</b>"), row, col + 5)
+        dataLayout.addWidget(QLabel("<b>XMLi</b>"), row, col + 6)
+        dataLayout.addWidget(QLabel("<b>OSPLi</b>"), row, col + 7)
         row += 1
         dataLayout.addWidget(QLabel("Elevation (deg)"), row, col)
         dataLayout.addWidget(self.inclinometerLabel, row, col + 1)
         dataLayout.addWidget(self.tmaElevationLabel, row, col + 2)
+        dataLayout.addWidget(QLabel("<b>Version</b>"), row, col + 3)
+        dataLayout.addWidget(self.cscVersion, row, col + 4)
+        dataLayout.addWidget(self.salVersion, row, col + 5)
+        dataLayout.addWidget(self.xmlVersion, row, col + 6)
+        dataLayout.addWidget(self.osplVersion, row, col + 7)
 
         m1m3.accelerometerWarning.connect(self.accelerometerWarning)
         m1m3.airSupplyWarning.connect(self.airSupplyWarning)
@@ -228,6 +242,7 @@ class OverviewPageWidget(QWidget):
         m1m3.hardpointActuatorData.connect(self.hardpointActuatorData)
         m1m3.imsData.connect(self.imsData)
         m1m3.inclinometerData.connect(self.inclinometerData)
+        m1m3.softwareVersions.connect(self.softwareVersions)
 
         mtmount.azimuth.connect(self.azimuth)
         mtmount.elevation.connect(self.elevation)
@@ -336,6 +351,13 @@ class OverviewPageWidget(QWidget):
     @Slot(map)
     def inclinometerData(self, data):
         self.inclinometerLabel.setText("%0.3f" % (data.inclinometerAngle))
+
+    @Slot(map)
+    def softwareVersions(self, data):
+        self.cscVersion.setText(data.cscVersion)
+        self.salVersion.setText(data.salVersion)
+        self.xmlVersion.setText(data.xmlVersion)
+        self.osplVersion.setText(data.openSpliceVersion)
 
     @Slot(map)
     def azimuth(self, data):
