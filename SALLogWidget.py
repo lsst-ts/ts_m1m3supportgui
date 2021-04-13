@@ -28,6 +28,7 @@ from PySide2.QtWidgets import (
     QPushButton,
 )
 from SALLogMessages import SALLogMessages
+from SALComm import SALCommand
 from asyncqt import asyncSlot
 
 
@@ -88,6 +89,10 @@ class SALLogWidget(QWidget):
     def logLevel(self, data):
         self.currentLevel.setText(self.LEVELS[self._levelToIndex(data.level)])
 
+    @SALCommand
+    def _changeIt(self, **kwargs):
+        return self.m1m3.remote.cmd_setLogLevel
+
     @asyncSlot()
     async def changeLevel(self, index):
-        await self.m1m3.remote.cmd_setLogLevel.set_start(level=index * 10)
+        await self._changeIt(level=index * 10)

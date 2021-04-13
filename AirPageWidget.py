@@ -1,4 +1,5 @@
 import QTHelpers
+from SALComm import SALCommand
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 from asyncqt import asyncSlot
@@ -72,9 +73,11 @@ class AirPageWidget(QWidget):
         QTHelpers.setBoolLabelHighLow(self.airValveClosedLabel, data.airValveClosed)
 
     @asyncSlot()
-    async def issueCommandTurnAirOn(self):
-        await self.m1m3.remote.cmd_turnAirOn.start()
+    @SALCommand
+    def issueCommandTurnAirOn(self):
+        return self.m1m3.remote.cmd_turnAirOn
 
     @asyncSlot()
-    async def issueCommandTurnAirOff(self):
-        await self.m1m3.remote.cmd_turnAirOff.start()
+    @SALCommand
+    def issueCommandTurnAirOff(self):
+        return self.m1m3.remote.cmd_turnAirOff

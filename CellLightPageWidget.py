@@ -1,4 +1,5 @@
 import QTHelpers
+from SALComm import SALCommand
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QGridLayout
 from PySide2.QtCore import Slot
 from asyncqt import asyncSlot
@@ -69,9 +70,11 @@ class CellLightPageWidget(QWidget):
         QTHelpers.setBoolLabelOnOff(self.cellLightsOnLabel, data.cellLightsOn)
 
     @asyncSlot()
-    async def issueCommandTurnLightsOn(self):
-        await self.m1m3.remote.cmd_turnLightsOn.start()
+    @SALCommand
+    def issueCommandTurnLightsOn(self):
+        return self.m1m3.remote.cmd_turnLightsOn
 
     @asyncSlot()
-    async def issueCommandTurnLightsOff(self):
-        await self.m1m3.remote.cmd_turnLightsOff.start()
+    @SALCommand
+    def issueCommandTurnLightsOff(self):
+        return self.m1m3.remote.cmd_turnLightsOff

@@ -18,6 +18,7 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 import QTHelpers
+from SALComm import SALCommand
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from PySide2.QtCore import Slot
 
