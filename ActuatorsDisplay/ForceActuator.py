@@ -37,21 +37,23 @@ class ForceActuator(QGraphicsItem):
     Parameters
     ----------
     id : `int`
-         Force Actuator identification number. Starting with 101, the first
-         number identified segment (1-4). The value ranges up to 443.
+        Force Actuator identification number. Starting with 101, the first
+        number identified segment (1-4). The value ranges up to 443.
     x : `float`
-         Force Actuator X coordinate (in mm).
+        Force Actuator X coordinate (in mm).
     y : `float`
-         Force Actuator Y coordinate (in mm).
+        Force Actuator Y coordinate (in mm).
+    orientation : `str`
+         Secondary orientation. Either NA, +Y, -Y, +X or -X.
     data : `float`
-         Data associated with the actuator (actual force, calculated force, ..).
+        Data associated with the actuator (actual force, calculated force, ..).
     dataIndex : `int`
-         Index in value arrays. Points to selected actuator value.
+        Index in value arrays. Points to selected actuator value.
     state : `int`
-         Force Actuator state. 0 for inactive/unused, 1 for active OK, 2 for
-         active warning.
+        Force Actuator state. 0 for inactive/unused, 1 for active OK, 2 for
+        active warning.
     selected : `bool`
-         If the actuator shall be selected.
+        True if the actuator is selected.
     """
 
     STATE_INACTIVE = 0
@@ -66,11 +68,12 @@ class ForceActuator(QGraphicsItem):
     """Force Actuator is active, but the value / actuator has some warning attached (`int`).
     """
 
-    def __init__(self, id, x, y, data, dataIndex, state, selected):
+    def __init__(self, id, x, y, orientation, data, dataIndex, state, selected):
         super().__init__()
         self.id = id
         # actuator position
         self._center = QPointF(x, y)
+        self._orientation = orientation
         # actuator data
         self._data = data
         self.dataIndex = dataIndex

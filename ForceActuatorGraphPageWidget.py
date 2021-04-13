@@ -49,6 +49,7 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
                 id,
                 row[FATABLE_XPOSITION] * 1000,
                 row[FATABLE_YPOSITION] * 1000,
+                row[FATABLE_ORIENTATION],
                 None if (values is None or index is None) else values[index],
                 index,
                 state,
