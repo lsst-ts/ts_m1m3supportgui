@@ -47,6 +47,10 @@ class OffsetsWidget(QWidget):
         Array containing name of positions. Used to name variables and as
         arguments names for positionM1M3 command.
 
+    FORCES
+    ------
+        Array containing forces and momements.
+
     Parameters
     ----------
     m1m3 : `SALComm`
@@ -61,6 +65,8 @@ class OffsetsWidget(QWidget):
         "yRotation",
         "zRotation",
     ]
+
+    FORCES = ["xForce", "yForce", "zForce", "xMoment", "yMoment", "zMoment"]
 
     def __init__(self, m1m3):
         super().__init__()
@@ -166,6 +172,50 @@ class OffsetsWidget(QWidget):
         self.dirPad.positionChanged.connect(self._positionChanged)
         dataLayout.addWidget(self.dirPad, row, 1, 3, 6)
 
+        def createForces():
+            return {
+                "xForce": Force(),
+                "yForce": Force(),
+                "zForce": Force(),
+                "xMoment": Moment(),
+                "yMoment": Moment(),
+                "zMoment": Moment(),
+            }
+
+        self.preclipped = createForces()
+        self.applied = createForces()
+        self.measured = createForces()
+
+        row += 3
+        dataLayout.addWidget(QLabel("<b>Preclipped</b>"), row, 0)
+        addDataRow(self.preclipped, row)
+
+        row += 1
+        dataLayout.addWidget(QLabel("<b>Applied</b>"), row, 0)
+        addDataRow(self.applied, row)
+
+        row += 1
+        dataLayout.addWidget(QLabel("<b>Measured</b>"), row, 0)
+        addDataRow(self.measured, row)
+
+        col = 1
+        for p in self.FORCES:
+            sb = QDoubleSpinBox()
+            sb.setRange(-10000, 10000)
+            sb.setDecimals(1)
+            sb.setSingleStep(1)
+
+            dataLayout.addWidget(sb, row, col)
+            setattr(self, "forceOffsets_" + p, sb)
+            col += 1
+
+        row += 1
+        self.offsetForces = QPushButton("Apply offset forces")
+        self.offsetForces.setEnabled(False)
+        self.offsetForces.clicked.connect(self._applyOffsetForces)
+
+        dataLayout.addWidget(self.offsetForces, row, 1, 1, 3)
+
         self.layout.addStretch()
 
         self.m1m3.hardpointActuatorData.connect(self._hardpointActuatorDataCallback)
@@ -185,7 +235,7 @@ class OffsetsWidget(QWidget):
         return self.m1m3.remote.cmd_positionM1M3
 
     @SALCommand
-    def offsetForcesByMirrorForce(self, **kwargs):
+    def applyOffsetForcesByMirrorForce(self, **kwargs):
         """Apply mirror offset forces.
 
         Parameters
@@ -193,7 +243,7 @@ class OffsetsWidget(QWidget):
         **kwargs : `dict`
             Offsets specified as forces and moments.
         """
-        return self.m1m3.remote.cmd_offsetForcesByMirrorForce
+        return self.m1m3.remote.cmd_applyOffsetForcesByMirrorForce
 
     def _getScale(self, label):
         return MM2M if label[1:] == "Position" else ARCSEC2D
@@ -224,6 +274,19 @@ class OffsetsWidget(QWidget):
         for k, v in targets.items():
             getattr(self, "target_" + k).setValue(v / self._getScale(k))
 
+    def getForceOffsets(self):
+        """Return current offset forces (from forceOffsets_ box).
+
+        Returns
+        -------
+        args : `dict`
+             Current offset forces. Contains FORCES keys.
+        """
+        args = {}
+        for f in self.FORCES:
+            args[f] = getattr(self, "forceOffsets_" + f).value()
+        return args
+
     @asyncSlot()
     async def _moveMirror(self):
         targets = self.getTargets()
@@ -235,6 +298,10 @@ class OffsetsWidget(QWidget):
         args = {k: getattr(self._hpData, k) for k in self.POSITIONS}
         self.setTargets(args)
         self.dirPad.setPosition(map(lambda p: args[p], self.POSITIONS))
+
+    @asyncSlot()
+    async def _applyOffsetForces(self):
+        await self.applyOffsetForcesByMirrorForce(**self.getForceOffsets())
 
     @asyncSlot()
     async def _positionChanged(self, offsets):
@@ -273,3 +340,4 @@ class OffsetsWidget(QWidget):
 
         self.moveMirrorButton.setEnabled(enabled)
         self.dirPad.setEnabled(enabled)
+        self.offsetForces.setEnabled(enabled)
