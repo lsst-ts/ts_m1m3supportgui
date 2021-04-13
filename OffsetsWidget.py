@@ -174,12 +174,12 @@ class OffsetsWidget(QWidget):
 
         def createForces():
             return {
-                "xForce": Force(),
-                "yForce": Force(),
-                "zForce": Force(),
-                "xMoment": Moment(),
-                "yMoment": Moment(),
-                "zMoment": Moment(),
+                "fx": Force(),
+                "fy": Force(),
+                "fz": Force(),
+                "mx": Moment(),
+                "my": Moment(),
+                "mz": Moment(),
             }
 
         self.preclipped = createForces()
@@ -197,6 +197,9 @@ class OffsetsWidget(QWidget):
         row += 1
         dataLayout.addWidget(QLabel("<b>Measured</b>"), row, 0)
         addDataRow(self.measured, row)
+
+        row += 1
+        dataLayout.addWidget(QLabel("<b>Offset</b>"), row, 0)
 
         col = 1
         for p in self.FORCES:
@@ -220,6 +223,9 @@ class OffsetsWidget(QWidget):
 
         self.m1m3.hardpointActuatorData.connect(self._hardpointActuatorDataCallback)
         self.m1m3.imsData.connect(self._imsDataCallback)
+        self.m1m3.preclippedOffsetForces.connect(self._preclippedOffsetForces)
+        self.m1m3.appliedOffsetForces.connect(self._appliedOffsetForces)
+        self.m1m3.forceActuatorData.connect(self._forceActuatorCallback)
         self.m1m3.detailedState.connect(self._detailedStateCallback)
 
     @SALCommand
@@ -333,6 +339,18 @@ class OffsetsWidget(QWidget):
         self._fillRow(self.imsVariables, data)
         self._imsData = data
         self._updateDiffs()
+
+    @Slot(map)
+    def _preclippedOffsetForces(self, data):
+        self._fillRow(self.preclipped, data)
+
+    @Slot(map)
+    def _appliedOffsetForces(self, data):
+        self._fillRow(self.applied, data)
+
+    @Slot(map)
+    def _forceActuatorCallback(self, data):
+        self._fillRow(self.measured, data)
 
     @Slot(map)
     def _detailedStateCallback(self, data):
