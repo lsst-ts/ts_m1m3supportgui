@@ -212,8 +212,7 @@ def warning(parent, title, description):
 
 def SALCommand(cmd):
     """Decorator to run a command and display error dialog when in troubles. To
-    be for QtWidget child method. Decorates a remote, not function call (as
-    command cannot be taken out of 
+    be for QtWidget child method. Decorates a function call, passes arguments supplied.
 
     Parameters
     ----------
@@ -221,6 +220,31 @@ def SALCommand(cmd):
         SAL command
     **kwargs : `dict`
         Arguments passed to SAL command.
+
+    Usage
+    -----
+
+    Calling await runTheMachine will start command and wait for its completion.
+    If any error happens, a QMessageBox with details will be shown.
+
+    .. code-block:: python
+        class MyCommandClass(QWidget):
+           def __init__(self, csc):
+               super().__init__()
+               self.csc = csc
+
+               button = QPushButton("Run!")
+               button.clicked.connect(self.runIt)
+
+           ...
+
+           @asyncSlot()
+           async def runIt(self):
+               await self.runTheMachine(speed=1, angle=120)
+
+           @SALCommand
+           def runTheMachine(self, **kwargs):
+               return self.csc.remote.runTheMachine
     """
 
     async def wrapper(self, **kwargs):
