@@ -5,9 +5,9 @@ from PySide2.QtCore import Slot
 
 
 class GyroPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -270,8 +270,8 @@ class GyroPageWidget(QWidget):
 
         self.plotLayout.addWidget(self.chart_view)
 
-        self.comm.gyroWarning.connect(self.gyroWarning)
-        self.comm.gyroData.connect(self.gyroData)
+        self.m1m3.gyroWarning.connect(self.gyroWarning)
+        self.m1m3.gyroData.connect(self.gyroData)
 
     @Slot(bool)
     def gyroWarning(self, anyWarning):

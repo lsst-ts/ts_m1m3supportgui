@@ -36,14 +36,14 @@ class SALLogWidget(QWidget):
 
     LEVELS = ["Trace", "Debug", "Info", "Warning", "Error", "Critical"]
 
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
 
-        self.comm = comm
+        self.m1m3 = m1m3
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
-        self.salMessages = SALLogMessages(self.comm)
+        self.salMessages = SALLogMessages(self.m1m3)
 
         self.toolbar = QHBoxLayout()
 
@@ -75,7 +75,7 @@ class SALLogWidget(QWidget):
         self.layout.addLayout(self.toolbar)
         self.layout.addWidget(self.salMessages)
 
-        self.comm.logLevel.connect(self.logLevel)
+        self.m1m3.logLevel.connect(self.logLevel)
 
     def _levelToIndex(self, level):
         return min(int(level / 10), 5)
@@ -90,4 +90,4 @@ class SALLogWidget(QWidget):
 
     @asyncSlot()
     async def changeLevel(self, index):
-        await self.comm.MTM1M3.cmd_setLogLevel.set_start(level=index * 10)
+        await self.m1m3.remote.cmd_setLogLevel.set_start(level=index * 10)

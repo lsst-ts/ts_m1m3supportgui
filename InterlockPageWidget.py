@@ -4,9 +4,9 @@ from PySide2.QtCore import Slot
 
 
 class InterlockPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -57,8 +57,8 @@ class InterlockPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Cabinet Door Open"), row, col)
         self.warningLayout.addWidget(self.cabinetDoorOpenLabel, row, col + 1)
 
-        self.comm.interlockWarning.connect(self.interlockWarning)
-        self.comm.interlockStatus.connect(self.interlockStatus)
+        self.m1m3.interlockWarning.connect(self.interlockWarning)
+        self.m1m3.interlockStatus.connect(self.interlockStatus)
 
     @Slot(map)
     def interlockWarning(self, data):

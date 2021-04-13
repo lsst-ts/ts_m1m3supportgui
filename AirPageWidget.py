@@ -5,9 +5,9 @@ from asyncqt import asyncSlot
 
 
 class AirPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -57,8 +57,8 @@ class AirPageWidget(QWidget):
         self.warningLayout.addWidget(QLabel("Command / Sensor Mismatch"), row, col)
         self.warningLayout.addWidget(self.airValveSensorMismatch, row, col + 1)
 
-        self.comm.airSupplyWarning.connect(self.airSupplyWarning)
-        self.comm.airSupplyStatus.connect(self.airSupplyStatus)
+        self.m1m3.airSupplyWarning.connect(self.airSupplyWarning)
+        self.m1m3.airSupplyStatus.connect(self.airSupplyStatus)
 
     @Slot(map)
     def airSupplyWarning(self, data):
@@ -73,8 +73,8 @@ class AirPageWidget(QWidget):
 
     @asyncSlot()
     async def issueCommandTurnAirOn(self):
-        await self.comm.MTM1M3.cmd_turnAirOn.start()
+        await self.m1m3.remote.cmd_turnAirOn.start()
 
     @asyncSlot()
     async def issueCommandTurnAirOff(self):
-        await self.comm.MTM1M3.cmd_turnAirOff.start()
+        await self.m1m3.remote.cmd_turnAirOff.start()

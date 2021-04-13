@@ -4,9 +4,9 @@ from PySide2.QtCore import Slot
 
 
 class ActuatorOverviewPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -254,18 +254,18 @@ class ActuatorOverviewPageWidget(QWidget):
 
         self.layout.addLayout(plotLayout)
 
-        self.comm.appliedAberrationForces.connect(self.appliedAberrationForces)
-        self.comm.appliedAccelerationForces.connect(self.appliedAccelerationForces)
-        self.comm.appliedActiveOpticForces.connect(self.appliedActiveOpticForces)
-        self.comm.appliedAzimuthForces.connect(self.appliedAzimuthForces)
-        self.comm.appliedBalanceForces.connect(self.appliedBalanceForces)
-        self.comm.appliedElevationForces.connect(self.appliedElevationForces)
-        self.comm.appliedForces.connect(self.appliedForces)
-        self.comm.appliedOffsetForces.connect(self.appliedOffsetForces)
-        self.comm.appliedStaticForces.connect(self.appliedStaticForces)
-        self.comm.appliedThermalForces.connect(self.appliedThermalForces)
-        self.comm.appliedVelocityForces.connect(self.appliedVelocityForces)
-        self.comm.forceActuatorState.connect(self.forceActuatorState)
+        self.m1m3.appliedAberrationForces.connect(self.appliedAberrationForces)
+        self.m1m3.appliedAccelerationForces.connect(self.appliedAccelerationForces)
+        self.m1m3.appliedActiveOpticForces.connect(self.appliedActiveOpticForces)
+        self.m1m3.appliedAzimuthForces.connect(self.appliedAzimuthForces)
+        self.m1m3.appliedBalanceForces.connect(self.appliedBalanceForces)
+        self.m1m3.appliedElevationForces.connect(self.appliedElevationForces)
+        self.m1m3.appliedForces.connect(self.appliedForces)
+        self.m1m3.appliedOffsetForces.connect(self.appliedOffsetForces)
+        self.m1m3.appliedStaticForces.connect(self.appliedStaticForces)
+        self.m1m3.appliedThermalForces.connect(self.appliedThermalForces)
+        self.m1m3.appliedVelocityForces.connect(self.appliedVelocityForces)
+        self.m1m3.forceActuatorState.connect(self.forceActuatorState)
 
     @Slot(map)
     def appliedAberrationForces(self, data):

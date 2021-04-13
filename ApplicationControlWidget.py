@@ -43,10 +43,10 @@ class ApplicationControlWidget(QWidget):
     TEXT_EXIT_ENGINEERING = "&Exit Engineering"
     TEXT_EXIT_CONTROL = "&Exit Control"
 
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
 
-        self.comm = comm
+        self.m1m3 = m1m3
         self.lastEnabled = None
         self.commandLayout = QVBoxLayout()
         self.setLayout(self.commandLayout)
@@ -73,7 +73,7 @@ class ApplicationControlWidget(QWidget):
         self.commandLayout.addWidget(self.exitButton)
 
         # connect SAL signals
-        self.comm.detailedState.connect(self.processEventDetailedState)
+        self.m1m3.detailedState.connect(self.processEventDetailedState)
 
     def disableAllButtons(self):
         if self.lastEnabled is None:
@@ -102,29 +102,29 @@ class ApplicationControlWidget(QWidget):
         self.disableAllButtons()
         try:
             if button.text() == self.TEXT_START:
-                await self.comm.MTM1M3.cmd_start.set_start(
+                await self.m1m3.remote.cmd_start.set_start(
                     settingsToApply="Default", timeout=60
                 )
             elif button.text() == self.TEXT_EXIT_CONTROL:
-                await self.comm.MTM1M3.cmd_exitControl.start()
+                await self.m1m3.remote.cmd_exitControl.start()
             elif button.text() == self.TEXT_ENABLE:
-                await self.comm.MTM1M3.cmd_enable.start()
+                await self.m1m3.remote.cmd_enable.start()
             elif button.text() == self.TEXT_DISABLE:
-                await self.comm.MTM1M3.cmd_disable.start()
+                await self.m1m3.remote.cmd_disable.start()
             elif button.text() == self.TEXT_RAISE:
-                await self.comm.MTM1M3.cmd_raiseM1M3.set_start(
+                await self.m1m3.remote.cmd_raiseM1M3.set_start(
                     raiseM1M3=True, bypassReferencePosition=False
                 )
             elif button.text() == self.TEXT_ABORT_RAISE:
-                await self.comm.MTM1M3.cmd_abortRaiseM1M3.start()
+                await self.m1m3.remote.cmd_abortRaiseM1M3.start()
             elif button.text() == self.TEXT_LOWER:
-                await self.comm.MTM1M3.cmd_lowerM1M3.start()
+                await self.m1m3.remote.cmd_lowerM1M3.start()
             elif button.text() == self.TEXT_ENTER_ENGINEERING:
-                await self.comm.MTM1M3.cmd_enterEngineering.start()
+                await self.m1m3.remote.cmd_enterEngineering.start()
             elif button.text() == self.TEXT_EXIT_ENGINEERING:
-                await self.comm.MTM1M3.cmd_exitEngineering.start()
+                await self.m1m3.remote.cmd_exitEngineering.start()
             elif button.text() == self.TEXT_STANDBY:
-                await self.comm.MTM1M3.cmd_standby.start()
+                await self.m1m3.remote.cmd_standby.start()
         except base.AckError as ackE:
             await QTHelpers.warning(
                 self, f"Error executing {button.text()}", ackE.ackcmd.result,

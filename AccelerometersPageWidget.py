@@ -43,50 +43,41 @@ class TimeChartWidget(QWidget):
 
     Parameters
     ----------
-    comm : `SALComm`
-        Communication object.
-    sensors : `int`
+    signal : `Signal(map)`
+        Signal emitted when new data are received.
+    numSensors : `int`
         Number of sensors (and hence number of charts). Chart is created to
         display X,Y and Z values per sensor."""
 
-    def __init__(self, comm, sensors):
+    def __init__(self, signal, numSensors):
         super().__init__()
+        self.numSensors = numSensors
         self.layout = QGridLayout()
         self.setLayout(self.layout)
 
         self.chart = []
 
-        for sensor in range(sensors):
+        for sensor in range(self.numSensors):
             self.chart.append(TimeBoxChart.TimeBoxChart())
             self.layout.addWidget(
                 TimeChart.TimeChartView(self.chart[sensor]), sensor / 2, sensor % 2
             )
 
-        comm.m1m3.connect(self.m1m3)
+        signal.connect(self.data)
 
     @Slot(map)
-    def m1m3(self, data):
-        for sensor in range(1, 4):
-            self.chart[sensor - 1].append(
-                data.timestamp,
-                [
-                    (
-                        "Acceleration (m/s<sup>2</sup>)",
-                        f"{sensor}X",
-                        getattr(data, f"sensor{sensor}XAcceleration"),
-                    ),
-                    (
-                        "Acceleration (m/s<sup>2</sup>)",
-                        f"{sensor}Y",
-                        getattr(data, f"sensor{sensor}YAcceleration"),
-                    ),
-                    (
-                        "Acceleration (m/s<sup>2</sup>)",
-                        f"{sensor}Z",
-                        getattr(data, f"sensor{sensor}ZAcceleration"),
-                    ),
-                ],
-            )
+    def data(self, data):
+        self.chart[data.sensor - 1].append(
+            data.timestamp,
+            [
+                (
+                    "Acceleration (m/s<sup>2</sup>)",
+                    f"{data.sensor}{a}",
+                    getattr(data, f"acceleration{a}"),
+                )
+                for a in ["X", "Y", "Z"]
+            ],
+        )
 
 
 class PSDWidget(QWidget):
@@ -157,12 +148,26 @@ class PSDWidget(QWidget):
             fMin = self.chart.axes(Qt.Horizontal)[0].min()
             fMax = self.chart.axes(Qt.Horizontal)[0].max()
 
-            deltaFreq = (1 / SAMPLE_TIME) / N
+            frequencies = np.fft.rfftfreq(N, SAMPLE_TIME)
 
-            rMin = int(np.floor(fMin / deltaFreq))
-            rMax = int(np.ceil(fMax / deltaFreq))
+            f = iter(frequencies)
+            rMin = 0
+            try:
+                while next(f) < fMin:
+                    rMin += 1
+                rMax = rMin
+                try:
+                    while next(f) < fMax:
+                        rMax += 1
+                except StopIteration:
+                    pass
+                rMin = max(0, rMin - 2)
+                rMax = min(len(frequencies) - 1, rMax + 2)
+            except StopIteration:
+                return (psd[-2:-1], frequencies[-2:-1])
+
             psd = psd[rMin:rMax]
-            frequencies = (deltaFreq * np.arange(N // 2))[rMin:rMax]
+            frequencies = frequencies[rMin:rMax]
             dataPerPixel = len(psd) / self.chart.plotArea().width()
             # downsample if points are less than 2 pixels apart, so the points
             # are at least 2 pixels apart
@@ -197,8 +202,8 @@ class PSDWidget(QWidget):
                 PSD subplot maximum value.
             """
             N = len(signal)
-            # take only half of FFT - second half, negative frequencies, are not displayed
-            psd = np.abs(np.fft.fft(signal, N // 2)) ** 2 * SAMPLE_TIME / N
+            # as input is real only, fft is symmetric; rfft is enough
+            psd = np.abs(np.fft.rfft(signal)) ** 2 * SAMPLE_TIME / N
 
             (psd, frequencies) = downsample(psd, N)
 
@@ -256,18 +261,35 @@ class AccelerometersPageWidget(QTabWidget):
     he/she would like to see."""
 
     SENSORS = [
-        f"sensor{s}{a}Acceleration" for s in range(1, 4) for a in ["X", "Y", "Z"]
+        f"acceleration{a}Sensor{s}" for s in range(1, 4) for a in ["X", "Y", "Z"]
     ]
 
     cacheUpdated = Signal(int, float, float)
 
-    def __init__(self, comm, toolbar):
+    def __init__(self, comm, module, toolbar):
         super().__init__()
 
-        self.cache = VMSCache(0, 3)
+        if module == "M2":
+            numSensors = 6
+            self.samples = [
+                [i + axis for i in ["1", "2", "3", "4", "5", "6"]]
+                for axis in ["X", "Y", "Z"]
+            ]
+        else:
+            numSensors = 3
+            self.samples = [
+                [i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]
+            ]
 
-        self.timeChart = TimeChartWidget(comm, 3)
-        self.samples = [[i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]]
+        self.SENSORS = [
+            f"acceleration{a}Sensor{s}"
+            for s in range(1, numSensors + 1)
+            for a in ["X", "Y", "Z"]
+        ]
+
+        self.cache = VMSCache(0, numSensors)
+        self.timeChart = TimeChartWidget(comm.data, numSensors)
+
         self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
             toolbar.frequencyChanged.connect(w.frequencyChanged)
@@ -300,26 +322,27 @@ class AccelerometersPageWidget(QTabWidget):
         toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
         toolbar.intervalChanged.emit(toolbar.interval.value())
 
-        comm.m1m3.connect(self.m1m3)
+        toolbar.intervalChanged.connect(self.intervalChanged)
+
+        toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
+        toolbar.intervalChanged.emit(toolbar.interval.value())
+
+        comm.data.connect(self.data)
 
     @Slot(map)
-    def m1m3(self, data):
+    def data(self, data):
         ts = data.timestamp
-        for i in range(len(getattr(data, self.SENSORS[0]))):
-            row = (ts,)
-            ts += SAMPLE_TIME
-            row += tuple([getattr(data, s)[i] for s in self.SENSORS])
-            self.cache.append(row)
+        added, chunk_removed = self.cache.newChunk(data, SAMPLE_TIME)
+        if added:
+            self.cacheUpdated.emit(
+                len(self.cache), self.cache.startTime(), self.cache.endTime()
+            )
 
-        self.cacheUpdated.emit(
-            len(self.cache), self.cache.startTime(), self.cache.endTime()
-        )
+            for i in range(len(self.psds)):
+                self.psds[i].data()
 
-        for i in range(len(self.psds)):
-            self.psds[i].data()
-
-        for i in range(len(self.meanPSDs)):
-            self.meanPSDs[i].data(True)
+            for i in range(len(self.meanPSDs)):
+                self.meanPSDs[i].data(True)
 
     @Slot(float)
     def intervalChanged(self, interval):

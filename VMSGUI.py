@@ -75,7 +75,7 @@ class ToolBar(QToolBar):
 
         self.interval = QDoubleSpinBox()
         self.interval.setDecimals(3)
-        self.interval.setRange(0.001, 3600)
+        self.interval.setRange(0.01, 3600)
         self.interval.setSingleStep(0.1)
         self.interval.setValue(float(settings.value("interval", 50.0)))
         self.interval.editingFinished.connect(self.newInterval)
@@ -105,8 +105,9 @@ class ToolBar(QToolBar):
 class StatusBar(QStatusBar):
     """Displays cache status on status bar."""
 
-    def __init__(self):
+    def __init__(self, system):
         super().__init__()
+        self.addWidget(QLabel(system))
         self.cacheStatus = QLabel("Size: 0 --- - ---")
         self.addWidget(self.cacheStatus)
 

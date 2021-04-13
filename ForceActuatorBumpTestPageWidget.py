@@ -52,13 +52,13 @@ class ForceActuatorBumpTestPageWidget(QWidget):
     Parameters
     ----------
 
-    comm : `SALComm object`
+    m1m3 : `SALComm object`
         SALComm communication object.
     """
 
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.xIndex = self.yIndex = self.zIndex = self.sIndex = self.testedId = None
         self._testRunning = False
@@ -176,14 +176,14 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.forms = QHBoxLayout()
         self.forms.addWidget(actuatorBox)
         self.forms.addWidget(self.progressGroup)
-        self.forms.addWidget(SALLogWidget(self.comm))
+        self.forms.addWidget(SALLogWidget(self.m1m3))
         self.layout.addLayout(self.forms)
         self.layout.addWidget(self.chart_view)
         self.layout.addLayout(self.buttonLayout)
         self.setLayout(self.layout)
 
-        self.comm.detailedState.connect(self.detailedState)
-        self.comm.forceActuatorBumpTestStatus.connect(self.forceActuatorBumpTestStatus)
+        self.m1m3.detailedState.connect(self.detailedState)
+        self.m1m3.forceActuatorBumpTestStatus.connect(self.forceActuatorBumpTestStatus)
 
     @Slot()
     def itemSelectionChanged(self):
@@ -245,7 +245,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         if self.sIndex is not None:
             self.secondaryLabelPB.setText("Y" if self.xIndex is None else "X")
 
-        await self.comm.MTM1M3.cmd_forceActuatorBumpTest.set_start(
+        await self.m1m3.remote.cmd_forceActuatorBumpTest.set_start(
             actuatorId=self.testedId,
             testPrimary=not (item.text() == "X" or item.text() == "Y"),
             testSecondary=not (item.text() == "P") and self.sIndex is not None,
@@ -259,7 +259,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
             QTableWidgetSelectionRange(0, 0, self.actuatorsTable.rowCount() - 1, 11),
             False,
         )
-        await self.comm.MTM1M3.cmd_killForceActuatorBumpTest.start()
+        await self.m1m3.remote.cmd_killForceActuatorBumpTest.start()
 
     @Slot(map)
     def detailedState(self, data):
@@ -374,15 +374,15 @@ class ForceActuatorBumpTestPageWidget(QWidget):
                 )
                 self.killBumpTestButton.setEnabled(False)
                 self.xIndex = self.yIndex = self.zIndex = None
-                self.comm.appliedForces.disconnect(self.appliedForces)
-                self.comm.forceActuatorData.disconnect(self.forceActuatorData)
+                self.m1m3.appliedForces.disconnect(self.appliedForces)
+                self.m1m3.forceActuatorData.disconnect(self.forceActuatorData)
                 self._testRunning = False
 
         elif self._testRunning is False:
             self.bumpTestButton.setEnabled(False)
             self.killBumpTestButton.setEnabled(True)
-            self.comm.appliedForces.connect(self.appliedForces)
-            self.comm.forceActuatorData.connect(self.forceActuatorData)
+            self.m1m3.appliedForces.connect(self.appliedForces)
+            self.m1m3.forceActuatorData.connect(self.forceActuatorData)
             self._testRunning = True
 
     # helper functions. Helps correctly enable/disable Run bump test button.

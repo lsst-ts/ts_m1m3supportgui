@@ -672,12 +672,12 @@ class Topics:
             ),
         ]
 
-    def changeTopic(self, index, slot, comm):
+    def changeTopic(self, index, slot, m1m3):
         if self.lastIndex is not None:
-            getattr(comm, self.topics[self.lastIndex].topic).disconnect(slot)
+            getattr(m1m3, self.topics[self.lastIndex].topic).disconnect(slot)
 
         self.lastIndex = index
         if index is None:
             return
 
-        getattr(comm, self.topics[index].topic).connect(slot)
+        getattr(m1m3, self.topics[index].topic).connect(slot)

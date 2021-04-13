@@ -43,21 +43,18 @@ class EUI(QDialog):
         self.layout = QVBoxLayout()
         self.topLayerLayout = QHBoxLayout()
 
-        self.comm = SALComm.create(
-            {"MTM1M3": None, "MTMount": ["azimuth", "elevation"]}
-        )
-
-        self.vms = SALComm.create({"MTVMS": None})
+        self.m1m3 = SALComm.create("MTM1M3")
+        self.mtmount = SALComm.create("MTMount", include=["azimuth", "elevation"])
 
         self.applicationControlLayout = QVBoxLayout()
-        self.applicationControl = ApplicationControlWidget(self.comm)
+        self.applicationControl = ApplicationControlWidget(self.m1m3)
         self.applicationControl.setFixedSize(256, 175)
         self.applicationControlLayout.addWidget(QLabel("Application Control"))
         self.applicationControlLayout.addWidget(self.applicationControl)
         self.topLayerLayout.addLayout(self.applicationControlLayout)
 
         self.applicationStatusLayout = QVBoxLayout()
-        self.applicationStatus = ApplicationStatusWidget(self.comm)
+        self.applicationStatus = ApplicationStatusWidget(self.m1m3)
         self.applicationStatus.setFixedHeight(175)
         self.applicationStatusLayout.addWidget(QLabel("Application Status"))
         self.applicationStatusLayout.addWidget(self.applicationStatus)
@@ -67,26 +64,26 @@ class EUI(QDialog):
         self.applicationPagination = ApplicationPaginationWidget()
         self.applicationPagination.setPageListWidth(238)
 
-        self.addPage("Overview", OverviewPageWidget(self.comm))
-        self.addPage("Actuator Overview", ActuatorOverviewPageWidget(self.comm))
-        self.addPage("Hardpoints", HardpointsWidget(self.comm))
-        self.addPage("Position", PositionWidget(self.comm))
-        self.addPage("DC Accelerometers", DCAccelerometerPageWidget(self.comm))
-        self.addPage("Gyro", GyroPageWidget(self.comm))
-        self.addPage("IMS", IMSPageWidget(self.comm))
-        self.addPage("Inclinometer", InclinometerPageWidget(self.comm))
-        self.addPage("Interlock", InterlockPageWidget(self.comm))
-        self.addPage("Lights", CellLightPageWidget(self.comm))
-        self.addPage("Air", AirPageWidget(self.comm))
-        self.addPage("Power", PowerPageWidget(self.comm))
-        self.addPage("PID", PIDPageWidget(self.comm))
-        self.addPage("Force Balance System", ForceBalanceSystemPageWidget(self.comm))
+        self.addPage("Overview", OverviewPageWidget(self.m1m3, self.mtmount))
+        self.addPage("Actuator Overview", ActuatorOverviewPageWidget(self.m1m3))
+        self.addPage("Hardpoints", HardpointsWidget(self.m1m3))
+        self.addPage("Position", PositionWidget(self.m1m3))
+        self.addPage("DC Accelerometers", DCAccelerometerPageWidget(self.m1m3))
+        self.addPage("Gyro", GyroPageWidget(self.m1m3))
+        self.addPage("IMS", IMSPageWidget(self.m1m3))
+        self.addPage("Inclinometer", InclinometerPageWidget(self.m1m3))
+        self.addPage("Interlock", InterlockPageWidget(self.m1m3))
+        self.addPage("Lights", CellLightPageWidget(self.m1m3))
+        self.addPage("Air", AirPageWidget(self.m1m3))
+        self.addPage("Power", PowerPageWidget(self.m1m3))
+        self.addPage("PID", PIDPageWidget(self.m1m3))
+        self.addPage("Force Balance System", ForceBalanceSystemPageWidget(self.m1m3))
         self.addPage(
-            "Force Actuator Bump Test", ForceActuatorBumpTestPageWidget(self.comm)
+            "Force Actuator Bump Test", ForceActuatorBumpTestPageWidget(self.m1m3)
         )
-        self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.comm))
-        self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.comm))
-        self.addPage("SAL Log", SALLogWidget(self.comm))
+        self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.m1m3))
+        self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.m1m3))
+        self.addPage("SAL Log", SALLogWidget(self.m1m3))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
         self.layout.addLayout(self.topLayerLayout)
@@ -100,9 +97,9 @@ class EUI(QDialog):
 
     @asyncClose
     async def closeEvent(self, event):
-        await self.vms.close()
-        await self.comm.close()
-        event.accept()
+        await self.m1m3.close()
+        await self.mtmount.close()
+        super().closeEvent(event)
 
 
 if __name__ == "__main__":

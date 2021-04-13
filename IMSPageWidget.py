@@ -7,9 +7,9 @@ from CustomLabels import Mm, Arcsec
 
 
 class IMSPageWidget(QWidget):
-    def __init__(self, comm):
+    def __init__(self, m1m3):
         super().__init__()
-        self.comm = comm
+        self.m1m3 = m1m3
 
         self.layout = QVBoxLayout()
         self.dataLayout = QGridLayout()
@@ -163,8 +163,8 @@ class IMSPageWidget(QWidget):
         self.plotLayout.addWidget(self.posChartView)
         self.plotLayout.addWidget(self.rawChartView)
 
-        self.comm.displacementSensorWarning.connect(self.displacementSensorWarning)
-        self.comm.imsData.connect(self.imsData)
+        self.m1m3.displacementSensorWarning.connect(self.displacementSensorWarning)
+        self.m1m3.imsData.connect(self.imsData)
 
     @Slot(bool)
     def displacementSensorWarning(self, anyWarning):
