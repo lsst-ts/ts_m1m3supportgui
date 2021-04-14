@@ -19,8 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtCore import QRect, Qt, QPointF
-from PySide2.QtGui import QPen, QPainter, QColor, QBrush, QTransform
+from PySide2.QtCore import QRect, QRectF, Qt, QPoint, QPointF
+from PySide2.QtGui import QPen, QPainter, QColor, QBrush, QTransform, QPolygon
 from PySide2.QtWidgets import QGraphicsItem
 
 
@@ -177,7 +177,41 @@ class ForceActuator(QGraphicsItem):
             hue = 1 - (self._data - self._min) / (self._max - self._min)
             painter.setBrush(QColor.fromHsvF(hue * 0.7, min(1, 1.5 - hue), 1))
         # draw actuator, write value
-        painter.drawEllipse(self._center, 10 * self._scale, 10 * self._scale)
+        direction = QPolygon()
+        if self._orientation == "+Y":
+            direction.append(QPoint(self._center.x() - 9 * self._scale, self._center.y() - 9 * self._scale))
+            direction.append(QPoint(self._center.x(), self._center.y() - 15 * self._scale))
+            direction.append(QPoint(self._center.x() + 9 * self._scale, self._center.y() - 9 * self._scale))
+            painter.drawPolygon(direction)
+        elif self._orientation == "-Y":
+            painter.drawRect(
+                QRectF(
+                    self._center.x() - 5 * self._scale,
+                    self._center.y() - 5 * self._scale,
+                    10 * self._scale,
+                    15 * self._scale,
+                )
+            )
+        elif self._orientation == "+X":
+            painter.drawRect(
+                QRectF(
+                    self._center.x() - 10 * self._scale,
+                    self._center.y() - 5 * self._scale,
+                    15 * self._scale,
+                    10 * self._scale,
+                )
+            )
+        elif self._orientation == "-X":
+            painter.drawRect(
+                QRectF(
+                    self._center.x() - 5 * self._scale,
+                    self._center.y() - 5 * self._scale,
+                    15 * self._scale,
+                    10 * self._scale,
+                )
+            )
+
+        painter.drawRect(self._center.x() - 9 * self._scale, self._center.y() - 9 * self._scale, 18 * self._scale, 18 * self._scale)
 
         painter.setPen(Qt.black)
 
