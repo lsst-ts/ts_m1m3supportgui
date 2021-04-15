@@ -27,6 +27,7 @@ from OverviewPageWidget import OverviewPageWidget
 from PIDPageWidget import PIDPageWidget
 from PowerPageWidget import PowerPageWidget
 from SALLogWidget import SALLogWidget
+from SALErrorCodeWidget import SALErrorCodeWidget
 
 import SALComm
 
@@ -84,6 +85,7 @@ class EUI(QDialog):
         self.addPage("Force Actuator Graph", ForceActuatorGraphPageWidget(self.m1m3))
         self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.m1m3))
         self.addPage("SAL Log", SALLogWidget(self.m1m3))
+        self.addPage("SAL Errors", SALErrorCodeWidget(self.m1m3))
         self.middleLayerLayout.addWidget(self.applicationPagination)
         self.bottomLayerLayout = QHBoxLayout()
         self.layout.addLayout(self.topLayerLayout)

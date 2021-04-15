@@ -19,50 +19,40 @@
 
 from PySide2.QtCore import Slot
 from PySide2.QtGui import QFont
-from PySide2.QtWidgets import QPlainTextEdit
+from PySide2.QtWidgets import QPlainTextEdit, QWidget, QVBoxLayout
 
 from datetime import datetime
 
+__all__ = ["SALErrorCodeWidget"]
 
-class SALLogMessages(QPlainTextEdit):
-    """Displays log messages."""
 
-    LEVELS_IDS = [
-        "<font color='gray'>T</font></font>",
-        "<font color='darkcyan'>D</font>",
-        "<font color='green'>I</font>",
-        "<font color='goldenrod'>W</font>",
-        "<font color='red'>E</font>",
-        "<font color='purple'>C</font>",
-    ]
-
-    LEVEL_TEXT_STYLE = [
-        "color:gray; font-weight:normal;",
-        "color:black; font-weight:normal;",
-        "font-weight:bold;",
-        "font-weight:bold;",
-        "font-weight:bold;",
-        "color:red; font-weight:bold;",
-    ]
+class SALErrorCodeWidget(QWidget):
+    """Displays errorCode messages."""
 
     def __init__(self, comm):
         super().__init__()
-        self.setReadOnly(True)
-        self.setLineWrapMode(QPlainTextEdit.NoWrap)
-        self.setCenterOnScroll(True)
+
+        layout = QVBoxLayout()
+
+        self.plainText = QPlainTextEdit()
+        self.plainText.setReadOnly(True)
+        self.plainText.setLineWrapMode(QPlainTextEdit.NoWrap)
+        self.plainText.setCenterOnScroll(True)
         font = QFont("Monospace")
         font.setStyleHint(QFont.TypeWriter)
-        self.setFont(font)
+        self.plainText.setFont(font)
 
-        comm.logMessage.connect(self.logMessage)
+        layout.addWidget(self.plainText)
+        self.setLayout(layout)
+
+        comm.errorCode.connect(self.errorCode)
 
     @Slot()
-    def logMessage(self, data):
+    def errorCode(self, data):
         date = datetime.fromtimestamp(data.private_sndStamp).isoformat(
             sep=" ", timespec="milliseconds"
         )
-        level = min(int(data.level / 10), 5)
-        self.appendHtml(
-            f"{date} [<b>{self.LEVELS_IDS[level]}</b>] <span style='{self.LEVEL_TEXT_STYLE[level]}'>{data.message}</span>"
+        self.plainText.appendHtml(
+            f"{date} [<b>{data.errorCode:06X}</b>] <span style='color:red'>{data.errorReport}</span>"
         )
-        self.ensureCursorVisible()
+        self.plainText.ensureCursorVisible()
