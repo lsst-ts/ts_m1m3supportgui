@@ -53,6 +53,6 @@ class SALErrorCodeWidget(QWidget):
             sep=" ", timespec="milliseconds"
         )
         self.plainText.appendHtml(
-            f"{date} [<b>{data.errorCode:06X}</b>] <span style='color:red'>{data.errorReport}</span>"
+            f"{date} [<b>{data.errorCode:06X}</b>] <span style='color:{'green' if data.errorCode==0 else 'red'}'>{data.errorReport}</span>"
         )
         self.plainText.ensureCursorVisible()
