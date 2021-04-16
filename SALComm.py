@@ -215,7 +215,8 @@ def warning(parent, title, description):
 
 def SALCommand(cmd):
     """Decorator to run a command and display error dialog when in troubles. To
-    be for QtWidget child method. Decorates a function call, passes arguments supplied.
+    be used in QtWidget child method. Decorates a function call, pass supplied
+    arguments to SAL/DDS command call.
 
     Parameters
     ----------
@@ -228,7 +229,7 @@ def SALCommand(cmd):
     -----
 
     Calling await runTheMachine will start command and wait for its completion.
-    If any error happens, a QMessageBox with details will be shown.
+    QMessageBox with details will be shown on errors.
 
     .. code-block:: python
         class MyCommandClass(QWidget):
