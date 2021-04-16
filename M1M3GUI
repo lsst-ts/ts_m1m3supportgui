@@ -31,18 +31,25 @@ from SALErrorCodeWidget import SALErrorCodeWidget
 
 import SALComm
 
-from PySide2.QtWidgets import QApplication, QVBoxLayout, QDialog, QHBoxLayout, QLabel
+from PySide2.QtCore import QSettings
+from PySide2.QtWidgets import (
+    QApplication,
+    QWidget,
+    QVBoxLayout,
+    QMainWindow,
+    QHBoxLayout,
+    QLabel,
+)
 from PySide2.QtGui import QFont
 
 from asyncqt import QEventLoop, asyncClose
 import asyncio
 
 
-class EUI(QDialog):
+class EUI(QMainWindow):
     def __init__(self, loop, parent=None):
-        super(EUI, self).__init__(parent)
-        self.layout = QVBoxLayout()
-        self.topLayerLayout = QHBoxLayout()
+        super().__init__(parent)
+        topLayerLayout = QHBoxLayout()
 
         self.m1m3 = SALComm.create("MTM1M3")
         self.mtmount = SALComm.create("MTMount", include=["azimuth", "elevation"])
@@ -52,16 +59,16 @@ class EUI(QDialog):
         self.applicationControl.setFixedSize(256, 175)
         self.applicationControlLayout.addWidget(QLabel("Application Control"))
         self.applicationControlLayout.addWidget(self.applicationControl)
-        self.topLayerLayout.addLayout(self.applicationControlLayout)
+        topLayerLayout.addLayout(self.applicationControlLayout)
 
         self.applicationStatusLayout = QVBoxLayout()
         self.applicationStatus = ApplicationStatusWidget(self.m1m3)
         self.applicationStatus.setFixedHeight(175)
         self.applicationStatusLayout.addWidget(QLabel("Application Status"))
         self.applicationStatusLayout.addWidget(self.applicationStatus)
-        self.topLayerLayout.addLayout(self.applicationStatusLayout)
+        topLayerLayout.addLayout(self.applicationStatusLayout)
 
-        self.middleLayerLayout = QHBoxLayout()
+        middleLayerLayout = QHBoxLayout()
         self.applicationPagination = ApplicationPaginationWidget()
         self.applicationPagination.setPageListWidth(238)
 
@@ -86,19 +93,34 @@ class EUI(QDialog):
         self.addPage("Force Actuator Value", ForceActuatorValuePageWidget(self.m1m3))
         self.addPage("SAL Log", SALLogWidget(self.m1m3))
         self.addPage("SAL Errors", SALErrorCodeWidget(self.m1m3))
-        self.middleLayerLayout.addWidget(self.applicationPagination)
-        self.bottomLayerLayout = QHBoxLayout()
-        self.layout.addLayout(self.topLayerLayout)
-        self.layout.addLayout(self.middleLayerLayout)
-        self.layout.addLayout(self.bottomLayerLayout)
-        self.setLayout(self.layout)
-        self.setFixedSize(1900, 1000)
+        middleLayerLayout.addWidget(self.applicationPagination)
+
+        layout = QVBoxLayout()
+        layout.addLayout(topLayerLayout)
+        layout.addLayout(middleLayerLayout)
+
+        m1m3Widget = QWidget()
+        m1m3Widget.setLayout(layout)
+
+        self.setCentralWidget(m1m3Widget)
+
+        self.setMinimumSize(700, 400)
+
+        settings = QSettings("LSST.TS", "M1M3GUI")
+        try:
+            self.restoreGeometry(settings.value("geometry"))
+            self.restoreState(settings.value("windowState"))
+        except AttributeError:
+            self.resize(1000, 700)
 
     def addPage(self, name, widget):
         self.applicationPagination.addPage(name, widget)
 
     @asyncClose
     async def closeEvent(self, event):
+        settings = QSettings("LSST.TS", "M1M3GUI")
+        settings.setValue("geometry", self.saveGeometry())
+        settings.setValue("windowState", self.saveState())
         await self.m1m3.close()
         await self.mtmount.close()
         super().closeEvent(event)
