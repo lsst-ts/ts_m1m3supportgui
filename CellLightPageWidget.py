@@ -78,7 +78,7 @@ class CellLightPageWidget(QWidget):
         return self.m1m3.remote.cmd_turnLightsOn
 
     @asyncSlot()
-    def issueCommandTurnLightsOff(self):
+    async def issueCommandTurnLightsOff(self):
         await self._issueCommandTurnLightsOff()
 
     @SALCommand
