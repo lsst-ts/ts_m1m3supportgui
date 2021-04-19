@@ -20,7 +20,7 @@
 from CustomLabels import Heartbeat
 
 from PySide2.QtCore import Slot
-from PySide2.QtWidgets import QStatusBar, QLabel
+from PySide2.QtWidgets import QStatusBar, QLabel, QWidget, QHBoxLayout
 
 from lsst.ts.idl.enums import MTM1M3
 
@@ -28,6 +28,17 @@ __all__ = ["StatusBar", "detailedStateString"]
 
 
 def detailedStateString(detailedState):
+    """Returns string description of mirror state.
+
+    Parameters
+    ----------
+    detailedState : `int`
+        M1M3 detailed state.
+
+    Returns
+    -------
+    stateString : `str`
+        HTML string (usable in Qt) description of detailed state."""
     _map = {
         MTM1M3.DetailedState.DISABLED: "Disabled",
         MTM1M3.DetailedState.FAULT: "<font color='red'>Fault</font>",
@@ -47,21 +58,43 @@ def detailedStateString(detailedState):
     try:
         return _map[detailedState]
     except KeyError:
-        return f"Unknow : {detailedState}"
+        return f"<font color='red'>Unknow : {detailedState}</font>"
 
 
 class StatusBar(QStatusBar):
-    def __init__(self, m1m3):
+    """M1M3 Status bar. Shows heartbeats, errors, log lines.
+    Parameters
+    ----------
+    m1m3 : `SALComm`
+        M1M3 SS SALComm
+    mtmount : `SALComm`
+        MT Mount SALComm
+    """
+
+    def __init__(self, m1m3, mtmount):
         super().__init__()
 
         self.detailedStateLabel = QLabel("---")
         self.addWidget(self.detailedStateLabel)
 
-        self.heartBeatLabel = Heartbeat(indicator=False)
-        self.addWidget(self.heartBeatLabel)
+        hbWidget = QWidget()
+        hbLayout = QHBoxLayout()
+        hbWidget.setLayout(hbLayout)
+
+        hbLayout.addWidget(QLabel("M1M3"))
+        m1m3HeartBeatLabel = Heartbeat(indicator=False)
+        hbLayout.addWidget(m1m3HeartBeatLabel)
+
+        hbLayout.addWidget(QLabel("MT Mount"))
+        mtMountHeartBeatLabel = Heartbeat(indicator=False)
+        hbLayout.addWidget(mtMountHeartBeatLabel)
+
+        self.addPermanentWidget(hbWidget)
 
         m1m3.detailedState.connect(self.detailedState)
-        m1m3.heartbeat.connect(self.heartBeatLabel.heartbeat)
+        m1m3.heartbeat.connect(m1m3HeartBeatLabel.heartbeat)
+
+        mtmount.heartbeat.connect(mtMountHeartBeatLabel.heartbeat)
 
     @Slot(map)
     def detailedState(self, data):
