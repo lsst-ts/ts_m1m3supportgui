@@ -18,12 +18,20 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 from PySide2.QtCore import Slot, QRect, QTimer
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QProgressBar, QSizePolicy
+from PySide2.QtWidgets import (
+    QFrame,
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QProgressBar,
+    QSizePolicy,
+)
 from PySide2.QtGui import QPainter, QColor, QPalette, QBrush
 import astropy.units as u
 from datetime import datetime
 
 __all__ = [
+    "VLine",
     "UnitLabel",
     "Force",
     "Moment",
@@ -37,6 +45,16 @@ __all__ = [
 
 WARNING = "#FF6700"
 """Warning color"""
+
+
+class VLine(QFrame):
+    """A simple Vertical line.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.setFrameShape(QFrame.VLine)
+        self.setFrameShadow(QFrame.Sunken)
 
 
 class UnitLabel(QLabel):
@@ -276,7 +294,7 @@ class Heartbeat(QWidget):
         super().__init__(parent)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setMargin(0)
 
         if indicator:
             self.hbIndicator = QProgressBar()

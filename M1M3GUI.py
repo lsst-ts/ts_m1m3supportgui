@@ -17,14 +17,16 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-from CustomLabels import Heartbeat
+from CustomLabels import VLine, Heartbeat
 
 from PySide2.QtCore import Slot
 from PySide2.QtWidgets import QStatusBar, QLabel, QWidget, QHBoxLayout
 
 from lsst.ts.idl.enums import MTM1M3
 
-__all__ = ["StatusBar", "detailedStateString"]
+from datetime import datetime
+
+__all__ = ["detailedStateString", "StatusBar"]
 
 
 def detailedStateString(detailedState):
@@ -77,25 +79,44 @@ class StatusBar(QStatusBar):
         self.detailedStateLabel = QLabel("---")
         self.addWidget(self.detailedStateLabel)
 
+        self.addWidget(VLine())
+
+        self.errorCodeLabel = QLabel()
+        self.addWidget(self.errorCodeLabel)
+
         hbWidget = QWidget()
         hbLayout = QHBoxLayout()
+        hbLayout.setMargin(0)
         hbWidget.setLayout(hbLayout)
 
         hbLayout.addWidget(QLabel("M1M3"))
         m1m3HeartBeatLabel = Heartbeat(indicator=False)
         hbLayout.addWidget(m1m3HeartBeatLabel)
 
+        hbLayout.addWidget(VLine())
+
         hbLayout.addWidget(QLabel("MT Mount"))
         mtMountHeartBeatLabel = Heartbeat(indicator=False)
         hbLayout.addWidget(mtMountHeartBeatLabel)
 
+        self.addPermanentWidget(VLine())
         self.addPermanentWidget(hbWidget)
 
         m1m3.detailedState.connect(self.detailedState)
         m1m3.heartbeat.connect(m1m3HeartBeatLabel.heartbeat)
+        m1m3.errorCode.connect(self.m1m3errorCode)
 
         mtmount.heartbeat.connect(mtMountHeartBeatLabel.heartbeat)
 
     @Slot(map)
     def detailedState(self, data):
         self.detailedStateLabel.setText(detailedStateString(data.detailedState))
+
+    @Slot(map)
+    def m1m3errorCode(self, data):
+        date = datetime.fromtimestamp(data.private_sndStamp).isoformat(
+            sep=" ", timespec="milliseconds"
+        )
+        self.errorCodeLabel.setText(
+            f"{date} [<b>{data.errorCode:06X}</b>] <span style='color:{'green' if data.errorCode==0 else 'red'}'>{data.errorReport}</span>"
+        )
