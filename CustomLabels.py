@@ -272,18 +272,22 @@ class Heartbeat(QWidget):
     difftime_error = 0.5
     difftime_warning = 0.01
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, indicator=True):
         super().__init__(parent)
-
-        self.hbIndicator = QProgressBar()
-        self.hbIndicator.setRange(0, 2)
-        self.hbIndicator.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
-
-        self.timestamp = QLabel("- waiting -")
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.hbIndicator)
+
+        if indicator:
+            self.hbIndicator = QProgressBar()
+            self.hbIndicator.setRange(0, 2)
+            self.hbIndicator.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+            layout.addWidget(self.hbIndicator)
+        else:
+            self.hbIndicator = None
+
+        self.timestamp = QLabel("- waiting -")
+
         layout.addWidget(self.timestamp)
         self.setLayout(layout)
 
@@ -301,9 +305,10 @@ class Heartbeat(QWidget):
 
     @Slot()
     def timeouted(self):
-        self.hbIndicator.setFormat("")
-        self.hbIndicator.setValue(0)
-        self.hbIndicator.setInvertedAppearance(False)
+        if self.hbIndicator is not None:
+            self.hbIndicator.setFormat("")
+            self.hbIndicator.setValue(0)
+            self.hbIndicator.setInvertedAppearance(False)
         self.timestamp.setText("<font color='red'>- timeouted -</font>")
 
     @Slot(map)
@@ -316,13 +321,15 @@ class Heartbeat(QWidget):
             Heartbeat event. As only private fields are used, can be any
             salobj. But needs to be received at least once per second."""
         v = data.private_seqNum % 3
-        if v == 0 or v == 1:
-            self.hbIndicator.setValue(1)
-            self.hbIndicator.setInvertedAppearance(v == 1)
-        else:
-            self.hbIndicator.setValue(2)
+        if self.hbIndicator is not None:
+            if v == 0 or v == 1:
+                self.hbIndicator.setValue(1)
+                self.hbIndicator.setInvertedAppearance(v == 1)
+            else:
+                self.hbIndicator.setValue(2)
 
-        self.hbIndicator.setFormat(f"{data.private_seqNum % int(1e12):012d}")
+            self.hbIndicator.setFormat(f"{data.private_seqNum % int(1e12):012d}")
+
         diff = data.private_rcvStamp - data.private_sndStamp
         if abs(diff) > self.difftime_error:
             self.timestamp.setText(
