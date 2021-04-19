@@ -48,6 +48,7 @@ from PySide2.QtGui import QFont
 from asyncqt import QEventLoop, asyncClose
 import asyncio
 
+
 class EUI(QMainWindow):
     def __init__(self, loop, parent=None):
         super().__init__(parent)
@@ -102,6 +103,7 @@ class EUI(QMainWindow):
         m1m3Widget.setLayout(layout)
 
         self.setCentralWidget(m1m3Widget)
+        self.setStatusBar(StatusBar(self.m1m3))
 
         self.setMinimumSize(700, 400)
 

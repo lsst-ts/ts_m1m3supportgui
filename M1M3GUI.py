@@ -52,7 +52,7 @@ def detailedStateString(detailedState):
 
 class StatusBar(QStatusBar):
     def __init__(self, m1m3):
-        super.__init__()
+        super().__init__()
 
         self.detailedStateLabel = QLabel("---")
         self.addWidget(self.detailedStateLabel)
