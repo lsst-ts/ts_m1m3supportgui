@@ -293,13 +293,13 @@ class OffsetsWidget(QWidget):
 
         Returns
         -------
-        args : `dict`
+        offsets : `dict`
              Current offset forces. Contains FORCES keys.
         """
-        args = {}
+        offsets = {}
         for f in self.FORCES:
-            args[f] = getattr(self, "forceOffsets_" + f).value()
-        return args
+            offsets[f] = getattr(self, "forceOffsets_" + f).value()
+        return offsets
 
     @asyncSlot()
     async def _moveMirror(self):

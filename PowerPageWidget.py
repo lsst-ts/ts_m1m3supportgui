@@ -373,7 +373,11 @@ class PowerPageWidget(QWidget):
                 ("Current (A)", "C", data.powerNetworkCCurrent),
                 ("Current (A)", "D", data.powerNetworkDCurrent),
                 ("Current (A)", "Lights", data.lightPowerNetworkCurrent),
-                ("Current (A)", "Controls", data.controlsPowerNetworkCurrent,),
+                (
+                    "Current (A)",
+                    "Controls",
+                    data.controlsPowerNetworkCurrent,
+                ),
             ],
         )
 

@@ -253,9 +253,21 @@ class Topics:
                         lambda x: x.secondaryCylinderForce,
                         lambda: FATABLE_SINDEX,
                     ],
-                    ["Z Forces", lambda x: x.zForce, lambda: FATABLE_ZINDEX,],
-                    ["Y Forces", lambda x: x.yForce, lambda: FATABLE_YINDEX,],
-                    ["X Forces", lambda x: x.xForce, lambda: FATABLE_XINDEX,],
+                    [
+                        "Z Forces",
+                        lambda x: x.zForce,
+                        lambda: FATABLE_ZINDEX,
+                    ],
+                    [
+                        "Y Forces",
+                        lambda x: x.yForce,
+                        lambda: FATABLE_YINDEX,
+                    ],
+                    [
+                        "X Forces",
+                        lambda x: x.xForce,
+                        lambda: FATABLE_XINDEX,
+                    ],
                 ],
                 "forceActuatorData",
                 False,
@@ -476,7 +488,11 @@ class Topics:
                         lambda x: x.watchdogReset,
                         lambda: FATABLE_ZINDEX,
                     ],
-                    ["Brownout", lambda x: x.brownOut, lambda: FATABLE_ZINDEX,],
+                    [
+                        "Brownout",
+                        lambda x: x.brownOut,
+                        lambda: FATABLE_ZINDEX,
+                    ],
                     [
                         "Event Trap Reset",
                         lambda x: x.eventTrapReset,
@@ -537,7 +553,11 @@ class Topics:
                         lambda x: x.mezzanineApplicationCRCMismatch,
                         lambda: FATABLE_ZINDEX,
                     ],
-                    ["ILC Fault", lambda x: x.ilcFault, lambda: FATABLE_ZINDEX,],
+                    [
+                        "ILC Fault",
+                        lambda x: x.ilcFault,
+                        lambda: FATABLE_ZINDEX,
+                    ],
                     [
                         "Broadcast Counter Warning",
                         lambda x: x.broadcastCounterWarning,

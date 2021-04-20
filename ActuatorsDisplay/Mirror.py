@@ -61,7 +61,7 @@ class Mirror(QGraphicsScene):
         y :  `float`
             Force Actuator y position (in mm).
         orientation : `str`
-            Secondary orientation. Either NA, +Y, -Y, +X or -X.
+            Secondary actuator orientation. Either NA, +Y, -Y, +X or -X.
         data : `float`
             Force Actuator value.
         dataIndex : `int`

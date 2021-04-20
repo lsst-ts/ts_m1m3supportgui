@@ -335,7 +335,11 @@ class GyroPageWidget(QWidget):
         self.chart.append(
             data.timestamp,
             [
-                ("Angular Velocity (rad/s)", "X", data.angularVelocityX,),
+                (
+                    "Angular Velocity (rad/s)",
+                    "X",
+                    data.angularVelocityX,
+                ),
                 ("Angular Velocity (rad/s)", "Y", data.angularVelocityY),
                 ("Angular Velocity (rad/s)", "Z", data.angularVelocityZ),
             ],

@@ -188,7 +188,10 @@ def create(name, manual=None, **kvargs):
 
 
 def warning(parent, title, description):
-    """Creates future with QMessageBox. Enables use of QMessageBox with asyncqt/asyncio. Mimics QMessageBox.warning behaviour - but QMessageBox cannot be used, as it blocks Qt loops from executing (as all modal dialogs does).
+    """Creates future with QMessageBox. Enables use of QMessageBox with
+    asyncqt/asyncio. Mimics QMessageBox.warning behaviour - but QMessageBox
+    cannot be used, as it blocks Qt loops from executing (as all modal dialogs
+    does).
 
     Parameters
     ----------
