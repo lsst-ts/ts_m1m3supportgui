@@ -216,8 +216,12 @@ class OffsetsWidget(QWidget):
         self.offsetForces = QPushButton("Apply offset forces")
         self.offsetForces.setEnabled(False)
         self.offsetForces.clicked.connect(self._applyOffsetForces)
-
         dataLayout.addWidget(self.offsetForces, row, 1, 1, 3)
+
+        self.clearOffsetForcesButton = QPushButton("Reset forces")
+        self.clearOffsetForcesButton.setEnabled(False)
+        self.clearOffsetForcesButton.clicked.connect(self._clearOffsetForces)
+        dataLayout.addWidget(self.clearOffsetForcesButton, row, 4, 1, 3)
 
         self.layout.addStretch()
 
@@ -250,6 +254,10 @@ class OffsetsWidget(QWidget):
             Offsets specified as forces and moments.
         """
         return self.m1m3.remote.cmd_applyOffsetForcesByMirrorForce
+
+    @SALCommand
+    def clearOffsetForces(self, **kwargs):
+        return self.m1m3.remote.cmd_clearOffsetForces
 
     def _getScale(self, label):
         return MM2M if label[1:] == "Position" else ARCSEC2D
@@ -310,6 +318,12 @@ class OffsetsWidget(QWidget):
         await self.applyOffsetForcesByMirrorForce(**self.getForceOffsets())
 
     @asyncSlot()
+    async def _clearOffsetForces(self):
+        await self.clearOffsetForces()
+        for f in self.FORCES:
+            getattr(self, "forceOffsets_" + f).setValue(0)
+
+    @asyncSlot()
     async def _positionChanged(self, offsets):
         args = {}
         for i in range(6):
@@ -359,3 +373,4 @@ class OffsetsWidget(QWidget):
         self.moveMirrorButton.setEnabled(enabled)
         self.dirPad.setEnabled(enabled)
         self.offsetForces.setEnabled(enabled)
+        self.clearOffsetForcesButton.setEnabled(enabled)
