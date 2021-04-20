@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-import QTHelpers
-from SALComm import SALCommand
 from PySide2.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from PySide2.QtCore import Slot
+
+from SALComm import warning
 
 from asyncqt import asyncSlot
 import asyncio
@@ -92,6 +92,8 @@ class ApplicationControlWidget(QWidget):
         self.exitButton.setEnabled(False)
 
     def restoreEnabled(self):
+        if self.lastEnabled is None:
+            return
         self.startButton.setEnabled(self.lastEnabled[0])
         self.enableButton.setEnabled(self.lastEnabled[1])
         self.raiseButton.setEnabled(self.lastEnabled[2])
@@ -127,9 +129,18 @@ class ApplicationControlWidget(QWidget):
             elif button.text() == self.TEXT_STANDBY:
                 await self.m1m3.remote.cmd_standby.start()
         except base.AckError as ackE:
-            await QTHelpers.warning(
-                self, f"Error executing {button.text()}", ackE.ackcmd.result,
+            warning(
+                self,
+                f"Error executing button {button.text()}",
+                f"Error executing button <i>{button.text()}</i>:<br/>{ackE.ackcmd.result}",
             )
+        except RuntimeError as rte:
+            warning(
+                self,
+                f"Error executing {button.text()}",
+                f"Executing button <i>{button.text()}</i>:<br/>{str(rte)}",
+            )
+        finally:
             self.restoreEnabled()
 
     @asyncSlot()
