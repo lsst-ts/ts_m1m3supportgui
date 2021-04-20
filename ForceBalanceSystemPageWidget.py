@@ -1,4 +1,5 @@
 import QTHelpers
+from SALComm import SALCommand
 import TimeChart
 from PySide2.QtWidgets import (
     QWidget,
@@ -204,12 +205,14 @@ class ForceBalanceSystemPageWidget(QWidget):
         self._setTotalForces()
 
     @asyncSlot()
-    async def issueCommandEnableHardpointCorrections(self):
-        await self.m1m3.remote.cmd_enableHardpointCorrections.start()
+    @SALCommand
+    def issueCommandEnableHardpointCorrections(self):
+        return self.m1m3.remote.cmd_enableHardpointCorrections
 
     @asyncSlot()
-    async def issueCommandDisableHardpointCorrections(self):
-        await self.m1m3.remote.cmd_disableHardpointCorrections.start()
+    @SALCommand
+    def issueCommandDisableHardpointCorrections(self):
+        return self.m1m3.remote.cmd_disableHardpointCorrections
 
     def _setTotalForces(self):
         if self._balanceData is None or self._hardpointData is None:

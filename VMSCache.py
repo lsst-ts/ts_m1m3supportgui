@@ -96,7 +96,7 @@ class VMSCache:
 
     def newChunk(self, data, sample_period):
         """Add new data chunk. Append data to cache if all sensors are
-        received. Keeps window cache, removes old entries if over window. 
+        received. Keeps window cache, removes old entries if over window.
 
         Parameters
         ----------

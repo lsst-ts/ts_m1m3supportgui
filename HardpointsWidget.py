@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-import TimeChart
+from SALComm import SALCommand
 from PySide2.QtWidgets import (
     QWidget,
     QLabel,
@@ -175,21 +175,14 @@ class HardpointsWidget(QWidget):
         self.m1m3.hardpointMonitorData.connect(self.hardpointMonitorData)
         self.m1m3.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
 
+    @SALCommand
+    def _moveIt(self, **kvargs):
+        return self.m1m3.remote.cmd_moveHardpointActuators
+
     @asyncSlot()
     async def _moveHP(self):
         steps = list(map(lambda x: x.value(), self.hpOffsets))
-        try:
-            await self.m1m3.remote.cmd_moveHardpointActuators.set_start(steps=steps)
-        except base.AckError as ackE:
-            await QTHelpers.warning(
-                self,
-                f"Error executing moveHardpointActuators({steps})",
-                ackE.ackcmd.result,
-            )
-        except RuntimeError as rte:
-            await QTHelpers.warning(
-                self, f"Error executing moveHardpointActuators({steps})", str(rte),
-            )
+        await self._moveIt(steps=steps)
 
     @Slot()
     def _reset(self):

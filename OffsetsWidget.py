@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-import TimeChart
 from PySide2.QtWidgets import (
     QWidget,
     QLabel,
@@ -32,20 +31,25 @@ from asyncqt import asyncSlot
 from CustomLabels import *
 from UnitsConversions import *
 from DirectionPadWidget import *
+from SALComm import SALCommand
 
-from lsst.ts.salobj import base
 from lsst.ts.idl.enums.MTM1M3 import DetailedState
 
 import QTHelpers
 
 
-class PositionWidget(QWidget):
-    """Displays position data - measured and target position, allows to offset (jog) the mirror.
+class OffsetsWidget(QWidget):
+    """Displays position data - measured and target position, allows to offset
+    (jog) the mirror using position/rotation and force/moment offsets.
 
     POSITIONS
     ---------
         Array containing name of positions. Used to name variables and as
         arguments names for positionM1M3 command.
+
+    FORCES
+    ------
+        Array containing forces and momements.
 
     Parameters
     ----------
@@ -61,6 +65,8 @@ class PositionWidget(QWidget):
         "yRotation",
         "zRotation",
     ]
+
+    FORCES = ["xForce", "yForce", "zForce", "xMoment", "yMoment", "zMoment"]
 
     def __init__(self, m1m3):
         super().__init__()
@@ -166,13 +172,68 @@ class PositionWidget(QWidget):
         self.dirPad.positionChanged.connect(self._positionChanged)
         dataLayout.addWidget(self.dirPad, row, 1, 3, 6)
 
+        def createForces():
+            return {
+                "fx": Force(),
+                "fy": Force(),
+                "fz": Force(),
+                "mx": Moment(),
+                "my": Moment(),
+                "mz": Moment(),
+            }
+
+        self.preclipped = createForces()
+        self.applied = createForces()
+        self.measured = createForces()
+
+        row += 3
+        dataLayout.addWidget(QLabel("<b>Preclipped</b>"), row, 0)
+        addDataRow(self.preclipped, row)
+
+        row += 1
+        dataLayout.addWidget(QLabel("<b>Applied</b>"), row, 0)
+        addDataRow(self.applied, row)
+
+        row += 1
+        dataLayout.addWidget(QLabel("<b>Measured</b>"), row, 0)
+        addDataRow(self.measured, row)
+
+        row += 1
+        dataLayout.addWidget(QLabel("<b>Offset</b>"), row, 0)
+
+        col = 1
+        for p in self.FORCES:
+            sb = QDoubleSpinBox()
+            sb.setRange(-10000, 10000)
+            sb.setDecimals(1)
+            sb.setSingleStep(1)
+
+            dataLayout.addWidget(sb, row, col)
+            setattr(self, "forceOffsets_" + p, sb)
+            col += 1
+
+        row += 1
+        self.offsetForces = QPushButton("Apply offset forces")
+        self.offsetForces.setEnabled(False)
+        self.offsetForces.clicked.connect(self._applyOffsetForces)
+        dataLayout.addWidget(self.offsetForces, row, 1, 1, 3)
+
+        self.clearOffsetForcesButton = QPushButton("Reset forces")
+        self.clearOffsetForcesButton.setEnabled(False)
+        self.clearOffsetForcesButton.clicked.connect(self._clearOffsetForces)
+        dataLayout.addWidget(self.clearOffsetForcesButton, row, 4, 1, 3)
+
         self.layout.addStretch()
 
         self.m1m3.hardpointActuatorData.connect(self._hardpointActuatorDataCallback)
         self.m1m3.imsData.connect(self._imsDataCallback)
+        self.m1m3.preclippedOffsetForces.connect(self._preclippedOffsetForces)
+        self.m1m3.appliedOffsetForces.connect(self._appliedOffsetForces)
+        self.m1m3.forceActuatorData.connect(self._forceActuatorCallback)
         self.m1m3.detailedState.connect(self._detailedStateCallback)
 
-    async def moveMirror(self, **kwargs):
+    @SALCommand
+    def moveMirror(self, **kwargs):
         """Move mirror. Calls positionM1M3 command.
 
         Parameters
@@ -181,16 +242,22 @@ class PositionWidget(QWidget):
             New target position. Needs to have POSITIONS keys. Passed to
             positionM1M3 command.
         """
-        try:
-            await self.m1m3.remote.cmd_positionM1M3.set_start(**kwargs)
-        except base.AckError as ackE:
-            await QTHelpers.warning(
-                self, f"Error executing positionM1M3({kwargs})", ackE.ackcmd.result,
-            )
-        except RuntimeError as rte:
-            await QTHelpers.warning(
-                self, f"Error executing positionM1M3({kwargs})", str(rte),
-            )
+        return self.m1m3.remote.cmd_positionM1M3
+
+    @SALCommand
+    def applyOffsetForcesByMirrorForce(self, **kwargs):
+        """Apply mirror offset forces.
+
+        Parameters
+        ----------
+        **kwargs : `dict`
+            Offsets specified as forces and moments.
+        """
+        return self.m1m3.remote.cmd_applyOffsetForcesByMirrorForce
+
+    @SALCommand
+    def clearOffsetForces(self, **kwargs):
+        return self.m1m3.remote.cmd_clearOffsetForces
 
     def _getScale(self, label):
         return MM2M if label[1:] == "Position" else ARCSEC2D
@@ -221,6 +288,19 @@ class PositionWidget(QWidget):
         for k, v in targets.items():
             getattr(self, "target_" + k).setValue(v / self._getScale(k))
 
+    def getForceOffsets(self):
+        """Return current offset forces (from forceOffsets_ box).
+
+        Returns
+        -------
+        offsets : `dict`
+             Current offset forces. Contains FORCES keys.
+        """
+        offsets = {}
+        for f in self.FORCES:
+            offsets[f] = getattr(self, "forceOffsets_" + f).value()
+        return offsets
+
     @asyncSlot()
     async def _moveMirror(self):
         targets = self.getTargets()
@@ -232,6 +312,16 @@ class PositionWidget(QWidget):
         args = {k: getattr(self._hpData, k) for k in self.POSITIONS}
         self.setTargets(args)
         self.dirPad.setPosition(map(lambda p: args[p], self.POSITIONS))
+
+    @asyncSlot()
+    async def _applyOffsetForces(self):
+        await self.applyOffsetForcesByMirrorForce(**self.getForceOffsets())
+
+    @asyncSlot()
+    async def _clearOffsetForces(self):
+        await self.clearOffsetForces()
+        for f in self.FORCES:
+            getattr(self, "forceOffsets_" + f).setValue(0)
 
     @asyncSlot()
     async def _positionChanged(self, offsets):
@@ -265,8 +355,22 @@ class PositionWidget(QWidget):
         self._updateDiffs()
 
     @Slot(map)
+    def _preclippedOffsetForces(self, data):
+        self._fillRow(self.preclipped, data)
+
+    @Slot(map)
+    def _appliedOffsetForces(self, data):
+        self._fillRow(self.applied, data)
+
+    @Slot(map)
+    def _forceActuatorCallback(self, data):
+        self._fillRow(self.measured, data)
+
+    @Slot(map)
     def _detailedStateCallback(self, data):
         enabled = data.detailedState == DetailedState.ACTIVEENGINEERING
 
         self.moveMirrorButton.setEnabled(enabled)
         self.dirPad.setEnabled(enabled)
+        self.offsetForces.setEnabled(enabled)
+        self.clearOffsetForcesButton.setEnabled(enabled)

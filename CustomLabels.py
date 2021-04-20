@@ -59,7 +59,7 @@ class UnitLabel(QLabel):
     is_err_func : `func`, optional
         Function evaluated on each value. If true is returned, value is assumed
         to be in warning range and will be color coded (displayed in warning
-        text). Default is None - no color coded error value.  """
+        text). Default is None - no color coded error value."""
 
     def __init__(
         self, fmt="d", unit=None, convert=None, is_warn_func=None, is_err_func=None
@@ -99,7 +99,7 @@ class UnitLabel(QLabel):
         if self.is_err_func is not None and self.is_err_func(value):
             self.setText("<font color='red'>" + text + "</font>")
         elif self.is_warn_func is not None and self.is_warn_func(value):
-            self.setText(f"<font color='{WARNING}>{text}</font>")
+            self.setText(f"<font color='{WARNING}'>{text}</font>")
         else:
             self.setText(text)
 

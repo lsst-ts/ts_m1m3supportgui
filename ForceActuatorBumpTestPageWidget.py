@@ -212,7 +212,10 @@ class ForceActuatorBumpTestPageWidget(QWidget):
             colOffset = i * 3
             self.actuatorsTable.setRangeSelected(
                 QTableWidgetSelectionRange(
-                    0, 1 + colOffset, self.actuatorsTable.rowCount() - 1, 2 + colOffset,
+                    0,
+                    1 + colOffset,
+                    self.actuatorsTable.rowCount() - 1,
+                    2 + colOffset,
                 ),
                 False,
             )
@@ -294,9 +297,21 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         """Adds measured forces to graph."""
         chartData = []
         if self.xIndex is not None:
-            chartData.append(("Force (N)", "Measured X", data.xForce[self.xIndex],))
+            chartData.append(
+                (
+                    "Force (N)",
+                    "Measured X",
+                    data.xForce[self.xIndex],
+                )
+            )
         if self.yIndex is not None:
-            chartData.append(("Force (N)", "Measured Y", data.yForce[self.yIndex],))
+            chartData.append(
+                (
+                    "Force (N)",
+                    "Measured Y",
+                    data.yForce[self.yIndex],
+                )
+            )
         if self.zIndex is not None:
             chartData.append(("Force (N)", "Measured Z", data.zForce[self.zIndex]))
 
