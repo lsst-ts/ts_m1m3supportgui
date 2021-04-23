@@ -32,7 +32,7 @@ class OverviewPageWidget(QWidget):
         self.errorCodeLabel = QLabel("---")
         self.interlockWarningLabel = QLabel("UNKNOWN")
         self.powerWarningLabel = QLabel("UNKNOWN")
-        self.forceActuatorWarningLabel = QLabel("UNKNOWN")
+        self.forceActuatorWarningLabel = LogEventWarning(m1m3.forceActuatorWarning)
         self.hardpointActuatorWarningLabel = QLabel("UNKNOWN")
         self.hardpointMonitorWarningLabel = QLabel("UNKNOWN")
         self.inclinometerWarningLabel = QLabel("UNKNOWN")
@@ -230,7 +230,6 @@ class OverviewPageWidget(QWidget):
         m1m3.detailedState.connect(self.detailedState)
         m1m3.displacementSensorWarning.connect(self.displacementSensorWarning)
         m1m3.errorCode.connect(self.errorCode)
-        m1m3.forceActuatorWarning.connect(self.forceActuatorWarning)
         m1m3.gyroWarning.connect(self.gyroWarning)
         m1m3.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
         m1m3.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
@@ -301,10 +300,6 @@ class OverviewPageWidget(QWidget):
     @Slot(map)
     def errorCode(self, data):
         self.errorCodeLabel.setText(hex(data.errorCode))
-
-    @Slot(map)
-    def forceActuatorWarning(self, data):
-        QTHelpers.setWarningLabel(self.forceActuatorWarningLabel, data.anyWarning)
 
     @Slot(map)
     def gyroWarning(self, data):

@@ -41,6 +41,7 @@ __all__ = [
     "MmWarning",
     "WarningLabel",
     "Heartbeat",
+    "LogEventWarning",
 ]
 
 WARNING = "#FF6700"
@@ -48,8 +49,7 @@ WARNING = "#FF6700"
 
 
 class VLine(QFrame):
-    """A simple Vertical line.
-    """
+    """A simple Vertical line."""
 
     def __init__(self):
         super().__init__()
@@ -369,3 +369,16 @@ class Heartbeat(QWidget):
             )
 
         self._initTimer(2001)
+
+
+class LogEventWarning(QLabel):
+    def __init__(self, signal):
+        super().__init__("---")
+        signal.connect(self.logEvent)
+
+    @Slot(map)
+    def logEvent(self, data):
+        if data.anyWarning:
+            self.setText("<font color='yellow'>Warning</font>")
+        else:
+            self.setText("<font color='green'>OK</font>")
