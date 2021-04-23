@@ -340,7 +340,7 @@ class Heartbeat(QWidget):
             salobj. But needs to be received at least once per second."""
         v = data.private_seqNum % 3
         if self.hbIndicator is not None:
-            if v == 0 or v == 1:
+            if v in (0, 1):
                 self.hbIndicator.setValue(1)
                 self.hbIndicator.setInvertedAppearance(v == 1)
             else:
@@ -373,13 +373,14 @@ class Heartbeat(QWidget):
 
 class LogEventWarning(QLabel):
     """Display status of various evt_XXXWarnings. Shows either green OK if
-    everything is fine, or yellow Warning on anyWarning.i
+    everything is fine, or yellow Warning on anyWarning.
 
     Parameters
     ----------
     signal : `Signal`
         Signal fired when logevent data changes.
     """
+
     def __init__(self, signal):
         super().__init__("---")
         signal.connect(self._logEvent)
