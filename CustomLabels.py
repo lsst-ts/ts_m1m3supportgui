@@ -372,12 +372,20 @@ class Heartbeat(QWidget):
 
 
 class LogEventWarning(QLabel):
+    """Display status of various evt_XXXWarnings. Shows either green OK if
+    everything is fine, or yellow Warning on anyWarning.i
+
+    Parameters
+    ----------
+    signal : `Signal`
+        Signal fired when logevent data changes.
+    """
     def __init__(self, signal):
         super().__init__("---")
-        signal.connect(self.logEvent)
+        signal.connect(self._logEvent)
 
     @Slot(map)
-    def logEvent(self, data):
+    def _logEvent(self, data):
         if data.anyWarning:
             self.setText("<font color='yellow'>Warning</font>")
         else:
