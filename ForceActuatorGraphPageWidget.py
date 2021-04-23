@@ -31,7 +31,7 @@ class ForceActuatorGraphPageWidget(ForceActuatorWidget):
         def getWarning(index):
             return (
                 ForceActuator.STATE_WARNING
-                if warningData.forceActuatorFlags[index] != 0
+                if warningData.minorFault[index] or warningData.majorFault[index]
                 else ForceActuator.STATE_ACTIVE
             )
 

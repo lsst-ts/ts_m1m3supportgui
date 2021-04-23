@@ -42,6 +42,7 @@ from PySide2.QtWidgets import (
     QLabel,
     QListWidget,
     QTabWidget,
+    QGroupBox,
 )
 from PySide2.QtGui import QFont
 
@@ -57,11 +58,11 @@ class EUI(QMainWindow):
             "MTMount", include=["azimuth", "elevation", "heartbeat"]
         )
 
-        self.applicationControlLayout = QVBoxLayout()
-        self.applicationControl = ApplicationControlWidget(self.m1m3)
-        self.applicationControl.setFixedSize(256, 175)
-        self.applicationControlLayout.addWidget(QLabel("Application Control"))
-        self.applicationControlLayout.addWidget(self.applicationControl)
+        controlWidget = QGroupBox("Application Control")
+        applicationControl = ApplicationControlWidget(self.m1m3)
+        applicationControlLayout = QVBoxLayout()
+        applicationControlLayout.addWidget(applicationControl)
+        controlWidget.setLayout(applicationControlLayout)
 
         self.applicationPagination = QListWidget()
         self.applicationPagination.currentRowChanged.connect(self.changePage)
@@ -94,7 +95,7 @@ class EUI(QMainWindow):
         self.applicationPagination.setCurrentRow(0)
 
         leftLayout = QVBoxLayout()
-        leftLayout.addLayout(self.applicationControlLayout)
+        leftLayout.addWidget(controlWidget)
         leftLayout.addWidget(self.applicationPagination)
 
         layout = QHBoxLayout()
