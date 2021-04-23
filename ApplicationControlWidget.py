@@ -29,6 +29,7 @@ from PySide2.QtWidgets import (
     QFormLayout,
 )
 from PySide2.QtCore import Qt, Slot
+from PySide2.QtGui import QColor
 
 from SALComm import warning
 
@@ -76,8 +77,11 @@ class ApplicationControlWidget(QWidget):
         self.exitButton = _addButton(self.TEXT_STANDBY, self.exit)
 
         self.supportedNumber = QLCDNumber(6)
+        self.supportedNumber.setAutoFillBackground(True)
         self.minPressure = QLCDNumber(6)
+        self.minPressure.setAutoFillBackground(True)
         self.maxPressure = QLCDNumber(6)
+        self.maxPressure.setAutoFillBackground(True)
 
         dataLayout = QFormLayout()
         dataLayout.addRow("Supported", self.supportedNumber)
@@ -259,9 +263,37 @@ class ApplicationControlWidget(QWidget):
     @Slot(map)
     def forceActuatorState(self, data):
         self.supportPercentage.setValue(data.supportPercentage)
+        pal = self.supportedNumber.palette()
+        if data.supportPercentage == 0:
+            col = QColor(255, 0, 0)
+        elif data.supportPercentage < 90:
+            col = QColor(0, 0, 255)
+        elif data.supportPercentage < 100:
+            col = QColor(255, 255, 0)
+        else:
+            col = QColor(0, 255, 0)
+        pal.setColor(pal.Background, col)
         self.supportedNumber.display(f"{data.supportPercentage:.02f}")
+        self.supportedNumber.setPalette(pal)
 
     @Slot(map)
     def hardpointMonitorData(self, data):
-        self.minPressure.display(f"{min(data.breakawayPressure):.02f}")
-        self.maxPressure.display(f"{max(data.breakawayPressure):.02f}")
+        min_d = min(data.breakawayPressure)
+        max_d = max(data.breakawayPressure)
+
+        def _getColor(v):
+            if v < 110 or v > 127:
+                return QColor(255, 0, 0)
+            elif v < 115 or v > 125:
+                return QColor(255, 255, 0)
+            return QColor(0, 255, 0)
+
+        min_pal = self.minPressure.palette()
+        min_pal.setColor(min_pal.Background, _getColor(min_d))
+        self.minPressure.display(f"{min_d:.02f}")
+        self.minPressure.setPalette(min_pal)
+
+        max_pal = self.minPressure.palette()
+        max_pal.setColor(max_pal.Background, _getColor(max_d))
+        self.maxPressure.display(f"{max_d:.02f}")
+        self.maxPressure.setPalette(max_pal)
