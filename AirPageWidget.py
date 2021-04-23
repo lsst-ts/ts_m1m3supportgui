@@ -73,11 +73,17 @@ class AirPageWidget(QWidget):
         QTHelpers.setBoolLabelHighLow(self.airValveClosedLabel, data.airValveClosed)
 
     @asyncSlot()
+    async def issueCommandTurnAirOn(self):
+        await self._issueCommandTurnAirOn()
+
     @SALCommand
-    def issueCommandTurnAirOn(self):
+    def _issueCommandTurnAirOn(self, **kwargs):
         return self.m1m3.remote.cmd_turnAirOn
 
-    @asyncSlot()
+    @asyncSlot
+    async def issueCommandTurnAirOff(self):
+        await self._issueCommandTurnAirOff()
+
     @SALCommand
-    def issueCommandTurnAirOff(self):
+    def _issueCommandTurnAirOff(self, **kwargs):
         return self.m1m3.remote.cmd_turnAirOff

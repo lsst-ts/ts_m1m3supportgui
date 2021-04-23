@@ -113,12 +113,11 @@ class MetaSAL(type(QObject)):
 def create(name, manual=None, **kvargs):
     """Creates SALComm instance for given remote(s). The returned object
     contains PySide2.QtCore.Signal class variables. Those signals are emitted
-    when SAL callback occurs, effectively linking SAL/DDS and Qt word. Signals
+    when SAL callback occurs, effectively linking SAL/DDS and Qt world. Signals
     can be connected to multiple Qt slots to process the incoming data.
 
-    Class variable with the same name as SAL remote name are instances of
-    lsst.ts.salobj.Remote. Those can be used to start commands (available with
-    `cmd_` prefix).
+    Class variable named "remote" is instance of lsst.ts.salobj.Remote. This
+    can be used to start commands (available with `cmd_` prefix).
 
     Parameters
     ----------
@@ -138,8 +137,8 @@ def create(name, manual=None, **kvargs):
        import SALComm
 
        import sys
-       from asyncqt import QEventLoop
-       from PySide2.QtWidgets import QApplication
+       from asyncqt import QEventLoop, asyncSlot
+       from PySide2.QtWidgets import QApplication, QPushButton
 
        app = QApplication(sys.argv)
        loop = QEventLoop(app)
@@ -163,11 +162,18 @@ def create(name, manual=None, **kvargs):
 
        ...
 
-       # should trigger callbacks with historic data
-       loop.run_until_complete(my_sal.start())
+       @asyncSlot()
+       async def startIt():
+           await my_sal.remote.cmd_start.set_start(settingsToApply="Default")
 
-       # runs start command
-       await my_sal.MTMount.cmd_start.set_start(settingsToApply="Default")
+       runIt = QPushButton("Run it!")
+       runIt.clicked.connect(startIt)
+
+       ...
+
+       # should trigger callbacks with historic data
+       with loop:
+           loop.run_forever()
     """
 
     class SALComm(QObject, metaclass=MetaSAL):
@@ -215,7 +221,8 @@ def warning(parent, title, description):
 
 def SALCommand(cmd):
     """Decorator to run a command and display error dialog when in troubles. To
-    be for QtWidget child method. Decorates a function call, passes arguments supplied.
+    be used in QtWidget child method. Decorates a function call, pass supplied
+    arguments to SAL/DDS command call.
 
     Parameters
     ----------
@@ -228,7 +235,7 @@ def SALCommand(cmd):
     -----
 
     Calling await runTheMachine will start command and wait for its completion.
-    If any error happens, a QMessageBox with details will be shown.
+    QMessageBox with details will be shown on errors.
 
     .. code-block:: python
         class MyCommandClass(QWidget):

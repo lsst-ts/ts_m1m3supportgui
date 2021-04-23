@@ -29,9 +29,10 @@ class OverviewPageWidget(QWidget):
         self.summaryStateLabel = QLabel("UNKNOWN")
         self.mirrorStateLabel = QLabel("UNKNOWN")
         self.modeStateLabel = QLabel("UNKNOWN")
+        self.errorCodeLabel = QLabel("---")
         self.interlockWarningLabel = QLabel("UNKNOWN")
         self.powerWarningLabel = QLabel("UNKNOWN")
-        self.forceActuatorWarningLabel = QLabel("UNKNOWN")
+        self.forceActuatorWarningLabel = LogEventWarning(m1m3.forceActuatorWarning)
         self.hardpointActuatorWarningLabel = QLabel("UNKNOWN")
         self.hardpointMonitorWarningLabel = QLabel("UNKNOWN")
         self.inclinometerWarningLabel = QLabel("UNKNOWN")
@@ -108,7 +109,8 @@ class OverviewPageWidget(QWidget):
         dataLayout.addWidget(QLabel("Mode State"), row, col)
         dataLayout.addWidget(self.modeStateLabel, row, col + 1)
         row += 1
-        dataLayout.addWidget(QLabel("Warnings"), row, col)
+        dataLayout.addWidget(QLabel("ErrorCode"), row, col)
+        dataLayout.addWidget(self.errorCodeLabel, row, col + 1)
         row += 1
         dataLayout.addWidget(QLabel("Interlocks"), row, col)
         dataLayout.addWidget(self.interlockWarningLabel, row, col + 1)
@@ -227,7 +229,7 @@ class OverviewPageWidget(QWidget):
         m1m3.cellLightWarning.connect(self.cellLightWarning)
         m1m3.detailedState.connect(self.detailedState)
         m1m3.displacementSensorWarning.connect(self.displacementSensorWarning)
-        m1m3.forceActuatorWarning.connect(self.forceActuatorWarning)
+        m1m3.errorCode.connect(self.errorCode)
         m1m3.gyroWarning.connect(self.gyroWarning)
         m1m3.hardpointActuatorWarning.connect(self.hardpointActuatorWarning)
         m1m3.hardpointMonitorWarning.connect(self.hardpointMonitorWarning)
@@ -267,10 +269,6 @@ class OverviewPageWidget(QWidget):
         QTHelpers.setWarningLabel(self.cellLightWarningLabel, data.anyWarning)
 
     @Slot(map)
-    def displacementSensorWarning(self, data):
-        QTHelpers.setWarningLabel(self.imsWarningLabel, data.anyWarning)
-
-    @Slot(map)
     def detailedState(self, data):
         # summary state, mirror state, mode
         matrix = [
@@ -296,8 +294,12 @@ class OverviewPageWidget(QWidget):
         self.modeStateLabel.setText(m[2])
 
     @Slot(map)
-    def forceActuatorWarning(self, data):
-        QTHelpers.setWarningLabel(self.forceActuatorWarningLabel, data.anyWarning)
+    def displacementSensorWarning(self, data):
+        QTHelpers.setWarningLabel(self.imsWarningLabel, data.anyWarning)
+
+    @Slot(map)
+    def errorCode(self, data):
+        self.errorCodeLabel.setText(hex(data.errorCode))
 
     @Slot(map)
     def gyroWarning(self, data):

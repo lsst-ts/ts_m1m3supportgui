@@ -445,7 +445,7 @@ class Topics:
                     ],
                     [
                         "Mezzanine Error",
-                        lambda x: x.MezzanineError,
+                        lambda x: x.mezzanineError,
                         lambda: FATABLE_ZINDEX,
                     ],
                     [

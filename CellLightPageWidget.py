@@ -70,11 +70,17 @@ class CellLightPageWidget(QWidget):
         QTHelpers.setBoolLabelOnOff(self.cellLightsOnLabel, data.cellLightsOn)
 
     @asyncSlot()
+    async def issueCommandTurnLightsOn(self):
+        await self._issueCommandTurnLightsOn()
+
     @SALCommand
-    def issueCommandTurnLightsOn(self):
+    def _issueCommandTurnLightsOn(self, **kwargs):
         return self.m1m3.remote.cmd_turnLightsOn
 
     @asyncSlot()
+    async def issueCommandTurnLightsOff(self):
+        await self._issueCommandTurnLightsOff()
+
     @SALCommand
-    def issueCommandTurnLightsOff(self):
+    def _issueCommandTurnLightsOff(self, **kwargs):
         return self.m1m3.remote.cmd_turnLightsOff

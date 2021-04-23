@@ -18,12 +18,20 @@
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
 from PySide2.QtCore import Slot, QRect, QTimer
-from PySide2.QtWidgets import QWidget, QLabel, QVBoxLayout, QProgressBar, QSizePolicy
+from PySide2.QtWidgets import (
+    QFrame,
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+    QProgressBar,
+    QSizePolicy,
+)
 from PySide2.QtGui import QPainter, QColor, QPalette, QBrush
 import astropy.units as u
 from datetime import datetime
 
 __all__ = [
+    "VLine",
     "UnitLabel",
     "Force",
     "Moment",
@@ -33,10 +41,20 @@ __all__ = [
     "MmWarning",
     "WarningLabel",
     "Heartbeat",
+    "LogEventWarning",
 ]
 
 WARNING = "#FF6700"
 """Warning color"""
+
+
+class VLine(QFrame):
+    """A simple Vertical line."""
+
+    def __init__(self):
+        super().__init__()
+        self.setFrameShape(QFrame.VLine)
+        self.setFrameShadow(QFrame.Sunken)
 
 
 class UnitLabel(QLabel):
@@ -272,18 +290,22 @@ class Heartbeat(QWidget):
     difftime_error = 0.5
     difftime_warning = 0.01
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, indicator=True):
         super().__init__(parent)
 
-        self.hbIndicator = QProgressBar()
-        self.hbIndicator.setRange(0, 2)
-        self.hbIndicator.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        layout = QVBoxLayout()
+        layout.setMargin(0)
+
+        if indicator:
+            self.hbIndicator = QProgressBar()
+            self.hbIndicator.setRange(0, 2)
+            self.hbIndicator.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+            layout.addWidget(self.hbIndicator)
+        else:
+            self.hbIndicator = None
 
         self.timestamp = QLabel("- waiting -")
 
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.hbIndicator)
         layout.addWidget(self.timestamp)
         self.setLayout(layout)
 
@@ -301,9 +323,10 @@ class Heartbeat(QWidget):
 
     @Slot()
     def timeouted(self):
-        self.hbIndicator.setFormat("")
-        self.hbIndicator.setValue(0)
-        self.hbIndicator.setInvertedAppearance(False)
+        if self.hbIndicator is not None:
+            self.hbIndicator.setFormat("")
+            self.hbIndicator.setValue(0)
+            self.hbIndicator.setInvertedAppearance(False)
         self.timestamp.setText("<font color='red'>- timeouted -</font>")
 
     @Slot(map)
@@ -316,13 +339,15 @@ class Heartbeat(QWidget):
             Heartbeat event. As only private fields are used, can be any
             salobj. But needs to be received at least once per second."""
         v = data.private_seqNum % 3
-        if v == 0 or v == 1:
-            self.hbIndicator.setValue(1)
-            self.hbIndicator.setInvertedAppearance(v == 1)
-        else:
-            self.hbIndicator.setValue(2)
+        if self.hbIndicator is not None:
+            if v in (0, 1):
+                self.hbIndicator.setValue(1)
+                self.hbIndicator.setInvertedAppearance(v == 1)
+            else:
+                self.hbIndicator.setValue(2)
 
-        self.hbIndicator.setFormat(f"{data.private_seqNum % int(1e12):012d}")
+            self.hbIndicator.setFormat(f"{data.private_seqNum % int(1e12):012d}")
+
         diff = data.private_rcvStamp - data.private_sndStamp
         if abs(diff) > self.difftime_error:
             self.timestamp.setText(
@@ -344,3 +369,25 @@ class Heartbeat(QWidget):
             )
 
         self._initTimer(2001)
+
+
+class LogEventWarning(QLabel):
+    """Display status of various evt_XXXWarnings. Shows either green OK if
+    everything is fine, or yellow Warning on anyWarning.
+
+    Parameters
+    ----------
+    signal : `Signal`
+        Signal fired when logevent data changes.
+    """
+
+    def __init__(self, signal):
+        super().__init__("---")
+        signal.connect(self._logEvent)
+
+    @Slot(map)
+    def _logEvent(self, data):
+        if data.anyWarning:
+            self.setText("<font color='yellow'>Warning</font>")
+        else:
+            self.setText("<font color='green'>OK</font>")

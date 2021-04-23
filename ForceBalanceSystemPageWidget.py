@@ -205,13 +205,19 @@ class ForceBalanceSystemPageWidget(QWidget):
         self._setTotalForces()
 
     @asyncSlot()
+    async def issueCommandEnableHardpointCorrections(self):
+        await self._issueCommandEnableHardpointCorrections()
+
     @SALCommand
-    def issueCommandEnableHardpointCorrections(self):
+    def _issueCommandEnableHardpointCorrections(self, **kwargs):
         return self.m1m3.remote.cmd_enableHardpointCorrections
 
     @asyncSlot()
+    async def issueCommandDisableHardpointCorrections(self):
+        await self._issueCommandDisableHardpointCorrections()
+
     @SALCommand
-    def issueCommandDisableHardpointCorrections(self):
+    def _issueCommandDisableHardpointCorrections(self, **kwargs):
         return self.m1m3.remote.cmd_disableHardpointCorrections
 
     def _setTotalForces(self):
