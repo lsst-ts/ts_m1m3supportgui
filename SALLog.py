@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ["LEVELS", "ToolBar", "Widget", "Dock", "Messages"]
+__all__ = ["LEVELS", "ToolBar", "Dock", "Messages"]
 
 from PySide2.QtCore import Signal, Slot
 from PySide2.QtGui import QFont
@@ -31,6 +31,7 @@ from PySide2.QtWidgets import (
     QPushButton,
     QPlainTextEdit,
     QDockWidget,
+    QStyle,
 )
 from SALComm import SALCommand
 from asyncqt import asyncSlot
@@ -44,13 +45,20 @@ def _levelToIndex(self, level):
 
 
 class ToolBar(QWidget):
+    """Toolbar for DockWidget. Can handle messages coming from multiple CSC.
+
+    Parameters
+    ----------
+    comms : `[SALComm]` or `SALComm`
+        SAL/DDS communications to handle.
+    """
 
     clear = Signal()
     changeLevel = Signal(int)
     setSize = Signal(int)
 
-    def __init__(self, comms):
-        super().__init__()
+    def __init__(self, comms, parent):
+        super().__init__(parent)
         toolbar = QHBoxLayout()
 
         clearButton = QPushButton("Clear")
@@ -89,11 +97,34 @@ class ToolBar(QWidget):
         toolbar.addWidget(maxBlock)
         toolbar.addStretch()
 
+        floatButton = QPushButton(
+            self.style().standardIcon(QStyle.SP_TitleBarNormalButton), ""
+        )
+
+        def _toggleFloating():
+            parent.setFloating(not parent.isFloating())
+
+        floatButton.clicked.connect(_toggleFloating)
+
+        closeButton = QPushButton(
+            self.style().standardIcon(QStyle.SP_TitleBarCloseButton), ""
+        )
+        closeButton.clicked.connect(parent.close)
+
+        toolbar.addWidget(floatButton)
+        toolbar.addWidget(closeButton)
+
         self.setLayout(toolbar)
 
 
 class Messages(QPlainTextEdit):
-    """Displays log messages."""
+    """Displays log messages.
+
+    Parameters
+    ----------
+    comms : `[SALComm]` or `SALComm`
+        SAL/DDS communications to handle.
+    """
 
     LEVELS_IDS = [
         "<font color='gray'>T</font></font>",
@@ -139,38 +170,6 @@ class Messages(QPlainTextEdit):
         )
         self.ensureCursorVisible()
 
-class Widget(QWidget):
-    """Display SAL logs."""
-
-    def __init__(self, comms):
-        super().__init__()
-
-        self.comms = comms
-        self.layout = QVBoxLayout()
-        self.setLayout(self.layout)
-
-        self.salMessages = Messages(self.comms)
-
-        toolbar = ToolBar(comms)
-        toolbar.clear.connect(messages.clearM)
-        toolbar.changeLevel.connect(self.changeLevel)
-        toolbar.setSize.connect(self.setMessageSize)
-
-        self.layout.addWidget(toolbar)
-        self.layout.addWidget(self.salMessages)
-
-    @Slot()
-    def setMessageSize(self, i):
-        self.salMessages.setMaximumBlockCount(i)
-
-    @SALCommand
-    def _changeIt(self, **kwargs):
-        return self.comms.remote.cmd_setLogLevel
-
-    @asyncSlot()
-    async def changeLevel(self, index):
-        await self._changeIt(level=index * 10)
-
 
 class Dock(QDockWidget):
     """Dock with SAL messages.
@@ -178,14 +177,16 @@ class Dock(QDockWidget):
     Parameters
     ----------
     comms : `[SALComm]` or `SALComm`
+        SAL/DDS communications to handle.
     """
 
     def __init__(self, comms):
         super().__init__("SAL Log")
+        self.setObjectName("SAL Log")
 
         self.messages = Messages(comms)
 
-        toolbar = ToolBar(comms)
+        toolbar = ToolBar(comms, self)
         toolbar.clear.connect(self.messages.clear)
         toolbar.changeLevel.connect(self.changeLevel)
         toolbar.setSize.connect(self.setMessageSize)
