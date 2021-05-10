@@ -17,13 +17,12 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-from SALLogWidget import SALLogWidget
 import TimeChart
 import TimeBoxChart
 from VMSCache import *
 from VMSGUI import ToolBar
 from PySide2.QtCore import Qt, Slot, Signal, QPointF, QSettings
-from PySide2.QtWidgets import QWidget, QTabWidget, QGridLayout, QLabel
+from PySide2.QtWidgets import QWidget, QDockWidget, QTabWidget, QGridLayout, QLabel
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
 
@@ -254,7 +253,7 @@ class PSDWidget(QWidget):
         self.chart.axes(Qt.Horizontal)[0].setRange(low, high)
 
 
-class AccelerometersPageWidget(QTabWidget):
+class AccelerometersPageWidget(QDockWidget):
     """Displays all VMS widgets.
 
     TODO: replace with a generic widget, allowing user to customize what
@@ -294,14 +293,16 @@ class AccelerometersPageWidget(QTabWidget):
         for w in self.psds:
             toolbar.frequencyChanged.connect(w.frequencyChanged)
 
-        self.addTab(self.timeChart, "Box plots")
+        self.tabs = QTabWidget()
+
+        self.tabs.addTab(self.timeChart, "Box plots")
 
         allPSDs = QWidget()
         gridLayout = QGridLayout()
         for r in range(3):
             gridLayout.addWidget(self.psds[r], r, 0)
         allPSDs.setLayout(gridLayout)
-        self.addTab(allPSDs, "PSD")
+        self.tabs.addTab(allPSDs, "PSD")
 
         self.meanPSDs = [PSDWidget([a], self.cache) for a in ["X", "Y", "Z"]]
         for w in self.meanPSDs:
@@ -312,10 +313,7 @@ class AccelerometersPageWidget(QTabWidget):
         for r in range(3):
             gridLayout.addWidget(self.meanPSDs[r], r, 0)
         allMeans.setLayout(gridLayout)
-        self.addTab(allMeans, "Mean PSD")
-
-        log = SALLogWidget(comm)
-        self.addTab(log, "SAL Log")
+        self.tabs.addTab(allMeans, "Mean PSD")
 
         toolbar.intervalChanged.connect(self.intervalChanged)
 
@@ -328,6 +326,8 @@ class AccelerometersPageWidget(QTabWidget):
         toolbar.intervalChanged.emit(toolbar.interval.value())
 
         comm.data.connect(self.data)
+
+        self.setWidget(self.tabs)
 
     @Slot(map)
     def data(self, data):

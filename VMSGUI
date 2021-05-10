@@ -4,12 +4,13 @@ import signal
 import sys
 
 from AccelerometersPageWidget import AccelerometersPageWidget
+import SALLog
 from VMSGUI import *
 
 import SALComm
 
-from PySide2.QtCore import Slot, Signal, QSettings, QCommandLineParser
-from PySide2.QtWidgets import QApplication, QMainWindow
+from PySide2.QtCore import Slot, Signal, QSettings, QCommandLineParser, Qt
+from PySide2.QtWidgets import QApplication, QMainWindow, QDockWidget
 
 from asyncqt import QEventLoop, asyncClose
 import asyncio
@@ -21,25 +22,22 @@ class EUI(QMainWindow):
 
         systems = ["M1M3", "M2", "CAMERAROTATOR"]
 
-        try:
-            index = systems.index(system) + 1
-        except ValueError:
-            print(f"Invalid system name {system} - expected one of {str(systems)}")
-            sys.exit(1)
-
-        self.comm = SALComm.create(
-            "MTVMS", index=index, manual={"data": {"queue_len": 400}}
-        )
+        self.comms = [
+            SALComm.create("MTVMS", index=index, manual={"data": {"queue_len": 400}})
+            for index in range(1, 4)
+        ]
 
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
 
-        acWidget = AccelerometersPageWidget(self.comm, system, self.toolBar)
-        statusBar = StatusBar(f"{system}:{index}")
+        acWidget = AccelerometersPageWidget(self.comms[0], systems[0], self.toolBar)
+        statusBar = StatusBar(f"M1M3:0")
         acWidget.cacheUpdated.connect(statusBar.cacheUpdated)
         self.setStatusBar(statusBar)
 
         self.setCentralWidget(acWidget)
+
+        self.addDockWidget(Qt.BottomDockWidgetArea, SALLog.Dock(self.comms))
 
         self.setMinimumSize(700, 400)
 
@@ -56,7 +54,8 @@ class EUI(QMainWindow):
         settings.setValue("geometry", self.saveGeometry())
         settings.setValue("windowState", self.saveState())
         self.toolBar.storeSettings()
-        await self.comm.close()
+        for comm in self.comms:
+            await comm.close()
         super().closeEvent(event)
 
 
