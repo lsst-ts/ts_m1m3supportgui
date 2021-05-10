@@ -37,36 +37,31 @@ SAMPLE_TIME = 1 * u.ms.to(u.s)
 """Sample time (seconds)"""
 
 
-class TimeChartWidget(QWidget):
+class BoxChartWidget(QDockWidget):
     """Display box chart with accelerometer data.
 
     Parameters
     ----------
+    title : `str`
+        QDockWidget title and object name.
     signal : `Signal(map)`
         Signal emitted when new data are received.
     numSensors : `int`
         Number of sensors (and hence number of charts). Chart is created to
         display X,Y and Z values per sensor."""
 
-    def __init__(self, signal, numSensors):
-        super().__init__()
+    def __init__(self, title, signal, numSensors):
+        super().__init__(title)
+        self.setObjectName(title)
         self.numSensors = numSensors
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
-
-        self.chart = []
-
-        for sensor in range(self.numSensors):
-            self.chart.append(TimeBoxChart.TimeBoxChart())
-            self.layout.addWidget(
-                TimeChart.TimeChartView(self.chart[sensor]), sensor / 2, sensor % 2
-            )
+        self.chart = TimeBoxChart.TimeBoxChart()
+        self.setWidget(TimeChart.TimeChartView(self.chart))
 
         signal.connect(self.data)
 
     @Slot(map)
     def data(self, data):
-        self.chart[data.sensor - 1].append(
+        self.chart.append(
             data.timestamp,
             [
                 (
@@ -287,15 +282,12 @@ class AccelerometersPageWidget(QDockWidget):
         ]
 
         self.cache = VMSCache(0, numSensors)
-        self.timeChart = TimeChartWidget(comm.data, numSensors)
 
         self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
         for w in self.psds:
             toolbar.frequencyChanged.connect(w.frequencyChanged)
 
         self.tabs = QTabWidget()
-
-        self.tabs.addTab(self.timeChart, "Box plots")
 
         allPSDs = QWidget()
         gridLayout = QGridLayout()

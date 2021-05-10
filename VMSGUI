@@ -3,7 +3,7 @@
 import signal
 import sys
 
-from AccelerometersPageWidget import AccelerometersPageWidget
+from AccelerometersPageWidget import AccelerometersPageWidget, BoxChartWidget
 import SALLog
 from VMSGUI import *
 
@@ -27,6 +27,13 @@ class EUI(QMainWindow):
             for index in range(1, 4)
         ]
 
+        logDock = SALLog.Dock(self.comms)
+
+        menuBar = self.menuBar()
+        showMenu = menuBar.addMenu("&Show")
+        showMenu.addSeparator()
+        showMenu.addAction(logDock.toggleViewAction())
+
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
 
@@ -35,9 +42,12 @@ class EUI(QMainWindow):
         acWidget.cacheUpdated.connect(statusBar.cacheUpdated)
         self.setStatusBar(statusBar)
 
-        self.setCentralWidget(acWidget)
+        self.addDockWidget(Qt.TopDockWidgetArea, acWidget)
 
-        self.addDockWidget(Qt.BottomDockWidgetArea, SALLog.Dock(self.comms))
+        self.addDockWidget(
+            Qt.TopDockWidgetArea, BoxChartWidget("Box 1", self.comms[0].data, 3)
+        )
+        self.addDockWidget(Qt.BottomDockWidgetArea, logDock)
 
         self.setMinimumSize(700, 400)
 
