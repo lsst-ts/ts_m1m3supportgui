@@ -14,13 +14,14 @@ from PySide2.QtWidgets import QApplication, QMainWindow, QDockWidget
 
 from asyncqt import QEventLoop, asyncClose
 import asyncio
+from functools import partial
 
 
 class EUI(QMainWindow):
-    def __init__(self, system):
-        super().__init__()
+    SYSTEMS = ["M1M3", "M2", "ROTATOR"]
 
-        systems = ["M1M3", "M2", "CAMERAROTATOR"]
+    def __init__(self):
+        super().__init__()
 
         self.comms = [
             SALComm.create("MTVMS", index=index, manual={"data": {"queue_len": 400}})
@@ -30,6 +31,15 @@ class EUI(QMainWindow):
         logDock = SALLog.Dock(self.comms)
 
         menuBar = self.menuBar()
+
+        viewMenu = menuBar.addMenu("&Views")
+        viewMenu.addAction("M&1M3 box graph", partial(self.addBox, 0))
+        viewMenu.addAction("M&2 box graph", partial(self.addBox, 1))
+        viewMenu.addAction("&Rotator box graph", partial(self.addBox, 2))
+        viewMenu.addAction("M1M3 &PSD graph", partial(self.addPSD, 0))
+        viewMenu.addSeparator()
+        viewMenu.addAction("Remove all", self.removeAll)
+
         showMenu = menuBar.addMenu("&Show")
         showMenu.addSeparator()
         showMenu.addAction(logDock.toggleViewAction())
@@ -37,17 +47,15 @@ class EUI(QMainWindow):
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
 
-        acWidget = AccelerometersPageWidget(self.comms[0], systems[0], self.toolBar)
+        acWidget = AccelerometersPageWidget(
+            self.comms[0], self.SYSTEMS[0], self.toolBar
+        )
         statusBar = StatusBar(f"M1M3:0")
         acWidget.cacheUpdated.connect(statusBar.cacheUpdated)
         self.setStatusBar(statusBar)
 
         self.addDockWidget(Qt.TopDockWidgetArea, acWidget)
 
-        self.addDockWidget(
-            Qt.TopDockWidgetArea,
-            BoxChartWidget("Box 1", self.comms[0], [(1, "X"), (2, "X")]),
-        )
         self.addDockWidget(Qt.BottomDockWidgetArea, logDock)
 
         self.setMinimumSize(700, 400)
@@ -58,6 +66,29 @@ class EUI(QMainWindow):
             self.restoreState(settings.value("windowState"))
         except AttributeError:
             self.resize(1000, 700)
+
+    def addBox(self, index):
+        id = self.getNextId(self.SYSTEMS[index] + ":")
+        self.addDockWidget(
+            Qt.TopDockWidgetArea,
+            BoxChartWidget(f"{self.SYSTEMS[index]}:{id}", self.comms[index], []),
+        )
+
+    def addPSD(self):
+        pass
+
+    def removeAll(self):
+        for child in self.children():
+            if child.objectName()[:3] == "PSD" or child.objectName()[:3] == "BOX":
+                self.removeDockWidget(child)
+                del child
+
+    def getNextId(self, prefix):
+        id = 1
+        for child in self.children():
+            if child.objectName().startswith(prefix):
+                id = int(child.objectName()[len(prefix) :]) + 1
+        return id
 
     @asyncClose
     async def closeEvent(self, event):
@@ -77,25 +108,16 @@ if __name__ == "__main__":
     parser = QCommandLineParser()
     parser.addHelpOption()
     parser.addVersionOption()
-    parser.addPositionalArgument(
-        "system",
-        QApplication.translate("main", "VMS subsystem"),
-        "[M1M3|M2|cameraRotator]",
-    )
     parser.process(app)
 
     args = parser.positionalArguments()
-    if len(args) > 0:
-        system = args[0].upper()
-    else:
-        system = "M1M3"
-    app.setApplicationName(f"VMSGUI {system}")
+    app.setApplicationName(f"VMSGUI")
 
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
 
     # Create EUI
-    eui = EUI(system)
+    eui = EUI()
     eui.show()
 
     def handler(signum, frame):
