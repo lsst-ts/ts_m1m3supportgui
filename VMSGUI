@@ -125,7 +125,7 @@ class EUI(QMainWindow):
         added, chunk_removed = cache.newChunk(data, self.SAMPLE_TIME)
         if added:
             self.cacheUpdated.emit(
-                data.MTVMSID,
+                data.MTVMSID - 1,
                 len(cache),
                 cache.startTime(),
                 cache.endTime(),

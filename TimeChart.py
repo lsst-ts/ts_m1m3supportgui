@@ -27,7 +27,31 @@ import time
 __all__ = ["TimeChart", "TimeChartView"]
 
 
-class TimeChart(QtCharts.QChart):
+class AbstractChart(QtCharts.QChart):
+    def __init__(self, parent=None, wFlags=Qt.WindowFlags()):
+        super().__init__(parent, wFlags)
+
+    def findSerie(self, name):
+        """
+        Returns serie with given name.
+
+        Parameters
+        ----------
+        name : `str`
+            Serie name.
+
+        Returns
+        -------
+        serie : `QAbstractSerie`
+            Serie with given name. None if no serie exists.
+        """
+        for s in self.series():
+            if s.name() == name:
+                return s
+        return None
+
+
+class TimeChart(AbstractChart):
     """Class with time axis and value(s). Keeps last n/dt items. Holds axis
     titles and series, and handle axis auto scaling.
 
@@ -52,40 +76,33 @@ class TimeChart(QtCharts.QChart):
         self.timeAxis.setTickCount(5)
         self.timeAxis.setTitleText("Time (UTC)")
         self.timeAxis.setFormat("h:mm:ss.zzz")
+        self.addAxis(self.timeAxis, Qt.AlignBottom)
+
         self.nextUpdate = 0
         self.updateInterval = updateInterval
 
-        self._storedSeries = {}
-
-    def _findSerie(self, axis, serie):
-        """
-        Returns serie with given name.
-        """
-        return (
-            self._storedSeries[axis][0],
-            self._storedSeries[axis][1][serie][0],
-            self._storedSeries[axis][1][serie][1],
-        )
+    def findAxis(self, titleText, axisType=Qt.Vertical):
+        for a in self.axes(axisType):
+            if a.titleText() == axis:
+                return a
+        return None
 
     def _addSerie(self, axis, serie):
         s = QtCharts.QLineSeries()
         s.setName(serie)
         # s.setUseOpenGL(True)
         points = []
-        try:
-            self._storedSeries[axis][1][serie] = [s, points]
-            a = self._storedSeries[axis][0]
-        except KeyError:
+        a = self.findAxis(axis)
+        if a is None:
             a = QtCharts.QValueAxis()
             a.setTickCount(10)
             a.setTitleText(axis)
             self.addAxis(
-                a, Qt.AlignRight if len(self._storedSeries) % 2 else Qt.AlignLeft
+                a, Qt.AlignRight if len(self.axes(Qt.Vertical)) % 2 else Qt.AlignLeft
             )
-            if len(self._storedSeries) == 0:
-                self.addAxis(self.timeAxis, Qt.AlignBottom)
-            self._storedSeries[axis] = (a, {serie: [s, points]})
-        return a, s, points
+        s.attachAxis(self.timeAxis)
+        s.attachAxis(a)
+        return s
 
     def append(self, timestamp, series, update=False):
         """Add data to a serie. Creates axis and serie if needed. Shrink if more than expected elements are stored.
@@ -115,11 +132,13 @@ class TimeChart(QtCharts.QChart):
 
         for d in series:
             axis, serie, data = d
-            try:
-                a, s, points = self._findSerie(axis, serie)
-            except KeyError:
-                a, s, points = self._addSerie(axis, serie)
+            serie = self.findSerie(f"{serie} {axis}")
+            if serie is None:
+                serie = self._addSerie(axis, serie)
                 forceUpdate = True
+
+            points = serie.points()
+            a = serie.attachedAxes()[0]
 
             points.append(QPointF(timestamp * 1000.0, data))
             if len(points) > self.maxItems:
@@ -151,13 +170,11 @@ class TimeChart(QtCharts.QChart):
                     *(map(lambda i: QDateTime().fromMSecsSinceEpoch(i), t_range))
                 )
 
-            s.replace(points)
+            serie.replace(points)
 
             if forceUpdate:
                 a.applyNiceNumbers()
-                self.addSeries(s)
-                s.attachAxis(self.timeAxis)
-                s.attachAxis(a)
+                self.addSeries(serie)
 
         if update is False and forceUpdate is False:
             return
@@ -179,3 +196,4 @@ class TimeChartView(QtCharts.QChartView):
     def __init__(self, chart):
         super().__init__(chart)
         self.setRenderHint(QPainter.Antialiasing)
+        self.setRubberBand(QtCharts.QChartView.HorizontalRubberBand)

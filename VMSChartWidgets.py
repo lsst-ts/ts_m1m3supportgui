@@ -34,11 +34,65 @@ from PySide2.QtWidgets import (
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
 
+import abc
 import asyncio
 import concurrent.futures
 from datetime import datetime
 import numpy as np
 import time
+
+
+class VMSChartView(TimeChart.TimeChartView):
+    def __init__(self, title):
+        super().__init__(title)
+        self._maxSensor = 0
+
+    def updateMaxSensor(self, maxSensor):
+        self._maxSensor = max(self._maxSensor, maxSensor)
+
+    def clear(self):
+        self.chart().clearData()
+
+    def addSerie(self, name):
+        s = QtCharts.QBoxPlotSeries()
+        s.setName(name)
+        removed = []
+        for os in self.chart().series():
+            if os.name() > name:
+                removed.append(os)
+                self.removeSeries(os)
+
+        self.chart().addSeries(s)
+        for os in removed:
+            self.chart().addSeries(os)
+
+    def removeSerie(self, name):
+        self.chart().remove(name)
+
+    def contextMenuEvent(self, event):
+        contextMenu = QMenu()
+        zoomOut = contextMenu.addAction("Zoom out")
+        clear = contextMenu.addAction("Clear")
+        for s in range(1, self._maxSensor + 1):
+            for a in ["X", "Y", "Z"]:
+                name = f"{s} {a}"
+                action = contextMenu.addAction(name)
+                action.setCheckable(True)
+                action.setChecked(self.chart().findSerie(name) is not None)
+
+        action = contextMenu.exec_(event.globalPos())
+        if action is None:
+            return
+        elif action == zoomOut:
+            self.chart().zoomReset()
+        elif action == clear:
+            self.clear()
+        else:
+            name = action.text()
+            if action.isChecked():
+                self.addSerie(name)
+            else:
+                self.removeSerie(name)
 
 
 class BoxChartWidget(QDockWidget):
@@ -58,48 +112,24 @@ class BoxChartWidget(QDockWidget):
         super().__init__(title)
         self.setObjectName(title)
         self.channels = channels
-        self.maxSensor = 0
         self.chart = TimeBoxChart.TimeBoxChart()
-        self.setWidget(TimeChart.TimeChartView(self.chart))
+        self.chartView = VMSChartView(self.chart)
+        self.setWidget(self.chartView)
 
         comm.data.connect(self.data)
 
     @Slot(map)
     def data(self, data):
-        if data.sensor > self.maxSensor:
-            self.maxSensor = data.sensor
-        for ch in self.channels:
-            if ch[0] == data.sensor:
+        self.chartView.updateMaxSensor(data.sensor)
+        for axis in ["X", "Y", "Z"]:
+            name = f"{str(data.sensor)} {axis}"
+            if self.chart.findSerie(name) is not None:
                 self.chart.append(
                     data.timestamp,
                     "Acceleration (m/s<sup>2</sup>)",
-                    f"{data.sensor} {ch[1]}",
-                    getattr(data, f"acceleration{ch[1]}"),
+                    name,
+                    getattr(data, f"acceleration{axis}"),
                 )
-
-    def contextMenuEvent(self, event):
-        contextMenu = QMenu("Test")
-        clear = contextMenu.addAction("Clear")
-        for s in range(1, self.maxSensor + 1):
-            for a in ["X", "Y", "Z"]:
-                action = contextMenu.addAction(f"{s} {a}")
-                action.setCheckable(True)
-                action.setChecked(self.channels.count((s, a)))
-
-        action = contextMenu.exec_(event.globalPos())
-        if action is None:
-            return
-        if action == clear:
-            self.channels = []
-            self.chart.clearData()
-            return
-
-        item = (int(action.text()[0]), action.text()[2])
-        if action.isChecked():
-            self.channels.append(item)
-        else:
-            self.channels.remove(item)
-            self.chart.remove(action.text())
 
 
 class PSDWidget(QDockWidget):
@@ -139,7 +169,8 @@ class PSDWidget(QDockWidget):
 
         self.chart.legend().setAlignment(Qt.AlignLeft)
 
-        self.setWidget(TimeChart.TimeChartView(self.chart))
+        self.chartView = VMSChartView(self.chart)
+        self.setWidget(self.chartView)
 
     def addChannel(self, s, a):
         serie = QtCharts.QLineSeries()

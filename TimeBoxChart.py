@@ -25,11 +25,13 @@ from PySide2.QtCharts import QtCharts
 import time
 import numpy as np
 
+from TimeChart import AbstractChart
+
 
 __all__ = ["TimeBoxChart"]
 
 
-class TimeBoxChart(QtCharts.QChart):
+class TimeBoxChart(AbstractChart):
     """Class with time axis and value(s). Keeps last n/dt items. Holds axis
     titles and series, and handle axis auto scaling. Plots multiple values
     passed in append method as box charts with upper/lower extremes and
@@ -50,15 +52,6 @@ class TimeBoxChart(QtCharts.QChart):
         super().__init__()
         self.maxItems = maxItems
 
-    def _findSerie(self, name):
-        """
-        Returns serie with given name.
-        """
-        for s in self.series():
-            if s.name() == name:
-                return s
-        return None
-
     def append(self, timestamp, axis, name, data):
         """Add data to a serie. Creates axis and serie if needed. Shrink if
         more than expected elements are stored.
@@ -74,20 +67,7 @@ class TimeBoxChart(QtCharts.QChart):
         data : [float]
             Serie data."""
 
-        s = self._findSerie(name)
-        if s is None:
-            s = QtCharts.QBoxPlotSeries()
-            s.setName(name)
-            removed = []
-            for os in self.series():
-                if os.name() > name:
-                    removed.append(os)
-                    self.removeSeries(os)
-
-            self.addSeries(s)
-            for os in removed:
-                self.addSeries(os)
-
+        s = self.findSerie(name)
         if s.count() > self.maxItems - 1:
             for r in range(s.count() - self.maxItems + 1):
                 s.remove(s.boxSets()[0])
@@ -103,8 +83,13 @@ class TimeBoxChart(QtCharts.QChart):
         d_min = d_max = 0
         for s in self.series():
             bs = s.boxSets()
-            d_min = min(d_min, min([b.at(QtCharts.QBoxSet.LowerExtreme) for b in bs]))
-            d_max = max(d_max, max([b.at(QtCharts.QBoxSet.UpperExtreme) for b in bs]))
+            if len(bs) > 0:
+                d_min = min(
+                    d_min, min([b.at(QtCharts.QBoxSet.LowerExtreme) for b in bs])
+                )
+                d_max = max(
+                    d_max, max([b.at(QtCharts.QBoxSet.UpperExtreme) for b in bs])
+                )
 
         self.createDefaultAxes()
         r = abs(d_max - d_min)
@@ -112,7 +97,7 @@ class TimeBoxChart(QtCharts.QChart):
 
     def remove(self, name):
         """Removes serie with given name."""
-        s = self._findSerie(name)
+        s = self.findSerie(name)
         if s is None:
             return
         self.removeSeries(s)
