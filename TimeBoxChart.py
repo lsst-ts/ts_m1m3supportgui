@@ -50,24 +50,16 @@ class TimeBoxChart(QtCharts.QChart):
         super().__init__()
         self.maxItems = maxItems
 
-        self._storedSeries = {}
-
-    def _findSerie(self, axis, serie):
+    def _findSerie(self, name):
         """
         Returns serie with given name.
         """
-        return self._storedSeries[axis][serie]
+        for s in self.series():
+            if s.name() == name:
+                return s
+        return None
 
-    def _addSerie(self, axis, serie):
-        s = QtCharts.QBoxPlotSeries()
-        s.setName(serie)
-        try:
-            self._storedSeries[axis][serie] = s
-        except KeyError:
-            self._storedSeries[axis] = {serie: s}
-        return s
-
-    def append(self, timestamp, series):
+    def append(self, timestamp, axis, name, data):
         """Add data to a serie. Creates axis and serie if needed. Shrink if
         more than expected elements are stored.
 
@@ -75,42 +67,58 @@ class TimeBoxChart(QtCharts.QChart):
         ----------
         timestamp : `float`
             Values timestamp.
-        series : [(`str`, `str`, data)]
-            Axis name, serie name and data. Serie name will be shown as data
-            label. Data is an array of one box values."""
+        axis : `str`
+            Axis title.
+        name : `str`
+            Serie name.
+        data : [float]
+            Serie data."""
+
+        s = self._findSerie(name)
+        if s is None:
+            s = QtCharts.QBoxPlotSeries()
+            s.setName(name)
+            removed = []
+            for os in self.series():
+                if os.name() > name:
+                    removed.append(os)
+                    self.removeSeries(os)
+
+            self.addSeries(s)
+            for os in removed:
+                self.addSeries(os)
+
+        if s.count() > self.maxItems - 1:
+            for r in range(s.count() - self.maxItems + 1):
+                s.remove(s.boxSets()[0])
+
+        quantiles = np.quantile(data, [0, 0.25, 0.5, 0.75, 1])
+        boxSet = QtCharts.QBoxSet(
+            *quantiles,
+            f"{time.localtime(timestamp).tm_sec:02d}.{int((timestamp - np.floor(timestamp)) * 1000)}",
+        )
+
+        s.append(boxSet)
 
         d_min = d_max = 0
-
-        for d in series:
-            axis, serie, data = d
-            try:
-                s = self._findSerie(axis, serie)
-            except KeyError:
-                s = self._addSerie(axis, serie)
-                self.addSeries(s)
-
-            if s.count() > self.maxItems - 1:
-                for r in range(s.count() - self.maxItems + 1):
-                    s.remove(s.boxSets()[0])
-
-            quantiles = np.quantile(data, [0, 0.25, 0.5, 0.75, 1])
-            boxSet = QtCharts.QBoxSet(
-                *quantiles,
-                f"{time.localtime(timestamp).tm_sec:02d}.{int((timestamp - np.floor(timestamp)) * 1000)}",
-            )
-
-            s.append(boxSet)
-
-            for bs in s.boxSets():
-                d_min = min(bs.at(QtCharts.QBoxSet.LowerExtreme), d_min)
-                d_max = max(bs.at(QtCharts.QBoxSet.UpperExtreme), d_max)
+        for s in self.series():
+            bs = s.boxSets()
+            d_min = min(d_min, min([b.at(QtCharts.QBoxSet.LowerExtreme) for b in bs]))
+            d_max = max(d_max, max([b.at(QtCharts.QBoxSet.UpperExtreme) for b in bs]))
 
         self.createDefaultAxes()
-        self.axes(Qt.Vertical)[0].setRange(d_min, d_max)
+        r = abs(d_max - d_min)
+        self.axes(Qt.Vertical)[0].setRange(d_min - 0.02 * r, d_max + r * 0.02)
+
+    def remove(self, name):
+        """Removes serie with given name."""
+        s = self._findSerie(name)
+        if s is None:
+            return
+        self.removeSeries(s)
 
     def clearData(self):
         """Removes all data from the chart."""
-        self._storedSeries = {}
-        super().removeAllSeries()
+        self.removeAllSeries()
         for a in self.axes(Qt.Vertical):
             self.removeAxis(a)

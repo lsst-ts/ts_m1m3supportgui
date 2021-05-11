@@ -45,7 +45,8 @@ class EUI(QMainWindow):
         self.addDockWidget(Qt.TopDockWidgetArea, acWidget)
 
         self.addDockWidget(
-            Qt.TopDockWidgetArea, BoxChartWidget("Box 1", self.comms[0].data, 3)
+            Qt.TopDockWidgetArea,
+            BoxChartWidget("Box 1", self.comms[0], [(1, "X"), (2, "X")]),
         )
         self.addDockWidget(Qt.BottomDockWidgetArea, logDock)
 

@@ -22,7 +22,14 @@ import TimeBoxChart
 from VMSCache import *
 from VMSGUI import ToolBar
 from PySide2.QtCore import Qt, Slot, Signal, QPointF, QSettings
-from PySide2.QtWidgets import QWidget, QDockWidget, QTabWidget, QGridLayout, QLabel
+from PySide2.QtWidgets import (
+    QWidget,
+    QDockWidget,
+    QTabWidget,
+    QGridLayout,
+    QLabel,
+    QMenu,
+)
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
 
@@ -44,34 +51,60 @@ class BoxChartWidget(QDockWidget):
     ----------
     title : `str`
         QDockWidget title and object name.
-    signal : `Signal(map)`
-        Signal emitted when new data are received.
+    comm : `SALComm`
+        SALComm object providing data.
+    channels : `[(sensor, axis)]`
+        Enabled channels.
     numSensors : `int`
         Number of sensors (and hence number of charts). Chart is created to
         display X,Y and Z values per sensor."""
 
-    def __init__(self, title, signal, numSensors):
+    def __init__(self, title, comm, channels):
         super().__init__(title)
         self.setObjectName(title)
-        self.numSensors = numSensors
+        self.channels = channels
+        self.maxSensor = 0
         self.chart = TimeBoxChart.TimeBoxChart()
         self.setWidget(TimeChart.TimeChartView(self.chart))
 
-        signal.connect(self.data)
+        comm.data.connect(self.data)
 
     @Slot(map)
     def data(self, data):
-        self.chart.append(
-            data.timestamp,
-            [
-                (
+        if data.sensor > self.maxSensor:
+            self.maxSensor = data.sensor
+        for ch in self.channels:
+            if ch[0] == data.sensor:
+                self.chart.append(
+                    data.timestamp,
                     "Acceleration (m/s<sup>2</sup>)",
-                    f"{data.sensor}{a}",
-                    getattr(data, f"acceleration{a}"),
+                    f"{data.sensor} {ch[1]}",
+                    getattr(data, f"acceleration{ch[1]}"),
                 )
-                for a in ["X", "Y", "Z"]
-            ],
-        )
+
+    def contextMenuEvent(self, event):
+        contextMenu = QMenu("Test")
+        clear = contextMenu.addAction("Clear")
+        for s in range(1, self.maxSensor + 1):
+            for a in ["X", "Y", "Z"]:
+                action = contextMenu.addAction(f"{s} {a}")
+                action.setCheckable(True)
+                action.setChecked(self.channels.count((s, a)))
+
+        action = contextMenu.exec_(event.globalPos())
+        if action is None:
+            return
+        if action == clear:
+            self.channels = []
+            self.chart.clearData()
+            return
+
+        item = (int(action.text()[0]), action.text()[2])
+        if action.isChecked():
+            self.channels.append(item)
+        else:
+            self.channels.remove(item)
+            self.chart.remove(action.text())
 
 
 class PSDWidget(QWidget):
@@ -79,6 +112,8 @@ class PSDWidget(QWidget):
 
     Parameters
     ----------
+    title : `str`
+        QDockWidget title and object name.
     samples : `[str]`
         Name of cache columns which will be displayed. Cache columns are two
         letters n[XYZ], where n is sensor (1 to 3 or to 6 for 6 channels) and
@@ -261,7 +296,8 @@ class AccelerometersPageWidget(QDockWidget):
     cacheUpdated = Signal(int, float, float)
 
     def __init__(self, comm, module, toolbar):
-        super().__init__()
+        super().__init__("PSD")
+        self.setObjectName("PSD")
 
         if module == "M2":
             numSensors = 6
