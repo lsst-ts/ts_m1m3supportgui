@@ -94,16 +94,3 @@ class TimeBoxChart(AbstractChart):
         self.createDefaultAxes()
         r = abs(d_max - d_min)
         self.axes(Qt.Vertical)[0].setRange(d_min - 0.02 * r, d_max + r * 0.02)
-
-    def remove(self, name):
-        """Removes serie with given name."""
-        s = self.findSerie(name)
-        if s is None:
-            return
-        self.removeSeries(s)
-
-    def clearData(self):
-        """Removes all data from the chart."""
-        self.removeAllSeries()
-        for a in self.axes(Qt.Vertical):
-            self.removeAxis(a)

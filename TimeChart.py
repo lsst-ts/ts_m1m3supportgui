@@ -50,6 +50,19 @@ class AbstractChart(QtCharts.QChart):
                 return s
         return None
 
+    def remove(self, name):
+        """Removes serie with given name."""
+        s = self.findSerie(name)
+        if s is None:
+            return
+        self.removeSeries(s)
+
+    def clearData(self):
+        """Removes all data from the chart."""
+        self.removeAllSeries()
+        for a in self.axes(Qt.Vertical):
+            self.removeAxis(a)
+
 
 class TimeChart(AbstractChart):
     """Class with time axis and value(s). Keeps last n/dt items. Holds axis

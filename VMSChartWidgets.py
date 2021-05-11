@@ -43,8 +43,9 @@ import time
 
 
 class VMSChartView(TimeChart.TimeChartView):
-    def __init__(self, title):
+    def __init__(self, title, serieType):
         super().__init__(title)
+        self._serieType = serieType
         self._maxSensor = 0
 
     def updateMaxSensor(self, maxSensor):
@@ -54,13 +55,13 @@ class VMSChartView(TimeChart.TimeChartView):
         self.chart().clearData()
 
     def addSerie(self, name):
-        s = QtCharts.QBoxPlotSeries()
+        s = self._serieType()
         s.setName(name)
         removed = []
         for os in self.chart().series():
             if os.name() > name:
                 removed.append(os)
-                self.removeSeries(os)
+                self.chart().removeSeries(os)
 
         self.chart().addSeries(s)
         for os in removed:
@@ -113,7 +114,7 @@ class BoxChartWidget(QDockWidget):
         self.setObjectName(title)
         self.channels = channels
         self.chart = TimeBoxChart.TimeBoxChart()
-        self.chartView = VMSChartView(self.chart)
+        self.chartView = VMSChartView(self.chart, QtCharts.QBoxPlotSeries)
         self.setWidget(self.chartView)
 
         comm.data.connect(self.data)
@@ -150,7 +151,7 @@ class PSDWidget(QDockWidget):
         self.setObjectName(title)
         self.SAMPLE_TIME = SAMPLE_TIME
 
-        self.chart = QtCharts.QChart()
+        self.chart = TimeChart.AbstractChart()
 
         # processing task. Set to done to save "is not None" check.
         self.updateTask = asyncio.Future()
@@ -159,8 +160,11 @@ class PSDWidget(QDockWidget):
         self.update_after = 0
 
         self.cache = cache
+
+        self.chartView = VMSChartView(self.chart, QtCharts.QLineSeries)
+        self.chartView.updateMaxSensor(self.cache.sensors())
         for channel in channels:
-            self.addChannel(channel[0], channel[1])
+            self.chartView.addSerie(str(channel[0]) + " " + channel[1])
 
         self.chart.createDefaultAxes()
         self.chart.axes(Qt.Horizontal)[0].setGridLineVisible(True)
@@ -169,13 +173,7 @@ class PSDWidget(QDockWidget):
 
         self.chart.legend().setAlignment(Qt.AlignLeft)
 
-        self.chartView = VMSChartView(self.chart)
         self.setWidget(self.chartView)
-
-    def addChannel(self, s, a):
-        serie = QtCharts.QLineSeries()
-        serie.setName(str(s) + " " + a)
-        self.chart.addSeries(serie)
 
     @Slot(int, int, float, float)
     def cacheUpdated(self, index, length, startTime, endTime):
@@ -284,7 +282,8 @@ class PSDWidget(QDockWidget):
                 min_psd.append(min_p)
                 max_psd.append(max_p)
 
-            self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
+            if len(min_psd) > 0:
+                self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
 
         if not (self.update_after is None):
             if self.update_after < time.monotonic():

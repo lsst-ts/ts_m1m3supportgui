@@ -49,6 +49,10 @@ class VMSCache:
         self.data = np.zeros((self._size), items, order="F")
         self.clear()
 
+    def sensors(self):
+        """Returns number of sensors stored in cache."""
+        return self._sensors
+
     def clear(self):
         """Clear cache."""
         self.current_index = 0
