@@ -122,7 +122,6 @@ class PSDWidget(QDockWidget):
 
         self.chart = QtCharts.QChart()
 
-        self.psdSeries = []
         # processing task. Set to done to save "is not None" check.
         self.updateTask = asyncio.Future()
         self.updateTask.set_result(None)
@@ -145,7 +144,6 @@ class PSDWidget(QDockWidget):
     def addChannel(self, s, a):
         serie = QtCharts.QLineSeries()
         serie.setName(str(s) + " " + a)
-        self.psdSeries.append(serie)
         self.chart.addSeries(serie)
 
     @Slot(int, int, float, float)
