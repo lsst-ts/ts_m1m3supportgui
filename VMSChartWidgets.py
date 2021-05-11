@@ -142,14 +142,17 @@ class PSDWidget(QDockWidget):
         QDockWidget title and object name.
     cache : `VMSCache`
         Data cache.
+    toolBar : `ToolBar`
+        Provides getFrequencyRange() method.
     channels : `[(sensor, axis)]`
         Enabled channels.
     """
 
-    def __init__(self, title, cache, SAMPLE_TIME, channels=[]):
+    def __init__(self, title, cache, SAMPLE_TIME, toolBar, channels=[]):
         super().__init__(title)
         self.setObjectName(title)
         self.SAMPLE_TIME = SAMPLE_TIME
+        self.toolBar = toolBar
 
         self.chart = TimeChart.AbstractChart()
 
@@ -166,6 +169,12 @@ class PSDWidget(QDockWidget):
         for channel in channels:
             self.chartView.addSerie(str(channel[0]) + " " + channel[1])
 
+        self.setupAxes = True
+        self._setupAxes()
+
+        self.setWidget(self.chartView)
+
+    def _setupAxes(self):
         self.chart.createDefaultAxes()
         self.chart.axes(Qt.Horizontal)[0].setGridLineVisible(True)
         self.chart.axes(Qt.Horizontal)[0].setMinorTickCount(9)
@@ -173,7 +182,9 @@ class PSDWidget(QDockWidget):
 
         self.chart.legend().setAlignment(Qt.AlignLeft)
 
-        self.setWidget(self.chartView)
+        self.frequencyChanged(*self.toolBar.getFrequencyRange())
+
+        self.setupAxes = False
 
     @Slot(int, int, float, float)
     def cacheUpdated(self, index, length, startTime, endTime):
@@ -283,9 +294,16 @@ class PSDWidget(QDockWidget):
                 max_psd.append(max_p)
 
             if len(min_psd) > 0:
-                self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
+                if len(self.chart.axes(Qt.Vertical)) == 0:
+                    self.setupAxes = True
+                else:
+                    self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
 
-        if not (self.update_after is None):
+        if self.setupAxes is True:
+            self._setupAxes()
+            self.update_after = 0
+
+        if self.update_after is not None:
             if self.update_after < time.monotonic():
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     self.updateTask = pool.submit(plotAll)

@@ -99,6 +99,7 @@ class EUI(QMainWindow):
             prefix + str(id),
             self.caches[index],
             self.SAMPLE_TIME,
+            self.toolBar,
             [(1, "X"), (2, "X"), (3, "X")],
         )
         self.cacheUpdated.connect(psdWidget.cacheUpdated)
