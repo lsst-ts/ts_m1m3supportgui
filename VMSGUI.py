@@ -31,8 +31,6 @@ from PySide2.QtWidgets import (
 
 from datetime import datetime
 
-import AccelerometersPageWidget
-
 
 class ToolBar(QToolBar):
     """Toolbar for VMS. Provides widget to setup frequency range and window
@@ -105,14 +103,18 @@ class ToolBar(QToolBar):
 class StatusBar(QStatusBar):
     """Displays cache status on status bar."""
 
-    def __init__(self, system):
+    def __init__(self, systems, SAMPLE_TIME):
         super().__init__()
-        self.addWidget(QLabel(system))
-        self.cacheStatus = QLabel("Size: 0 --- - ---")
-        self.addWidget(self.cacheStatus)
+        self.SAMPLE_TIME = SAMPLE_TIME
+        self.cacheStatus = []
+        for system in systems:
+            self.addWidget(QLabel(system))
+            l = QLabel("Size: 0 --- - ---")
+            self.cacheStatus.append(l)
+            self.addWidget(l)
 
     @Slot(int, float, float)
-    def cacheUpdated(self, length, start, end):
+    def cacheUpdated(self, index, length, start, end):
         """Emitted when cache is updated.
 
         Parameters
@@ -124,6 +126,6 @@ class StatusBar(QStatusBar):
         end : `float`
             End timestamp.
         """
-        self.cacheStatus.setText(
-            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')} {end-start+AccelerometersPageWidget.SAMPLE_TIME:.03f}s"
+        self.cacheStatus[index].setText(
+            f"Size: {length} {datetime.fromtimestamp(start).strftime('%H:%M:%S.%f')} - {datetime.fromtimestamp(end).strftime('%H:%M:%S.%f')} {end-start+self.SAMPLE_TIME:.03f}s"
         )

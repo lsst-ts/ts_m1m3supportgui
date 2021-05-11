@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
+__all__ = ["BoxChartWidget", "PSDWidget"]
+
 import TimeChart
 import TimeBoxChart
-from VMSCache import *
 from VMSGUI import ToolBar
 from PySide2.QtCore import Qt, Slot, Signal, QPointF, QSettings
 from PySide2.QtWidgets import (
@@ -33,15 +34,11 @@ from PySide2.QtWidgets import (
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
 
-import astropy.units as u
 import asyncio
 import concurrent.futures
 from datetime import datetime
 import numpy as np
 import time
-
-SAMPLE_TIME = 1 * u.ms.to(u.s)
-"""Sample time (seconds)"""
 
 
 class BoxChartWidget(QDockWidget):
@@ -55,9 +52,7 @@ class BoxChartWidget(QDockWidget):
         SALComm object providing data.
     channels : `[(sensor, axis)]`
         Enabled channels.
-    numSensors : `int`
-        Number of sensors (and hence number of charts). Chart is created to
-        display X,Y and Z values per sensor."""
+    """
 
     def __init__(self, title, comm, channels):
         super().__init__(title)
@@ -107,29 +102,23 @@ class BoxChartWidget(QDockWidget):
             self.chart.remove(action.text())
 
 
-class PSDWidget(QWidget):
+class PSDWidget(QDockWidget):
     """Display signal PSD.
 
     Parameters
     ----------
     title : `str`
         QDockWidget title and object name.
-    samples : `[str]`
-        Name of cache columns which will be displayed. Cache columns are two
-        letters n[XYZ], where n is sensor (1 to 3 or to 6 for 6 channels) and
-        X, Y or Z is sensor axis.
     cache : `VMSCache`
         Data cache.
+    channels : `[(sensor, axis)]`
+        Enabled channels.
     """
 
-    def __init__(self, samples, cache):
-        super().__init__()
-
-        self.samples = samples
-        self.cache = cache
-
-        layout = QGridLayout()
-        self.setLayout(layout)
+    def __init__(self, title, cache, SAMPLE_TIME, channels=[]):
+        super().__init__(title)
+        self.setObjectName(title)
+        self.SAMPLE_TIME = SAMPLE_TIME
 
         self.chart = QtCharts.QChart()
 
@@ -140,11 +129,9 @@ class PSDWidget(QWidget):
 
         self.update_after = 0
 
-        for s in samples:
-            serie = QtCharts.QLineSeries()
-            serie.setName(s)
-            self.psdSeries.append(serie)
-            self.chart.addSeries(serie)
+        self.cache = cache
+        for channel in channels:
+            self.addChannel(channel[0], channel[1])
 
         self.chart.createDefaultAxes()
         self.chart.axes(Qt.Horizontal)[0].setGridLineVisible(True)
@@ -153,16 +140,25 @@ class PSDWidget(QWidget):
 
         self.chart.legend().setAlignment(Qt.AlignLeft)
 
-        layout.addWidget(TimeChart.TimeChartView(self.chart), 0, 0)
+        self.setWidget(TimeChart.TimeChartView(self.chart))
 
-    def data(self, mean=False):
+    def addChannel(self, s, a):
+        serie = QtCharts.QLineSeries()
+        serie.setName(str(s) + " " + a)
+        self.psdSeries.append(serie)
+        self.chart.addSeries(serie)
+
+    @Slot(int, int, float, float)
+    def cacheUpdated(self, index, length, startTime, endTime):
         """Process and plot data.
 
         Parameters
         ----------
-        mean : `bool`
-            Instead of plotting PSD from all channels, plot PSD from mean of
-            the channels."""
+        index : `int`
+        length : `int`
+        startTime : `float`
+        endTime : `float`
+        """
 
         def downsample(psd, N):
             """Downsample PSD so no too many points are plot. Replace PSD with
@@ -177,7 +173,7 @@ class PSDWidget(QWidget):
             fMin = self.chart.axes(Qt.Horizontal)[0].min()
             fMax = self.chart.axes(Qt.Horizontal)[0].max()
 
-            frequencies = np.fft.rfftfreq(N, SAMPLE_TIME)
+            frequencies = np.fft.rfftfreq(N, self.SAMPLE_TIME)
 
             f = iter(frequencies)
             rMin = 0
@@ -218,8 +214,8 @@ class PSDWidget(QWidget):
 
             Parameters
             ----------
-            serie : `int`
-                PSD number.
+            serie : `QLineSeries`
+                Line serie.
             signal : `[float]`
                 Input signal.
 
@@ -232,47 +228,39 @@ class PSDWidget(QWidget):
             """
             N = len(signal)
             # as input is real only, fft is symmetric; rfft is enough
-            psd = np.abs(np.fft.rfft(signal)) ** 2 * SAMPLE_TIME / N
+            psd = np.abs(np.fft.rfft(signal)) ** 2 * self.SAMPLE_TIME / N
 
             (psd, frequencies) = downsample(psd, N)
 
             points = [QPointF(frequencies[r], psd[r]) for r in range(len(psd))]
-            self.psdSeries[serie].replace(points)
+            serie.replace(points)
 
             return min(psd), max(psd)
 
-        def plotAll(mean):
-            """Plot all signals. Run as task in thread.
+        def plotAll():
+            """Plot all signals. Run as task in thread."""
 
-            Parameters
-            ----------
-            mean : `bool`
-                Use mean of input signals instead of independent signals."""
+            #   min_psd, max_psd = plot(
+            #   0,
+            #   np.mean(
+            #      [self.cache[s + self.samples[0]] for s in ["1", "2", "3"]],
+            #      axis=0,
+            #   ),
+            #   )
+            #   self.chart.axes(Qt.Vertical)[0].setRange(min_psd, max_psd)
+            min_psd = []
+            max_psd = []
+            for s in self.chart.series():
+                min_p, max_p = plot(s, self.cache[s.name()])
+                min_psd.append(min_p)
+                max_psd.append(max_p)
 
-            if mean:
-                min_psd, max_psd = plot(
-                    0,
-                    np.mean(
-                        [self.cache[s + self.samples[0]] for s in ["1", "2", "3"]],
-                        axis=0,
-                    ),
-                )
-                self.chart.axes(Qt.Vertical)[0].setRange(min_psd, max_psd)
-
-            else:
-                min_psd = []
-                max_psd = []
-                for i in range(len(self.samples)):
-                    min_p, max_p = plot(i, self.cache[self.samples[i]])
-                    min_psd.append(min_p)
-                    max_psd.append(max_p)
-
-                self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
+            self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
 
         if not (self.update_after is None):
             if self.update_after < time.monotonic():
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    self.updateTask = pool.submit(plotAll, mean)
+                    self.updateTask = pool.submit(plotAll)
                 self.update_after = None
         elif self.updateTask.done():
             self.updateTask.result()
@@ -281,97 +269,3 @@ class PSDWidget(QWidget):
     @Slot(float, float)
     def frequencyChanged(self, low, high):
         self.chart.axes(Qt.Horizontal)[0].setRange(low, high)
-
-
-class AccelerometersPageWidget(QDockWidget):
-    """Displays all VMS widgets.
-
-    TODO: replace with a generic widget, allowing user to customize what
-    he/she would like to see."""
-
-    SENSORS = [
-        f"acceleration{a}Sensor{s}" for s in range(1, 4) for a in ["X", "Y", "Z"]
-    ]
-
-    cacheUpdated = Signal(int, float, float)
-
-    def __init__(self, comm, module, toolbar):
-        super().__init__("PSD")
-        self.setObjectName("PSD")
-
-        if module == "M2":
-            numSensors = 6
-            self.samples = [
-                [i + axis for i in ["1", "2", "3", "4", "5", "6"]]
-                for axis in ["X", "Y", "Z"]
-            ]
-        else:
-            numSensors = 3
-            self.samples = [
-                [i + axis for i in ["1", "2", "3"]] for axis in ["X", "Y", "Z"]
-            ]
-
-        self.SENSORS = [
-            f"acceleration{a}Sensor{s}"
-            for s in range(1, numSensors + 1)
-            for a in ["X", "Y", "Z"]
-        ]
-
-        self.cache = VMSCache(0, numSensors)
-
-        self.psds = [PSDWidget(spls, self.cache) for spls in self.samples]
-        for w in self.psds:
-            toolbar.frequencyChanged.connect(w.frequencyChanged)
-
-        self.tabs = QTabWidget()
-
-        allPSDs = QWidget()
-        gridLayout = QGridLayout()
-        for r in range(3):
-            gridLayout.addWidget(self.psds[r], r, 0)
-        allPSDs.setLayout(gridLayout)
-        self.tabs.addTab(allPSDs, "PSD")
-
-        self.meanPSDs = [PSDWidget([a], self.cache) for a in ["X", "Y", "Z"]]
-        for w in self.meanPSDs:
-            toolbar.frequencyChanged.connect(w.frequencyChanged)
-
-        allMeans = QWidget()
-        gridLayout = QGridLayout()
-        for r in range(3):
-            gridLayout.addWidget(self.meanPSDs[r], r, 0)
-        allMeans.setLayout(gridLayout)
-        self.tabs.addTab(allMeans, "Mean PSD")
-
-        toolbar.intervalChanged.connect(self.intervalChanged)
-
-        toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
-        toolbar.intervalChanged.emit(toolbar.interval.value())
-
-        toolbar.intervalChanged.connect(self.intervalChanged)
-
-        toolbar.frequencyChanged.emit(*toolbar.getFrequencyRange())
-        toolbar.intervalChanged.emit(toolbar.interval.value())
-
-        comm.data.connect(self.data)
-
-        self.setWidget(self.tabs)
-
-    @Slot(map)
-    def data(self, data):
-        ts = data.timestamp
-        added, chunk_removed = self.cache.newChunk(data, SAMPLE_TIME)
-        if added:
-            self.cacheUpdated.emit(
-                len(self.cache), self.cache.startTime(), self.cache.endTime()
-            )
-
-            for i in range(len(self.psds)):
-                self.psds[i].data()
-
-            for i in range(len(self.meanPSDs)):
-                self.meanPSDs[i].data(True)
-
-    @Slot(float)
-    def intervalChanged(self, interval):
-        self.cache.resize(int(np.ceil(interval / SAMPLE_TIME)))
