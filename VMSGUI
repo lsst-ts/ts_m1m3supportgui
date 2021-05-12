@@ -23,7 +23,7 @@ class EUI(QMainWindow):
     SAMPLE_TIME = 1 * u.ms.to(u.s)
     """Sample time (seconds)"""
 
-    SYSTEMS = ["M1M3", "M2", "ROTATOR"]
+    SYSTEMS = ["M1M3", "M2", "Rotator"]
 
     cacheUpdated = Signal(int, int, float, float)
 
@@ -45,16 +45,16 @@ class EUI(QMainWindow):
         menuBar = self.menuBar()
 
         viewMenu = menuBar.addMenu("&Views")
-        viewMenu.addAction("M&1M3 box graph", partial(self.addBox, 0))
-        viewMenu.addAction("M&2 box graph", partial(self.addBox, 1))
-        viewMenu.addAction("&Rotator box graph", partial(self.addBox, 2))
-        viewMenu.addAction("M1M3 &PSD graph", partial(self.addPSD, 0))
+        viewMenu.addAction(logDock.toggleViewAction())
         viewMenu.addSeparator()
         viewMenu.addAction("Remove all", self.removeAll)
 
-        showMenu = menuBar.addMenu("&Show")
-        showMenu.addSeparator()
-        showMenu.addAction(logDock.toggleViewAction())
+        i = 0
+        for s in self.SYSTEMS:
+            m = menuBar.addMenu(s)
+            m.addAction("New &box graph", partial(self.addBox, i))
+            m.addAction("New &PSD graph", partial(self.addPSD, i))
+
 
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
@@ -100,7 +100,6 @@ class EUI(QMainWindow):
             self.caches[index],
             self.SAMPLE_TIME,
             self.toolBar,
-            [(1, "X"), (2, "X"), (3, "X")],
         )
         self.cacheUpdated.connect(psdWidget.cacheUpdated)
         self.toolBar.frequencyChanged.connect(psdWidget.frequencyChanged)

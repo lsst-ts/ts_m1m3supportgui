@@ -186,6 +186,9 @@ class PSDWidget(QDockWidget):
         self.setWidget(self.chartView)
 
     def _setupAxes(self):
+        if len(self.chart.series()) == 0:
+            return
+
         self.chart.createDefaultAxes()
         self.chart.axes(Qt.Horizontal)[0].setGridLineVisible(True)
         self.chart.axes(Qt.Horizontal)[0].setMinorTickCount(9)
@@ -324,4 +327,8 @@ class PSDWidget(QDockWidget):
 
     @Slot(float, float)
     def frequencyChanged(self, low, high):
+        if len(self.chart.series()) == 0:
+            self.setupAxes = True
+            return
+
         self.chart.axes(Qt.Horizontal)[0].setRange(low, high)
