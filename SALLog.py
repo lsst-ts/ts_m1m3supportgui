@@ -19,7 +19,7 @@
 
 __all__ = ["LEVELS", "ToolBar", "Dock", "Messages"]
 
-from PySide2.QtCore import Signal, Slot
+from PySide2.QtCore import Signal, Slot, QObject
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import (
     QWidget,
@@ -171,28 +171,13 @@ class Messages(QPlainTextEdit):
         self.ensureCursorVisible()
 
 
-class Dock(QDockWidget):
-    """Dock with SAL messages.
+class Object(QObject):
+    """Construct and populate toolbar and messages."""
 
-    Parameters
-    ----------
-    comms : `[SALComm]` or `SALComm`
-        SAL/DDS communications to handle.
-    """
-
-    def __init__(self, comms):
-        super().__init__("SAL Log")
-        self.setObjectName("SAL Log")
-
-        self.messages = Messages(comms)
-
-        toolbar = ToolBar(comms, self)
-        toolbar.clear.connect(self.messages.clear)
+    def __init__(self, toolbar, messages):
+        toolbar.clear.connect(messages.clear)
         toolbar.changeLevel.connect(self.changeLevel)
         toolbar.setSize.connect(self.setMessageSize)
-
-        self.setTitleBarWidget(toolbar)
-        self.setWidget(self.messages)
 
     @Slot()
     def setMessageSize(self, i):
@@ -205,3 +190,29 @@ class Dock(QDockWidget):
     @asyncSlot()
     async def changeLevel(self, index):
         await self._changeIt(level=index * 10)
+
+
+class Dock(QDockWidget, Object):
+    """Dock with SAL messages.
+
+    Parameters
+    ----------
+    comms : `[SALComm]` or `SALComm`
+        SAL/DDS communications to handle.
+    """
+
+    def __init__(self, comms):
+        super().__init__("SAL Log")
+        self.setObjectName("SAL Log")
+
+        messages = Messages(comms)
+
+        toolbar = ToolBar(comms, self)
+        toolbar.clear.connect(messages.clear)
+        toolbar.changeLevel.connect(self.changeLevel)
+        toolbar.setSize.connect(self.setMessageSize)
+
+        Object.__init__(self, toolbar, messages)
+
+        self.setTitleBarWidget(toolbar)
+        self.setWidget(messages)
