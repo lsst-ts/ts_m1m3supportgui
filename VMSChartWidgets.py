@@ -315,6 +315,8 @@ class PSDWidget(QDockWidget):
                 PSD subplot maximum value.
             """
             N = len(signal)
+            if N < 10:
+                return 0, 0
             # as input is real only, fft is symmetric; rfft is enough
             psd = np.abs(np.fft.rfft(signal)) ** 2 * self.SAMPLE_TIME / N
 
