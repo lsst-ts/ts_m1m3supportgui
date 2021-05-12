@@ -31,6 +31,12 @@ class AbstractChart(QtCharts.QChart):
     def __init__(self, parent=None, wFlags=Qt.WindowFlags()):
         super().__init__(parent, wFlags)
 
+    def findAxis(self, titleText, axisType=Qt.Vertical):
+        for a in self.axes(axisType):
+            if a.titleText() == titleText:
+                return a
+        return None
+
     def findSerie(self, name):
         """
         Returns serie with given name.
@@ -93,12 +99,6 @@ class TimeChart(AbstractChart):
 
         self.nextUpdate = 0
         self.updateInterval = updateInterval
-
-    def findAxis(self, titleText, axisType=Qt.Vertical):
-        for a in self.axes(axisType):
-            if a.titleText() == axis:
-                return a
-        return None
 
     def _addSerie(self, axis, serie):
         s = QtCharts.QLineSeries()
@@ -199,8 +199,6 @@ class TimeChart(AbstractChart):
         """Removes all data from the chart."""
         self._storedSeries = {}
         super().removeAllSeries()
-        for a in self.axes(Qt.Vertical):
-            self.removeAxis(a)
 
 
 class TimeChartView(QtCharts.QChartView):

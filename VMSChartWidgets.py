@@ -55,17 +55,28 @@ class VMSChartView(TimeChart.TimeChartView):
         self.chart().clearData()
 
     def addSerie(self, name):
-        s = self._serieType()
-        s.setName(name)
+        def _appendIt(name, points=None):
+            s = self._serieType()
+            s.setName(name)
+            self.chart().addSeries(s)
+            if (
+                len(self.chart().axes(Qt.Horizontal)) > 0
+                and len(self.chart().axes(Qt.Vertical)) > 0
+            ):
+                s.attachAxis(self.chart().axes(Qt.Horizontal)[0])
+                s.attachAxis(self.chart().axes(Qt.Vertical)[0])
+            if points is not None:
+                s.replace(points)
+
         removed = []
         for os in self.chart().series():
             if os.name() > name:
-                removed.append(os)
+                removed.append((os.name(), os.points()))
                 self.chart().removeSeries(os)
 
-        self.chart().addSeries(s)
+        _appendIt(name)
         for os in removed:
-            self.chart().addSeries(os)
+            _appendIt(*os)
 
     def removeSerie(self, name):
         self.chart().remove(name)
@@ -277,7 +288,6 @@ class PSDWidget(QDockWidget):
 
         def plotAll():
             """Plot all signals. Run as task in thread."""
-
             #   min_psd, max_psd = plot(
             #   0,
             #   np.mean(
