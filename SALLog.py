@@ -30,12 +30,12 @@ from PySide2.QtWidgets import (
     QSpinBox,
     QPushButton,
     QPlainTextEdit,
-    QDockWidget,
     QStyle,
 )
-from SALComm import SALCommand
+from SALComm import SALCommand, SALListCommand
 from asyncqt import asyncSlot
 from datetime import datetime
+from CustomLabels import DockWindow
 
 LEVELS = ["Trace", "Debug", "Info", "Warning", "Error", "Critical"]
 
@@ -174,7 +174,9 @@ class Messages(QPlainTextEdit):
 class Object(QObject):
     """Construct and populate toolbar and messages."""
 
-    def __init__(self, toolbar, messages):
+    def __init__(self, comms, toolbar, messages):
+        self.comms = comms
+
         toolbar.clear.connect(messages.clear)
         toolbar.changeLevel.connect(self.changeLevel)
         toolbar.setSize.connect(self.setMessageSize)
@@ -183,16 +185,32 @@ class Object(QObject):
     def setMessageSize(self, i):
         self.messages.setMaximumBlockCount(i)
 
-    @SALCommand
+    @SALListCommand("setLogLevel")
     def _changeIt(self, **kwargs):
-        return self.comms.remote.cmd_setLogLevel
+        return self.comms
 
     @asyncSlot()
     async def changeLevel(self, index):
         await self._changeIt(level=index * 10)
 
 
-class Dock(QDockWidget, Object):
+class Widget(QWidget, Object):
+    def __init__(self, comms):
+        super.__init__()
+
+        messages = Messages(comms)
+        toolbar = ToolBar(comms, self)
+
+        Object.__init__(self, toolbar, messages)
+
+        layout = QVBoxLayout()
+        layout.addWidget(toolbar)
+        layout.addWidget(messages)
+
+        self.setLayout(layout)
+
+
+class Dock(DockWindow, Object):
     """Dock with SAL messages.
 
     Parameters
@@ -206,13 +224,9 @@ class Dock(QDockWidget, Object):
         self.setObjectName("SAL Log")
 
         messages = Messages(comms)
-
         toolbar = ToolBar(comms, self)
-        toolbar.clear.connect(messages.clear)
-        toolbar.changeLevel.connect(self.changeLevel)
-        toolbar.setSize.connect(self.setMessageSize)
 
-        Object.__init__(self, toolbar, messages)
+        Object.__init__(self, comms, toolbar, messages)
 
         self.setTitleBarWidget(toolbar)
         self.setWidget(messages)
