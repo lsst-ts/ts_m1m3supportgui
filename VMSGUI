@@ -54,7 +54,7 @@ class EUI(QMainWindow):
             m = menuBar.addMenu(s)
             m.addAction("New &box graph", partial(self.addBox, i))
             m.addAction("New &PSD graph", partial(self.addPSD, i))
-
+            i += 1
 
         self.toolBar = ToolBar()
         self.addToolBar(self.toolBar)
@@ -93,7 +93,7 @@ class EUI(QMainWindow):
         )
 
     def addPSD(self, index):
-        prefix = "Box " + self.SYSTEMS[index] + ":"
+        prefix = "PSD " + self.SYSTEMS[index] + ":"
         id = self.getNextId(prefix)
         psdWidget = PSDWidget(
             prefix + str(id),
