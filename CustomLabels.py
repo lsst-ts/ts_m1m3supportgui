@@ -25,6 +25,7 @@ from PySide2.QtWidgets import (
     QVBoxLayout,
     QProgressBar,
     QSizePolicy,
+    QDockWidget,
 )
 from PySide2.QtGui import QPainter, QColor, QPalette, QBrush
 import astropy.units as u
@@ -42,6 +43,7 @@ __all__ = [
     "WarningLabel",
     "Heartbeat",
     "LogEventWarning",
+    "DockWindow",
 ]
 
 WARNING = "#FF6700"
@@ -391,3 +393,17 @@ class LogEventWarning(QLabel):
             self.setText("<font color='yellow'>Warning</font>")
         else:
             self.setText("<font color='green'>OK</font>")
+
+
+class DockWindow(QDockWidget):
+    """Widget transforming to Window when floated. Window can be maximized,
+    placed better than floating dock.
+
+    Parameters
+    ----------
+    title : `str`
+        Dock title.
+    """
+
+    def __init__(self, title):
+        super().__init__(title)

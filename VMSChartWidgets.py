@@ -23,16 +23,10 @@ import TimeChart
 import TimeBoxChart
 from VMSGUI import ToolBar
 from PySide2.QtCore import Qt, Slot, Signal, QPointF, QSettings
-from PySide2.QtWidgets import (
-    QWidget,
-    QDockWidget,
-    QTabWidget,
-    QGridLayout,
-    QLabel,
-    QMenu,
-)
+from PySide2.QtWidgets import QMenu
 from PySide2.QtCharts import QtCharts
 from asyncqt import asyncSlot
+from CustomLabels import DockWindow
 
 import abc
 import asyncio
@@ -119,7 +113,7 @@ class VMSChartView(TimeChart.TimeChartView):
                 self.removeSerie(name)
 
 
-class BoxChartWidget(QDockWidget):
+class BoxChartWidget(DockWindow):
     """Display box chart with accelerometer data.
 
     Parameters
@@ -156,7 +150,7 @@ class BoxChartWidget(QDockWidget):
                 )
 
 
-class PSDWidget(QDockWidget):
+class PSDWidget(DockWindow):
     """Display signal PSD.
 
     Parameters
