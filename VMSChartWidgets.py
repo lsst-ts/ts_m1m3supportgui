@@ -43,10 +43,15 @@ import time
 
 
 class VMSChartView(TimeChart.TimeChartView):
+
+    axisChanged = Signal(bool, bool)
+
     def __init__(self, title, serieType):
         super().__init__(title)
         self._serieType = serieType
         self._maxSensor = 0
+        self.logX = False
+        self.logY = False
 
     def updateMaxSensor(self, maxSensor):
         self._maxSensor = max(self._maxSensor, maxSensor)
@@ -79,6 +84,20 @@ class VMSChartView(TimeChart.TimeChartView):
                 action.setCheckable(True)
                 action.setChecked(self.chart().findSerie(name) is not None)
 
+        if type(self._serieType) == type(QtCharts.QLineSeries):
+            contextMenu.addSeparator()
+            logX = contextMenu.addAction("Log X")
+            logX.setCheckable(True)
+            logX.setChecked(self.logX)
+
+            logY = contextMenu.addAction("Log Y")
+            logY.setCheckable(True)
+            logY.setChecked(self.logY)
+
+        else:
+            logX = None
+            logY = None
+
         action = contextMenu.exec_(event.globalPos())
         if action is None:
             return
@@ -86,6 +105,12 @@ class VMSChartView(TimeChart.TimeChartView):
             self.chart().zoomReset()
         elif action == clear:
             self.clear()
+        elif action == logX:
+            self.logX = action.isChecked()
+            self.axisChanged.emit(self.logX, self.logY)
+        elif action == logY:
+            self.logY = action.isChecked()
+            self.axisChanged.emit(self.logX, self.logY)
         else:
             name = action.text()
             if action.isChecked():
@@ -164,6 +189,7 @@ class PSDWidget(QDockWidget):
 
         self.chartView = VMSChartView(self.chart, QtCharts.QLineSeries)
         self.chartView.updateMaxSensor(self.cache.sensors())
+        self.chartView.axisChanged.connect(self.axisChanged)
         for channel in channels:
             self.chartView.addSerie(str(channel[0]) + " " + channel[1])
 
@@ -172,11 +198,34 @@ class PSDWidget(QDockWidget):
 
         self.setWidget(self.chartView)
 
+    @Slot(bool, bool)
+    def axisChanged(self, logX, logY):
+        self.setupAxes = True
+
     def _setupAxes(self):
+        for a in self.chart.axes():
+            self.chart.removeAxis(a)
+
         if len(self.chart.series()) == 0:
             return
 
-        self.chart.createDefaultAxes()
+        if self.chartView.logX:
+            xAxis = QtCharts.QLogValueAxis()
+        else:
+            xAxis = QtCharts.QValueAxis()
+
+        if self.chartView.logY:
+            yAxis = QtCharts.QLogValueAxis()
+        else:
+            yAxis = QtCharts.QValueAxis()
+
+        self.chart.addAxis(xAxis, Qt.AlignBottom)
+        self.chart.addAxis(yAxis, Qt.AlignLeft)
+
+        for s in self.chart.series():
+            s.attachAxis(xAxis)
+            s.attachAxis(yAxis)
+
         self.chart.axes(Qt.Horizontal)[0].setGridLineVisible(True)
         self.chart.axes(Qt.Horizontal)[0].setMinorTickCount(9)
         self.chart.axes(Qt.Horizontal)[0].setMinorGridLineVisible(True)
