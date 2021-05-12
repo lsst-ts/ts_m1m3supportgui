@@ -55,28 +55,15 @@ class VMSChartView(TimeChart.TimeChartView):
         self.chart().clearData()
 
     def addSerie(self, name):
-        def _appendIt(name, points=None):
-            s = self._serieType()
-            s.setName(name)
-            self.chart().addSeries(s)
-            if (
-                len(self.chart().axes(Qt.Horizontal)) > 0
-                and len(self.chart().axes(Qt.Vertical)) > 0
-            ):
-                s.attachAxis(self.chart().axes(Qt.Horizontal)[0])
-                s.attachAxis(self.chart().axes(Qt.Vertical)[0])
-            if points is not None:
-                s.replace(points)
-
-        removed = []
-        for os in self.chart().series():
-            if os.name() > name:
-                removed.append((os.name(), os.points()))
-                self.chart().removeSeries(os)
-
-        _appendIt(name)
-        for os in removed:
-            _appendIt(*os)
+        s = self._serieType()
+        s.setName(name)
+        self.chart().addSeries(s)
+        if (
+            len(self.chart().axes(Qt.Horizontal)) > 0
+            and len(self.chart().axes(Qt.Vertical)) > 0
+        ):
+            s.attachAxis(self.chart().axes(Qt.Horizontal)[0])
+            s.attachAxis(self.chart().axes(Qt.Vertical)[0])
 
     def removeSerie(self, name):
         self.chart().remove(name)
