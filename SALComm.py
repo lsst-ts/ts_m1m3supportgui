@@ -285,7 +285,7 @@ def SALListCommand(cmd):
     Parameters
     ----------
     comms : `[SALComm]`
-        List of SALComm objects. The command will be executed for each member of the list. 
+        List of SALComm objects. The command will be executed for each member of the list.
     cmd : `str`
         SAL command name
     **kwargs : `dict`

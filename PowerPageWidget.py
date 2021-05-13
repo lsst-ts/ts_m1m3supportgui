@@ -96,7 +96,9 @@ class PowerPageWidget(QWidget):
         self.auxPowerNetworkCCommandedOnLabel = QLabel("UNKNOWN")
         self.auxPowerNetworkDCommandedOnLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart()
+        self.chart = TimeChart.TimeChart(
+            {"Current (A)": ["A", "B", "C", "D", "Lights", "Controls"]}
+        )
         self.chartView = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -352,16 +354,12 @@ class PowerPageWidget(QWidget):
         self.chart.append(
             data.timestamp,
             [
-                ("Current (A)", "A", data.powerNetworkACurrent),
-                ("Current (A)", "B", data.powerNetworkBCurrent),
-                ("Current (A)", "C", data.powerNetworkCCurrent),
-                ("Current (A)", "D", data.powerNetworkDCurrent),
-                ("Current (A)", "Lights", data.lightPowerNetworkCurrent),
-                (
-                    "Current (A)",
-                    "Controls",
-                    data.controlsPowerNetworkCurrent,
-                ),
+                data.powerNetworkACurrent,
+                data.powerNetworkBCurrent,
+                data.powerNetworkCCurrent,
+                data.powerNetworkDCurrent,
+                data.lightPowerNetworkCurrent,
+                data.controlsPowerNetworkCurrent,
             ],
         )
 

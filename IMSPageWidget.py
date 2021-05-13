@@ -52,10 +52,30 @@ class IMSPageWidget(QWidget):
         self.unknownCommandLabel = QLabel("UNKNOWN")
         self.unknownProblemLabel = QLabel("UNKNOWN")
 
-        self.rawChart = TimeChart.TimeChart(50 * 5)
+        self.rawChart = TimeChart.TimeChart(
+            {
+                "Displacement (mm)": [
+                    "+X Axial",
+                    "+X Tangent",
+                    "+Y Axial",
+                    "+Y Tangent",
+                    "-X Axial",
+                    "-X Tangent",
+                    "-Y Axial",
+                    "-Y Tangent",
+                ]
+            },
+            50 * 5,
+        )
         self.rawChartView = TimeChart.TimeChartView(self.rawChart)
 
-        self.posChart = TimeChart.TimeChart(50 * 5)
+        self.posChart = TimeChart.TimeChart(
+            {
+                "Position (mm)": ["Pos X", "Pos Y", "Pos Z"],
+                "Rotation (arcsec)": ["Rot X", "Rot Y", "Rot Z"],
+            },
+            50 * 5,
+        )
         self.posChartView = TimeChart.TimeChartView(self.posChart)
 
         row = 0
@@ -204,25 +224,29 @@ class IMSPageWidget(QWidget):
         self.rawChart.append(
             data.timestamp,
             [
-                ("Displacement (mm)", "+X Axial", data.rawSensorData[0]),
-                ("Displacement (mm)", "+X Tangent", data.rawSensorData[1]),
-                ("Displacement (mm)", "-Y Axial", data.rawSensorData[2]),
-                ("Displacement (mm)", "-Y Tangent", data.rawSensorData[3]),
-                ("Displacement (mm)", "-X Axial", data.rawSensorData[4]),
-                ("Displacement (mm)", "-X Tangent", data.rawSensorData[5]),
-                ("Displacement (mm)", "-Y Axial", data.rawSensorData[6]),
-                ("Displacement (mm)", "-Y Tangent", data.rawSensorData[7]),
+                data.rawSensorData[0],
+                data.rawSensorData[1],
+                data.rawSensorData[2],
+                data.rawSensorData[3],
+                data.rawSensorData[4],
+                data.rawSensorData[5],
+                data.rawSensorData[6],
+                data.rawSensorData[7],
             ],
         )
 
         self.posChart.append(
             data.timestamp,
+            [data.xPosition * M2MM, data.yPosition * M2MM, data.zPosition * M2MM],
+            0,
+        )
+
+        self.posChart.append(
+            data.timestamp,
             [
-                ("Position (mm)", "X", data.xPosition * M2MM),
-                ("Position (mm)", "Y", data.yPosition * M2MM),
-                ("Position (mm)", "Z", data.zPosition * M2MM),
-                ("Rotation (arcsec)", "X", data.xRotation * D2ARCSEC),
-                ("Rotation (arcsec)", "Y", data.yRotation * D2ARCSEC),
-                ("Rotation (arcsec)", "Z", data.zRotation * D2ARCSEC),
+                data.xRotation * D2ARCSEC,
+                data.yRotation * D2ARCSEC,
+                data.zRotation * D2ARCSEC,
             ],
+            1,
         )

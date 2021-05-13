@@ -118,6 +118,9 @@ class TimeCache:
             return self.data[-1]["timestamp"]
         return self.data[self.current_index - 1]["timestamp"]
 
+    def timeRange(self):
+        return (self.startTime(), self.endTime())
+
     def rows_reverse(self):
         """Yelds reversed row iterator."""
         for r in range(self.current_index - 1, -1, -1):
@@ -125,6 +128,10 @@ class TimeCache:
         if self.filled:
             for r in range(self._size - 1, self.current_index - 1, -1):
                 yield self.data[r]
+
+    def rows(self):
+        """Returns rows names."""
+        return self.data.dtype.names
 
     def __getitem__(self, key):
         if self.filled:

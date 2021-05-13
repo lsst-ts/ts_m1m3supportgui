@@ -81,7 +81,12 @@ class ForceBalanceSystemPageWidget(QWidget):
 
         self.balanceForcesClippedLabel = QLabel("UNKNOWN")
 
-        self.balanceChart = TimeChart.TimeChart()
+        self.balanceChart = TimeChart.TimeChart(
+            {
+                "Balance Force (N)": ["Force X", "Force Y", "Force Z", "Magnitude"],
+                "Moment (N/m)": ["Moment X", "Moment Y", "Moment Z"],
+            }
+        )
         self.balanceChartView = TimeChart.TimeChartView(self.balanceChart)
 
         self.commandLayout.addWidget(self.enableHardpointCorrectionsButton)
@@ -166,14 +171,11 @@ class ForceBalanceSystemPageWidget(QWidget):
 
         self.balanceChart.append(
             data.timestamp,
-            [
-                ("Balance Force (N)", "Fx", data.fx),
-                ("Balance Force (N)", "Fy", data.fy),
-                ("Balance Force (N)", "Fz", data.fz),
-                ("Balance Force (N)", "Mx", data.mx),
-                ("Balance Force (N)", "My", data.my),
-                ("Balance Force (N)", "Mz", data.mz),
-            ],
+            [data.fx, data.fy, data.fz, data.forceMagnitude],
+            axis_index=0,
+        )
+        self.balanceChart.append(
+            data.timestamp, [data.mx, data.my, data.mz], axis_index=1
         )
 
         self._balanceData = data

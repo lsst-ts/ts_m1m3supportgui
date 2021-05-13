@@ -106,10 +106,12 @@ class ActuatorOverviewPageWidget(QWidget):
         self.velocityMzLabel = QLabel("UNKNOWN")
         self.velocityMagLabel = QLabel("UNKNOWN")
 
-        self.chartForces = TimeChart.TimeChart(50 * 5)
+        self.chartForces = TimeChart.TimeChart({"Force (N)": ["Total Mag"]}, 50 * 5)
         self.chartForces_view = TimeChart.TimeChartView(self.chartForces)
 
-        self.chartPercentage = TimeChart.TimeChart(50 * 5)
+        self.chartPercentage = TimeChart.TimeChart(
+            {"Percentage": ["Support Percentage"]}, 50 * 5
+        )
         self.chartPercentage_view = TimeChart.TimeChartView(self.chartPercentage)
 
         row = 0
@@ -329,9 +331,7 @@ class ActuatorOverviewPageWidget(QWidget):
         self.totalCommandedMzLabel.setText("%0.1f" % data.mz)
         self.totalCommandedMagLabel.setText("%0.1f" % data.forceMagnitude)
 
-        self.chartForces.append(
-            data.timestamp, [("Force (N)", "Total Mag", data.forceMagnitude)]
-        )
+        self.chartForces.append(data.timestamp, [data.forceMagnitude])
 
     @Slot(map)
     def appliedOffsetForces(self, data):
@@ -375,7 +375,4 @@ class ActuatorOverviewPageWidget(QWidget):
 
     @Slot(map)
     def forceActuatorState(self, data):
-        self.chartPercentage.append(
-            data.timestamp,
-            [("Percentage", "Support Percentage", data.supportPercentage)],
-        )
+        self.chartPercentage.append(data.timestamp, [data.supportPercentage])

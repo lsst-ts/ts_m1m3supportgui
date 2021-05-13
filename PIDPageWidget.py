@@ -126,7 +126,9 @@ class PIDPageWidget(QWidget):
         self.mzCalculatedDLabel = QLabel("UNKNOWN")
         self.mzCalculatedELabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart()
+        self.chart = TimeChart.TimeChart(
+            {"Command (N or N/m)": ["Fx", "Fy", "Fz", "Mx", "My", "Mz"]}
+        )
         self.chartView = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -409,14 +411,4 @@ class PIDPageWidget(QWidget):
         self.mzControlT1Label.setText("%0.3f" % data.controlT1[5])
         self.mzControlT2Label.setText("%0.3f" % data.controlT2[5])
 
-        self.chart.append(
-            data.timestamp,
-            [
-                ("Command", "Fx", data.control[0]),
-                ("Command", "Fy", data.control[1]),
-                ("Command", "Fz", data.control[2]),
-                ("Command", "Mx", data.control[3]),
-                ("Command", "My", data.control[4]),
-                ("Command", "Mz", data.control[5]),
-            ],
-        )
+        self.chart.append(data.timestamp, [data.control[x] for x in range(6)])
