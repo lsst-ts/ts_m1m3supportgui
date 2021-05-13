@@ -41,7 +41,7 @@ from CustomLabels import DockWindow
 LEVELS = ["Trace", "Debug", "Info", "Warning", "Error", "Critical"]
 
 
-def _levelToIndex(self, level):
+def _levelToIndex(level):
     return min(int(level / 10), 5)
 
 
