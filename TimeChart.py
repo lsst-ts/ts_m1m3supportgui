@@ -176,14 +176,14 @@ class TimeChart(AbstractChart):
             #except KeyError:
             #    y_ranges[a] = y_range
 
-            serie.replace(points)
-
             if forceUpdate:
                 #self.createDefaultAxes()
                 if len(self.axes(Qt.Horizontal)) == 0:
                    self.addAxis(self.timeAxis, Qt.AlignBottom)
                 serie.attachAxis(self.timeAxis)
                 serie.attachAxis(a)
+
+            serie.replace(points)
 
         if t_range is None:
             t_values = [p.x() for p in points]

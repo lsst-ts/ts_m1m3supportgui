@@ -17,6 +17,7 @@ import astropy.units as u
 from asyncqt import QEventLoop, asyncClose
 import asyncio
 from functools import partial
+import numpy as np
 
 
 class EUI(QMainWindow):
