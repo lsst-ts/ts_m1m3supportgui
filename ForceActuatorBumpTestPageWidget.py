@@ -255,7 +255,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
             + list(map(lambda s: "Measured " + s, items))
         )
 
-        self.chart = TimeChart({"Force (N)": items})
+        self.chart = TimeChart.TimeChart({"Force (N)": items})
 
         self.chart_view.setChart(self.chart)
 

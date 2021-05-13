@@ -115,7 +115,7 @@ class TimeChart(AbstractChart):
             for d in axis[1]:
                 if d is None:
                     self._caches.append(TimeCache.TimeCache(maxItems, data))
-                    data = []
+                    data = [("timestamp", "f8")]
                 else:
                     data.append((d, "f8"))
                     self._addSerie(d, axis[0])
@@ -184,11 +184,14 @@ class TimeChart(AbstractChart):
             )
             axis.setRange(d_min, d_max)
 
-            self._next_update = now + self.updateInterval
+            self._next_update = time.monotonic() + self.updateInterval
 
         # replot if needed
-        now = time.monotonic()
-        if (update is True or now > self._next_update) and self.updateTask.done():
+        if update:
+            self.updateTask.cancel()
+            self._next_update = 0
+
+        if self._next_update < time.monotonic() and self.updateTask.done():
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 self.updateTask = pool.submit(replot)
 

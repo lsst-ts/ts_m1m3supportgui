@@ -34,6 +34,7 @@ import concurrent.futures
 from datetime import datetime
 import numpy as np
 import time
+from lsst.ts.salobj import make_done_future
 
 
 class VMSChartView(TimeChart.TimeChartView):
@@ -173,9 +174,7 @@ class PSDWidget(DockWindow):
 
         self.chart = TimeChart.AbstractChart()
 
-        # processing task. Set to done to save "is not None" check.
-        self.updateTask = asyncio.Future()
-        self.updateTask.set_result(None)
+        self.updateTask = make_done_future()
 
         self.update_after = 0
 
@@ -343,19 +342,15 @@ class PSDWidget(DockWindow):
                     self.setupAxes = True
                 else:
                     self.chart.axes(Qt.Vertical)[0].setRange(min(min_psd), max(max_psd))
+            self.update_after = time.monotonic() + 0.5
 
         if self.setupAxes is True:
             self._setupAxes()
             self.update_after = 0
 
-        if self.update_after is not None:
-            if self.update_after < time.monotonic():
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    self.updateTask = pool.submit(plotAll)
-                self.update_after = None
-        elif self.updateTask.done():
-            self.updateTask.result()
-            self.update_after = time.monotonic() + 1
+        if self.update_after < time.monotonic() and self.updateTask.done():
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                self.updateTask = pool.submit(plotAll)
 
     @Slot(float, float)
     def frequencyChanged(self, low, high):
