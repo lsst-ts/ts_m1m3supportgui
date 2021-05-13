@@ -22,7 +22,11 @@
 __all__ = ["VMSCache"]
 
 from TimeCache import *
+
+import astropy.units as u
 import numpy as np
+
+UG2G = u.g.to(u.ug)
 
 
 class VMSCache(TimeCache):
@@ -103,15 +107,15 @@ class VMSCache(TimeCache):
                     self.current_index : self.current_index + l
                 ] = timestamps[start : start + l]
                 for s in range(1, self._sensors + 1):
-                    self.data[f"{s} X"][
-                        self.current_index : self.current_index + l
-                    ] = r[1][s - 1].accelerationX[start : start + l]
-                    self.data[f"{s} Y"][
-                        self.current_index : self.current_index + l
-                    ] = r[1][s - 1].accelerationY[start : start + l]
-                    self.data[f"{s} Z"][
-                        self.current_index : self.current_index + l
-                    ] = r[1][s - 1].accelerationZ[start : start + l]
+                    self.data[f"{s} X"][self.current_index : self.current_index + l] = (
+                        np.array(r[1][s - 1].accelerationX[start : start + l]) * UG2G
+                    )
+                    self.data[f"{s} Y"][self.current_index : self.current_index + l] = (
+                        np.array(r[1][s - 1].accelerationY[start : start + l]) * UG2G
+                    )
+                    self.data[f"{s} Z"][self.current_index : self.current_index + l] = (
+                        np.array(r[1][s - 1].accelerationZ[start : start + l]) * UG2G
+                    )
 
             l = min(dl, self._size - self.current_index)
             if l > 0:

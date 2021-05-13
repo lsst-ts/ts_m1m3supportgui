@@ -29,12 +29,15 @@ from asyncqt import asyncSlot
 from CustomLabels import DockWindow
 
 import abc
+import astropy.units as u
 import asyncio
 import concurrent.futures
 from datetime import datetime
 import numpy as np
 import time
 from lsst.ts.salobj import make_done_future
+
+UG2G = u.g.to(u.ug)
 
 
 class VMSChartView(TimeChart.TimeChartView):
@@ -147,8 +150,9 @@ class BoxChartWidget(DockWindow):
                     data.timestamp,
                     "Acceleration (m/s<sup>2</sup>)",
                     name,
-                    getattr(data, f"acceleration{axis}"),
+                    np.array(getattr(data, f"acceleration{axis}")) * UG2G,
                 )
+                self.chart.axes(Qt.Vertical)[0].setTitleText("Acceleration (&micro;g)")
 
 
 class PSDWidget(DockWindow):
@@ -212,6 +216,9 @@ class PSDWidget(DockWindow):
         else:
             yAxis = QtCharts.QValueAxis()
 
+        xAxis.setTitleText("Frequency (Hz)")
+        yAxis.setTitleText("Acceleration (&micro;g)")
+
         self.chart.addAxis(xAxis, Qt.AlignBottom)
         self.chart.addAxis(yAxis, Qt.AlignLeft)
 
@@ -223,7 +230,7 @@ class PSDWidget(DockWindow):
         self.chart.axes(Qt.Horizontal)[0].setMinorTickCount(9)
         self.chart.axes(Qt.Horizontal)[0].setMinorGridLineVisible(True)
 
-        self.chart.legend().setAlignment(Qt.AlignLeft)
+        self.chart.legend().setAlignment(Qt.AlignTop)
 
         self.frequencyChanged(*self.toolBar.getFrequencyRange())
 
