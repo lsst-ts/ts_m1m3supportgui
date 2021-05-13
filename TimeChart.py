@@ -22,8 +22,12 @@
 from PySide2.QtCore import Qt, QDateTime, QPointF
 from PySide2.QtGui import QPainter
 from PySide2.QtCharts import QtCharts
+
+from lsst.ts.salobj import make_done_future
 import TimeCache
 import time
+
+import concurrent.futures
 
 __all__ = ["TimeChart", "TimeChartView"]
 
@@ -103,6 +107,8 @@ class TimeChart(AbstractChart):
 
         self._next_update = 0
         self.updateInterval = updateInterval
+        self.updateTask = make_done_future()
+
         self._caches = []
         for axis in items.items():
             data = [("timestamp", "f8")]
@@ -155,9 +161,7 @@ class TimeChart(AbstractChart):
 
         cache.append(tuple([timestamp * 1000.0] + data))
 
-        # replot if needed
-        now = time.time()
-        if update is True or now > self._next_update:
+        def replot():
             axis = self.axes(Qt.Vertical)[axis_index]
             d_min = d_max = None
             for n in cache.rows()[1:]:
@@ -181,6 +185,12 @@ class TimeChart(AbstractChart):
             axis.setRange(d_min, d_max)
 
             self._next_update = now + self.updateInterval
+
+        # replot if needed
+        now = time.monotonic()
+        if (update is True or now > self._next_update) and self.updateTask.done():
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                self.updateTask = pool.submit(replot)
 
     def clearData(self):
         """Removes all data from the chart."""
