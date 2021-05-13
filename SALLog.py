@@ -30,6 +30,7 @@ from PySide2.QtWidgets import (
     QSpinBox,
     QPushButton,
     QPlainTextEdit,
+    QDockWidget,
     QStyle,
 )
 from SALComm import SALCommand, SALListCommand
@@ -97,22 +98,23 @@ class ToolBar(QWidget):
         toolbar.addWidget(maxBlock)
         toolbar.addStretch()
 
-        floatButton = QPushButton(
-            self.style().standardIcon(QStyle.SP_TitleBarNormalButton), ""
-        )
+        if issubclass(type(parent), QDockWidget):
+            floatButton = QPushButton(
+                self.style().standardIcon(QStyle.SP_TitleBarNormalButton), ""
+            )
 
-        def _toggleFloating():
-            parent.setFloating(not parent.isFloating())
+            def _toggleFloating():
+                parent.setFloating(not parent.isFloating())
 
-        floatButton.clicked.connect(_toggleFloating)
+            floatButton.clicked.connect(_toggleFloating)
 
-        closeButton = QPushButton(
-            self.style().standardIcon(QStyle.SP_TitleBarCloseButton), ""
-        )
-        closeButton.clicked.connect(parent.close)
+            closeButton = QPushButton(
+                self.style().standardIcon(QStyle.SP_TitleBarCloseButton), ""
+            )
+            closeButton.clicked.connect(parent.close)
 
-        toolbar.addWidget(floatButton)
-        toolbar.addWidget(closeButton)
+            toolbar.addWidget(floatButton)
+            toolbar.addWidget(closeButton)
 
         self.setLayout(toolbar)
 
@@ -196,12 +198,12 @@ class Object(QObject):
 
 class Widget(QWidget, Object):
     def __init__(self, comms):
-        super.__init__()
+        super().__init__()
 
         messages = Messages(comms)
         toolbar = ToolBar(comms, self)
 
-        Object.__init__(self, toolbar, messages)
+        Object.__init__(self, comms, toolbar, messages)
 
         layout = QVBoxLayout()
         layout.addWidget(toolbar)

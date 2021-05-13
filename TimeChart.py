@@ -95,14 +95,13 @@ class TimeChart(AbstractChart):
         self.timeAxis.setTickCount(5)
         self.timeAxis.setTitleText("Time (UTC)")
         self.timeAxis.setFormat("h:mm:ss.zzz")
-        self.addAxis(self.timeAxis, Qt.AlignBottom)
 
         self.nextUpdate = 0
         self.updateInterval = updateInterval
 
-    def _addSerie(self, axis, serie):
+    def _addSerie(self, name, axis):
         s = QtCharts.QLineSeries()
-        s.setName(serie)
+        s.setName(f"{name} {axis}")
         # s.setUseOpenGL(True)
         points = []
         a = self.findAxis(axis)
@@ -113,9 +112,9 @@ class TimeChart(AbstractChart):
             self.addAxis(
                 a, Qt.AlignRight if len(self.axes(Qt.Vertical)) % 2 else Qt.AlignLeft
             )
-        s.attachAxis(self.timeAxis)
-        s.attachAxis(a)
-        return s
+        #s.attachAxis(self.timeAxis)
+        #s.attachAxis(a)
+        return s, a
 
     def append(self, timestamp, series, update=False):
         """Add data to a serie. Creates axis and serie if needed. Shrink if more than expected elements are stored.
@@ -144,14 +143,15 @@ class TimeChart(AbstractChart):
         forceUpdate = False
 
         for d in series:
-            axis, serie, data = d
-            serie = self.findSerie(f"{serie} {axis}")
+            axis, name, data = d
+            serie = self.findSerie(f"{name} {axis}")
             if serie is None:
-                serie = self._addSerie(axis, serie)
+                serie, a = self._addSerie(name, axis)
+                self.addSeries(serie)
                 forceUpdate = True
 
             points = serie.points()
-            a = serie.attachedAxes()[0]
+            #a = serie.attachedAxes()[0]
 
             points.append(QPointF(timestamp * 1000.0, data))
             if len(points) > self.maxItems:
@@ -168,32 +168,38 @@ class TimeChart(AbstractChart):
                 clip = (y_range[1] - y_range[0]) * 0.05
             y_range = [y_range[0] - clip, y_range[1] + clip]
 
-            try:
-                y_ranges[a] = [
-                    min(y_range[0], y_ranges[a][0]),
-                    max(y_range[1], y_ranges[a][1]),
-                ]
-            except KeyError:
-                y_ranges[a] = y_range
-
-            if t_range is None:
-                t_values = [p.x() for p in points]
-                t_range = [min(t_values), max(t_values)]
-                self.timeAxis.setRange(
-                    *(map(lambda i: QDateTime().fromMSecsSinceEpoch(i), t_range))
-                )
+            #try:
+            #    y_ranges[a] = [
+            #        min(y_range[0], y_ranges[a][0]),
+            #        max(y_range[1], y_ranges[a][1]),
+            #    ]
+            #except KeyError:
+            #    y_ranges[a] = y_range
 
             serie.replace(points)
 
             if forceUpdate:
-                a.applyNiceNumbers()
-                self.addSeries(serie)
+                #self.createDefaultAxes()
+                if len(self.axes(Qt.Horizontal)) == 0:
+                   self.addAxis(self.timeAxis, Qt.AlignBottom)
+                serie.attachAxis(self.timeAxis)
+                serie.attachAxis(a)
+
+        if t_range is None:
+            t_values = [p.x() for p in points]
+            t_range = [min(t_values), max(t_values)]
+            #print(t_range, len(self.axes()), len(self.axes(Qt.Horizontal)))
+            #self.axes(Qt.Horizontal)[0].setRange(*t_range)
+            self.axes(Qt.Horizontal)[0].setRange(
+                *(map(lambda i: QDateTime().fromMSecsSinceEpoch(i), t_range))
+            )
+        #    a.applyNiceNumbers()
 
         if update is False and forceUpdate is False:
             return
 
-        for a, y_range in y_ranges.items():
-            a.setRange(*y_range)
+        #for a, y_range in y_ranges.items():
+        #    a.setRange(*y_range)
 
     def clearData(self):
         """Removes all data from the chart."""

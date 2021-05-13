@@ -278,13 +278,14 @@ def SALCommand(cmd):
 
 
 def SALListCommand(cmd):
-    """Decorator to run a command and display error dialog when in troubles. To
+    """Decorator to run commands and display error dialog when in troubles. To
     be used in QtWidget child method. Decorates a function call, pass supplied
     arguments to SAL/DDS command call.
 
     Parameters
     ----------
     comms : `[SALComm]`
+        List of SALComm objects. The command will be executed for each member of the list. 
     cmd : `str`
         SAL command name
     **kwargs : `dict`

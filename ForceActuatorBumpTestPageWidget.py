@@ -19,7 +19,7 @@
 
 import TimeChart
 from FATABLE import *
-from SALLogWidget import SALLogWidget
+import SALLog
 from PySide2.QtCore import Slot, Qt
 from PySide2.QtGui import QColor
 from PySide2.QtWidgets import (
@@ -176,7 +176,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.forms = QHBoxLayout()
         self.forms.addWidget(actuatorBox)
         self.forms.addWidget(self.progressGroup)
-        self.forms.addWidget(SALLogWidget(self.m1m3))
+        self.forms.addWidget(SALLog.Widget(self.m1m3))
         self.layout.addLayout(self.forms)
         self.layout.addWidget(self.chart_view)
         self.layout.addLayout(self.buttonLayout)
