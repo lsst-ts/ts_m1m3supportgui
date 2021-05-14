@@ -255,7 +255,6 @@ class PSDWidget(DockWindow):
             s.attachAxis(yAxis)
 
         self.chart.axes(Qt.Horizontal)[0].setGridLineVisible(True)
-        self.chart.axes(Qt.Horizontal)[0].setMinorTickCount(9)
         self.chart.axes(Qt.Horizontal)[0].setMinorGridLineVisible(True)
 
         self.chart.legend().setAlignment(Qt.AlignTop)

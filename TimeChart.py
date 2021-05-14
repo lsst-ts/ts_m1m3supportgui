@@ -97,13 +97,7 @@ class TimeChart(AbstractChart):
     def __init__(self, items, maxItems=50 * 30, updateInterval=0.1):
         super().__init__()
         self.maxItems = maxItems
-        self.timeAxis = QtCharts.QDateTimeAxis()
-        self.timeAxis.setReverse(True)
-        self.timeAxis.setTickCount(5)
-        self.timeAxis.setTitleText("Time (TAI)")
-        self.timeAxis.setFormat("h:mm:ss.zzz")
-
-        self.addAxis(self.timeAxis, Qt.AlignBottom)
+        self.timeAxis = None
 
         self._next_update = 0
         self.updateInterval = updateInterval
@@ -121,6 +115,18 @@ class TimeChart(AbstractChart):
                     self._addSerie(d, axis[0])
             self._caches.append(TimeCache.TimeCache(maxItems, data))
 
+        self.timeAxis = QtCharts.QDateTimeAxis()
+        self.timeAxis.setReverse(True)
+        self.timeAxis.setTickCount(5)
+        self.timeAxis.setFormat("h:mm:ss.zzz")
+        self.timeAxis.setTitleText("Time (TAI)")
+        self.timeAxis.setGridLineVisible(True)
+
+        self.addAxis(self.timeAxis, Qt.AlignBottom)
+
+        for serie in self.series():
+            serie.attachAxis(self.timeAxis)
+
     def _addSerie(self, name, axis):
         s = QtCharts.QLineSeries()
         s.setName(name)
@@ -135,6 +141,7 @@ class TimeChart(AbstractChart):
                 a, Qt.AlignRight if len(self.axes(Qt.Vertical)) % 2 else Qt.AlignLeft
             )
         self.addSeries(s)
+        s.attachAxis(a)
 
     def append(self, timestamp, data, axis_index=0, cache_index=None, update=False):
         """Add data to a serie. Creates axis and serie if needed. Shrink if
@@ -175,9 +182,6 @@ class TimeChart(AbstractChart):
                     d_max = max(d_max, max(data))
                 points = [QPointF(*i) for i in zip(cache["timestamp"], data)]
                 serie.replace(points)
-                if self._next_update == 0:
-                    serie.attachAxis(self.timeAxis)
-                    serie.attachAxis(axis)
 
             self.timeAxis.setRange(
                 *(map(QDateTime().fromMSecsSinceEpoch, cache.timeRange()))
