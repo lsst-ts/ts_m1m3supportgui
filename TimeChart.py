@@ -195,7 +195,11 @@ class TimeChart(AbstractChart):
             self.updateTask.cancel()
             self._next_update = 0
 
-        if self._next_update < time.monotonic() and self.updateTask.done():
+        if (
+            self._next_update < time.monotonic()
+            and self.updateTask.done()
+            and self.isVisibleTo(None)
+        ):
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 self.updateTask = pool.submit(replot)
 
