@@ -22,21 +22,71 @@
 from PySide2.QtCore import Qt, QDateTime, QPointF
 from PySide2.QtGui import QPainter
 from PySide2.QtCharts import QtCharts
+
+from lsst.ts.salobj import make_done_future
+import TimeCache
 import time
+
+import concurrent.futures
 
 __all__ = ["TimeChart", "TimeChartView"]
 
 
-class TimeChart(QtCharts.QChart):
+class AbstractChart(QtCharts.QChart):
+    def __init__(self, parent=None, wFlags=Qt.WindowFlags()):
+        super().__init__(parent, wFlags)
+
+    def findAxis(self, titleText, axisType=Qt.Vertical):
+        for a in self.axes(axisType):
+            if a.titleText() == titleText:
+                return a
+        return None
+
+    def findSerie(self, name):
+        """
+        Returns serie with given name.
+
+        Parameters
+        ----------
+        name : `str`
+            Serie name.
+
+        Returns
+        -------
+        serie : `QAbstractSerie`
+            Serie with given name. None if no serie exists.
+        """
+        for s in self.series():
+            if s.name() == name:
+                return s
+        return None
+
+    def remove(self, name):
+        """Removes serie with given name."""
+        s = self.findSerie(name)
+        if s is None:
+            return
+        self.removeSeries(s)
+
+    def clearData(self):
+        """Removes all data from the chart."""
+        self.removeAllSeries()
+        for a in self.axes(Qt.Vertical):
+            self.removeAxis(a)
+
+
+class TimeChart(AbstractChart):
     """Class with time axis and value(s). Keeps last n/dt items. Holds axis
     titles and series, and handle axis auto scaling.
 
     Data to the graph shall be added with the append method. The class does the
-    rest, creates axis/series and autoscale them as needed.
+    rest, creates axis/series and autoscale them as needed. Data are cached
+    before being draw.
 
     Parameters
     ----------
-
+    items : `{`str` : [`str`]}`
+        Items stored in plot. Key is axis, items are labels.
     maxItems : `int`, optional
         Number of items to keep in graph. When series grows above the specified
         number of points, oldest points are removed. Defaults to 50 * 30 = 50Hz * 30s.
@@ -44,138 +94,142 @@ class TimeChart(QtCharts.QChart):
         Interval for chart redraws responding to append call. Defaults to 0.1 second.
     """
 
-    def __init__(self, maxItems=50 * 30, updateInterval=0.1):
+    def __init__(self, items, maxItems=50 * 30, updateInterval=0.1):
         super().__init__()
         self.maxItems = maxItems
+        self.timeAxis = None
+
+        self._next_update = 0
+        self.updateInterval = updateInterval
+        self.updateTask = make_done_future()
+
+        self._caches = []
+        for axis in items.items():
+            data = [("timestamp", "f8")]
+            for d in axis[1]:
+                if d is None:
+                    self._caches.append(TimeCache.TimeCache(maxItems, data))
+                    data = [("timestamp", "f8")]
+                else:
+                    data.append((d, "f8"))
+                    self._addSerie(d, axis[0])
+            self._caches.append(TimeCache.TimeCache(maxItems, data))
+
+        # Caveat emptor, the order here is important. Hard to find, but the order in
+        # which chart, axis and series are constructed and attached should always be:
+        # - construct Axis, Chart, Serie
+        # - addAxis to chart
+        # - attach series to axis
+        # Changing the order will result in undetermined behaviour, most
+        # likely the axis or even graph not shown. It's irrelevant when you
+        # fill series with data. See QtChart::createDefaultAxes in QtChart
+        # source code for details.
         self.timeAxis = QtCharts.QDateTimeAxis()
         self.timeAxis.setReverse(True)
         self.timeAxis.setTickCount(5)
-        self.timeAxis.setTitleText("Time (UTC)")
         self.timeAxis.setFormat("h:mm:ss.zzz")
-        self.nextUpdate = 0
-        self.updateInterval = updateInterval
+        self.timeAxis.setTitleText("Time (TAI)")
+        self.timeAxis.setGridLineVisible(True)
 
-        self._storedSeries = {}
+        self.addAxis(self.timeAxis, Qt.AlignBottom)
 
-    def _findSerie(self, axis, serie):
-        """
-        Returns serie with given name.
-        """
-        return (
-            self._storedSeries[axis][0],
-            self._storedSeries[axis][1][serie][0],
-            self._storedSeries[axis][1][serie][1],
-        )
+        for serie in self.series():
+            serie.attachAxis(self.timeAxis)
 
-    def _addSerie(self, axis, serie):
+    def _addSerie(self, name, axis):
         s = QtCharts.QLineSeries()
-        s.setName(serie)
-        # s.setUseOpenGL(True)
+        s.setName(name)
+        #s.setUseOpenGL(True)
         points = []
-        try:
-            self._storedSeries[axis][1][serie] = [s, points]
-            a = self._storedSeries[axis][0]
-        except KeyError:
+        a = self.findAxis(axis)
+        if a is None:
             a = QtCharts.QValueAxis()
             a.setTickCount(10)
             a.setTitleText(axis)
             self.addAxis(
-                a, Qt.AlignRight if len(self._storedSeries) % 2 else Qt.AlignLeft
+                a, Qt.AlignRight if len(self.axes(Qt.Vertical)) % 2 else Qt.AlignLeft
             )
-            if len(self._storedSeries) == 0:
-                self.addAxis(self.timeAxis, Qt.AlignBottom)
-            self._storedSeries[axis] = (a, {serie: [s, points]})
-        return a, s, points
+        self.addSeries(s)
+        s.attachAxis(a)
 
-    def append(self, timestamp, series, update=False):
-        """Add data to a serie. Creates axis and serie if needed. Shrink if more than expected elements are stored.
+    def append(self, timestamp, data, axis_index=0, cache_index=None, update=False):
+        """Add data to a serie. Creates axis and serie if needed. Shrink if
+        more than expected elements are stored.
 
         Parameters
         ----------
         timestamp : `float`
             Values timestamp.
-        series : [(`str`, `str`, data)]
-            Axis name, serie name and data. Serie name will be shown as data label.
+        data : `[float]`
+            Axis data.
+        axis_index : `int`, optional
+            Axis index. Defaults to 0.
+        cache_index : `int`, optional
+            Cache index. Equals to axis_index if None. Defaults to None.
         update : `boolean`, optional
             If true, updates plot. Otherwise, store points for future update
             call and update plot if updateInterval passed since the last
             completed update."""
+        if cache_index is None:
+            cache = self._caches[axis_index]
+        else:
+            cache = self._caches[cache_index]
 
-        y_ranges = {}
-        t_range = None
+        cache.append(tuple([timestamp * 1000.0] + data))
 
-        # check for auto-update
-        if update is False:
-            now = time.time()
-            if now > self.nextUpdate:
-                update = True
-                self.nextUpdate = now + self.updateInterval
+        def replot():
+            axis = self.axes(Qt.Vertical)[axis_index]
+            d_min = d_max = None
+            for n in cache.rows()[1:]:
+                serie = self.findSerie(n)
+                data = cache[n]
+                if d_min is None:
+                    d_min = min(data)
+                    d_max = max(data)
+                else:
+                    d_min = min(d_min, min(data))
+                    d_max = max(d_max, max(data))
+                points = [QPointF(*i) for i in zip(cache["timestamp"], data)]
+                serie.replace(points)
 
-        forceUpdate = False
+            self.timeAxis.setRange(
+                *(map(QDateTime().fromMSecsSinceEpoch, cache.timeRange()))
+            )
+            axis.setRange(d_min, d_max)
 
-        for d in series:
-            axis, serie, data = d
-            try:
-                a, s, points = self._findSerie(axis, serie)
-            except KeyError:
-                a, s, points = self._addSerie(axis, serie)
-                forceUpdate = True
+            self._next_update = time.monotonic() + self.updateInterval
 
-            points.append(QPointF(timestamp * 1000.0, data))
-            if len(points) > self.maxItems:
-                points = points[-self.maxItems :]
+        # replot if needed
+        if update:
+            self.updateTask.cancel()
+            self._next_update = 0
 
-            if update is False and forceUpdate is False:
-                continue
-
-            values = [p.y() for p in points]
-            y_range = [min(values), max(values)]
-            if y_range[0] == y_range[1]:
-                clip = 1.5
-            else:
-                clip = (y_range[1] - y_range[0]) * 0.05
-            y_range = [y_range[0] - clip, y_range[1] + clip]
-
-            try:
-                y_ranges[a] = [
-                    min(y_range[0], y_ranges[a][0]),
-                    max(y_range[1], y_ranges[a][1]),
-                ]
-            except KeyError:
-                y_ranges[a] = y_range
-
-            if t_range is None:
-                t_values = [p.x() for p in points]
-                t_range = [min(t_values), max(t_values)]
-                self.timeAxis.setRange(
-                    *(map(lambda i: QDateTime().fromMSecsSinceEpoch(i), t_range))
-                )
-
-            s.replace(points)
-
-            if forceUpdate:
-                a.applyNiceNumbers()
-                self.addSeries(s)
-                s.attachAxis(self.timeAxis)
-                s.attachAxis(a)
-
-        if update is False and forceUpdate is False:
-            return
-
-        for a, y_range in y_ranges.items():
-            a.setRange(*y_range)
+        if (
+            self._next_update < time.monotonic()
+            and self.updateTask.done()
+            and self.isVisibleTo(None)
+        ):
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                self.updateTask = pool.submit(replot)
 
     def clearData(self):
         """Removes all data from the chart."""
-        self._storedSeries = {}
         super().removeAllSeries()
-        for a in self.axes(Qt.Vertical):
-            self.removeAxis(a)
 
 
 class TimeChartView(QtCharts.QChartView):
-    """Time chart view. Add handling of mouse move events."""
+    """Time chart view. Add handling of mouse move events.
 
-    def __init__(self, chart):
-        super().__init__(chart)
+    Parameters
+    ----------
+    chart : `QChart`, optional
+        Chart associated with view. Defaults to None.
+    """
+
+    def __init__(self, chart=None):
+        if chart is None:
+            super().__init__()
+        else:
+            super().__init__(chart)
         self.setRenderHint(QPainter.Antialiasing)
+        self.setRubberBand(QtCharts.QChartView.HorizontalRubberBand)

@@ -28,7 +28,7 @@ class InclinometerPageWidget(QWidget):
         self.unknownFunctionLabel = QLabel("UNKNOWN")
         self.unknownProblemLabel = QLabel("UNKNOWN")
 
-        self.chart = TimeChart.TimeChart()
+        self.chart = TimeChart.TimeChart({"Angle (deg)": ["Inclinometer Angle"]})
         self.chart_view = TimeChart.TimeChartView(self.chart)
 
         row = 0
@@ -94,7 +94,4 @@ class InclinometerPageWidget(QWidget):
     def inclinometerData(self, data):
         self.angleLabel.setText("%0.3f" % (data.inclinometerAngle))
 
-        self.chart.append(
-            data.timestamp,
-            [("Angle (deg)", "Inclinometer Angle", data.inclinometerAngle)],
-        )
+        self.chart.append(data.timestamp, [data.inclinometerAngle])

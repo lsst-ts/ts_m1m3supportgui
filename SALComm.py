@@ -275,3 +275,67 @@ def SALCommand(cmd):
             )
 
     return wrapper
+
+
+def SALListCommand(cmd):
+    """Decorator to run commands and display error dialog when in troubles. To
+    be used in QtWidget child method. Decorates a function call, pass supplied
+    arguments to SAL/DDS command call.
+
+    Parameters
+    ----------
+    comms : `[SALComm]`
+        List of SALComm objects. The command will be executed for each member of the list.
+    cmd : `str`
+        SAL command name
+    **kwargs : `dict`
+        Arguments passed to SAL command.
+
+    Usage
+    -----
+
+    Calling await runTheMachine will start command and wait for its completion.
+    QMessageBox with details will be shown on errors.
+
+    .. code-block:: python
+        class MyCommandClass(QWidget):
+           def __init__(self):
+               super().__init__()
+               self.cscs = [SALComm('MTVMS', index=1), SALComm('MTVMS', index=2)]
+
+               button = QPushButton("Run!")
+               button.clicked.connect(self.runIt)
+
+           ...
+
+           @asyncSlot()
+           async def runIt(self):
+               await self.runTheMachine(speed=1, angle=120)
+
+           @SALListCommand("runTheMachine")
+           def runTheMachine(self, **kwargs):
+               return self.cscs
+    """
+
+    def wrapper(comms):
+        async def wrapper_f(self, **kwargs):
+            for comm in comms(self):
+                try:
+                    called = getattr(comm.remote, "cmd_" + cmd)
+                    await called.set_start(**kwargs)
+                except base.AckError as ackE:
+                    warning(
+                        self,
+                        f"Error executing {comm.remote.salinfo.name}:{comm.remote.salinfo.index} {called.name}",
+                        f"Executing SAL/DDS command <i>{called.name}({kwargs}</i>):<br/>{ackE.ackcmd.result}",
+                    )
+                except RuntimeError as rte:
+                    warning(
+                        self,
+                        f"Error executing {comm.remote.salinfo.name}:{comm.remote.salinfo.index} {called.name}",
+                        f"Executing SAL/DDS command <b>{called.name}</b>(<i>{kwargs}</i>):<br/>{str(rte)}",
+                    )
+
+        return wrapper_f
+
+    return wrapper

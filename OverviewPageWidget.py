@@ -211,8 +211,8 @@ class OverviewPageWidget(QWidget):
         dataLayout.addWidget(self.tmaAzimuthLabel, row, col + 2)
         dataLayout.addWidget(QLabel("<b>CsC</b>"), row, col + 4)
         dataLayout.addWidget(QLabel("<b>SAL</b>"), row, col + 5)
-        dataLayout.addWidget(QLabel("<b>XMLi</b>"), row, col + 6)
-        dataLayout.addWidget(QLabel("<b>OSPLi</b>"), row, col + 7)
+        dataLayout.addWidget(QLabel("<b>XML</b>"), row, col + 6)
+        dataLayout.addWidget(QLabel("<b>OSPL</b>"), row, col + 7)
         row += 1
         dataLayout.addWidget(QLabel("Elevation (deg)"), row, col)
         dataLayout.addWidget(self.inclinometerLabel, row, col + 1)

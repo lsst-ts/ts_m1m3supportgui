@@ -19,7 +19,7 @@
 
 import TimeChart
 from FATABLE import *
-from SALLogWidget import SALLogWidget
+import SALLog
 from PySide2.QtCore import Slot, Qt
 from PySide2.QtGui import QColor
 from PySide2.QtWidgets import (
@@ -151,8 +151,8 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.progressGroup.setLayout(progressLayout)
         self.progressGroup.setMaximumWidth(410)
 
-        self.chart = TimeChart.TimeChart()
-        self.chart_view = TimeChart.TimeChartView(self.chart)
+        self.chart = None
+        self.chart_view = TimeChart.TimeChartView()
         self.chart_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         def makeButton(text, clicked):
@@ -176,7 +176,7 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.forms = QHBoxLayout()
         self.forms.addWidget(actuatorBox)
         self.forms.addWidget(self.progressGroup)
-        self.forms.addWidget(SALLogWidget(self.m1m3))
+        self.forms.addWidget(SALLog.Widget(self.m1m3))
         self.layout.addLayout(self.forms)
         self.layout.addWidget(self.chart_view)
         self.layout.addLayout(self.buttonLayout)
@@ -234,7 +234,6 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         await self._testItem(self.actuatorsTable.selectedItems()[0])
 
     async def _testItem(self, item):
-        self.chart.clearData()
         self.actuatorsTable.scrollToItem(item)
         self.testedId = item.data(Qt.UserRole)
         item.setSelected(False)
@@ -243,6 +242,25 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         self.xIndex = FATABLE[self.zIndex][FATABLE_XINDEX]
         self.yIndex = FATABLE[self.zIndex][FATABLE_YINDEX]
         self.sIndex = FATABLE[self.zIndex][FATABLE_SINDEX]
+
+        items = []
+        if self.xIndex is not None:
+            items.append("X")
+        if self.yIndex is not None:
+            items.append("Y")
+        items.append("Z")
+        items = (
+            list(map(lambda s: "Applied " + s, items))
+            + [None]
+            + list(map(lambda s: "Measured " + s, items))
+        )
+
+        if self.chart is not None:
+            self.chart.clearData()
+
+        self.chart = TimeChart.TimeChart({"Force (N)": items})
+
+        self.chart_view.setChart(self.chart)
 
         self.progressGroup.setTitle(f"Test progress {self.testedId}")
         if self.sIndex is not None:
@@ -284,38 +302,26 @@ class ForceActuatorBumpTestPageWidget(QWidget):
         """Adds applied forces to graph."""
         chartData = []
         if self.xIndex is not None:
-            chartData.append(("Force (N)", "Applied X", data.xForces[self.xIndex]))
+            chartData.append(data.xForces[self.xIndex])
         if self.yIndex is not None:
-            chartData.append(("Force (N)", "Applied Y", data.yForces[self.yIndex]))
+            chartData.append(data.yForces[self.yIndex])
         if self.zIndex is not None:
-            chartData.append(("Force (N)", "Applied Z", data.zForces[self.zIndex]))
+            chartData.append(data.zForces[self.zIndex])
 
-        self.chart.append(data.timestamp, chartData)
+        self.chart.append(data.timestamp, chartData, cache_index=0)
 
     @Slot(map)
     def forceActuatorData(self, data):
         """Adds measured forces to graph."""
         chartData = []
         if self.xIndex is not None:
-            chartData.append(
-                (
-                    "Force (N)",
-                    "Measured X",
-                    data.xForce[self.xIndex],
-                )
-            )
+            chartData.append(data.xForce[self.xIndex])
         if self.yIndex is not None:
-            chartData.append(
-                (
-                    "Force (N)",
-                    "Measured Y",
-                    data.yForce[self.yIndex],
-                )
-            )
+            chartData.append(data.yForce[self.yIndex])
         if self.zIndex is not None:
-            chartData.append(("Force (N)", "Measured Z", data.zForce[self.zIndex]))
+            chartData.append(data.zForce[self.zIndex])
 
-        self.chart.append(data.timestamp, chartData)
+        self.chart.append(data.timestamp, chartData, cache_index=1)
 
     @asyncSlot(map)
     async def forceActuatorBumpTestStatus(self, data):
