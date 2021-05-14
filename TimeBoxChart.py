@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.If not, see < https:  // www.gnu.org/licenses/>.
 
-from PySide2.QtCore import Qt, QDateTime, QPointF
+from PySide2.QtCore import Qt, QDateTime, QPointF, Slot
 from PySide2.QtGui import QPainter
 from PySide2.QtCharts import QtCharts
 import time
@@ -51,34 +51,38 @@ class TimeBoxChart(AbstractChart):
     def __init__(self, maxItems=10):
         super().__init__()
         self.maxItems = maxItems
+        self.coefficient = 1.0
 
-    def append(self, timestamp, axis, name, data):
-        """Add data to a serie. Creates axis and serie if needed. Shrink if
+    @Slot(float)
+    def coefficientChanged(self, coefficient):
+        # for s in self.series():
+        #    for b in
+        self.coefficient = coefficient
+
+    def append(self, serie, timestamp, data):
+        """Add data to a serie. Creates serie if needed. Shrink if
         more than expected elements are stored.
 
         Parameters
         ----------
+        serie : `QBoxPlotSeries`
+            Serie name.
         timestamp : `float`
             Values timestamp.
-        axis : `str`
-            Axis title.
-        name : `str`
-            Serie name.
         data : [float]
             Serie data."""
 
-        s = self.findSerie(name)
-        if s.count() > self.maxItems - 1:
-            for r in range(s.count() - self.maxItems + 1):
-                s.remove(s.boxSets()[0])
+        if serie.count() > self.maxItems - 1:
+            for r in range(serie.count() - self.maxItems + 1):
+                serie.remove(serie.boxSets()[0])
 
-        quantiles = np.quantile(data, [0, 0.25, 0.5, 0.75, 1])
+        quantiles = np.quantile(data, [0, 0.25, 0.5, 0.75, 1]) * self.coefficient
         boxSet = QtCharts.QBoxSet(
             *quantiles,
             f"{time.localtime(timestamp).tm_sec:02d}.{int((timestamp - np.floor(timestamp)) * 1000)}",
         )
 
-        s.append(boxSet)
+        serie.append(boxSet)
 
         d_min = d_max = 0
         for s in self.series():

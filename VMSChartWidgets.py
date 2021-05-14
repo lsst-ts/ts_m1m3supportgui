@@ -40,6 +40,7 @@ from lsst.ts.salobj import make_done_future
 class VMSChartView(TimeChart.TimeChartView):
 
     axisChanged = Signal(bool, bool)
+    coefficientChanged = Signal(float)
 
     def __init__(self, title, serieType):
         super().__init__(title)
@@ -47,6 +48,7 @@ class VMSChartView(TimeChart.TimeChartView):
         self._maxSensor = 0
         self.logX = False
         self.logY = False
+        self.coefficient = 1
 
     def updateMaxSensor(self, maxSensor):
         self._maxSensor = max(self._maxSensor, maxSensor)
@@ -72,6 +74,8 @@ class VMSChartView(TimeChart.TimeChartView):
         contextMenu = QMenu()
         zoomOut = contextMenu.addAction("Zoom out")
         clear = contextMenu.addAction("Clear")
+        unit = contextMenu.addAction("Unit " + ("mm" if self.coefficient == 1 else "m"))
+
         for s in range(1, self._maxSensor + 1):
             for a in ["X", "Y", "Z"]:
                 name = f"{s} {a}"
@@ -100,6 +104,9 @@ class VMSChartView(TimeChart.TimeChartView):
             self.chart().zoomReset()
         elif action == clear:
             self.clear()
+        elif action == unit:
+            self.coefficient = 1000 if self.coefficient == 1 else 1
+            self.coefficientChanged.emit(self.coefficient)
         elif action == logX:
             self.logX = action.isChecked()
             self.axisChanged.emit(self.logX, self.logY)
@@ -136,21 +143,24 @@ class BoxChartWidget(DockWindow):
         self.setWidget(self.chartView)
 
         comm.data.connect(self.data)
+        self.chartView.coefficientChanged.connect(self.chart.coefficientChanged)
 
     @Slot(map)
     def data(self, data):
         self.chartView.updateMaxSensor(data.sensor)
         for axis in ["X", "Y", "Z"]:
             name = f"{str(data.sensor)} {axis}"
-            if self.chart.findSerie(name) is not None:
+            serie = self.chart.findSerie(name)
+            if serie is not None:
                 self.chart.append(
+                    serie,
                     data.timestamp,
-                    "Acceleration (m/s<sup>2</sup>)",
-                    name,
                     getattr(data, f"acceleration{axis}"),
                 )
                 self.chart.axes(Qt.Vertical)[0].setTitleText(
-                    "Acceleration (m/s<sup>2</sup>)"
+                    "Acceleration ("
+                    + ("m" if self.chart.coefficient == 1 else "mm")
+                    + "/s<sup>2</sup>)"
                 )
 
 
@@ -186,9 +196,11 @@ class PSDWidget(DockWindow):
         self.chartView = VMSChartView(self.chart, QtCharts.QLineSeries)
         self.chartView.updateMaxSensor(self.cache.sensors())
         self.chartView.axisChanged.connect(self.axisChanged)
+        self.chartView.coefficientChanged.connect(self.coefficientChanged)
         for channel in channels:
             self.chartView.addSerie(str(channel[0]) + " " + channel[1])
 
+        self.coefficient = 1
         self.setupAxes = True
         self._setupAxes()
 
@@ -196,6 +208,11 @@ class PSDWidget(DockWindow):
 
     @Slot(bool, bool)
     def axisChanged(self, logX, logY):
+        self.setupAxes = True
+
+    @Slot(float)
+    def coefficientChanged(self, coefficient):
+        self.coefficient = coefficient
         self.setupAxes = True
 
     def _setupAxes(self):
@@ -217,7 +234,9 @@ class PSDWidget(DockWindow):
 
         xAxis.setTitleText("Frequency (Hz)")
         yAxis.setTitleText(
-            "Acceleration PSD ((m/s<sup>2</sup>)<sup>2</sup> Hz <sup>-1</sup>)"
+            "PSD (("
+            + ("m" if self.coefficient == 1 else "mm")
+            + "/s<sup>2</sup>)<sup>2</sup> Hz <sup>-1</sup>)"
         )
 
         self.chart.addAxis(xAxis, Qt.AlignBottom)
@@ -319,7 +338,7 @@ class PSDWidget(DockWindow):
             if N < 10:
                 return 0, 0
             # as input is real only, fft is symmetric; rfft is enough
-            psd = np.abs(np.fft.rfft(signal)) ** 2
+            psd = np.abs(np.fft.rfft(np.array(signal) * self.coefficient)) ** 2
 
             (psd, frequencies) = downsample(psd, N)
 
