@@ -115,6 +115,15 @@ class TimeChart(AbstractChart):
                     self._addSerie(d, axis[0])
             self._caches.append(TimeCache.TimeCache(maxItems, data))
 
+        # Caveat emptor, the order here is important. Hard to find, but the order in
+        # which chart, axis and series are constructed and attached should always be:
+        # - construct Axis, Chart, Serie
+        # - addAxis to chart
+        # - attach series to axis
+        # Changing the order will result in undetermined behaviour, most
+        # likely the axis or even graph not shown. It's irrelevant when you
+        # fill series with data. See QtChart::createDefaultAxes in QtChart
+        # source code for details.
         self.timeAxis = QtCharts.QDateTimeAxis()
         self.timeAxis.setReverse(True)
         self.timeAxis.setTickCount(5)
@@ -130,7 +139,7 @@ class TimeChart(AbstractChart):
     def _addSerie(self, name, axis):
         s = QtCharts.QLineSeries()
         s.setName(name)
-        # s.setUseOpenGL(True)
+        s.setUseOpenGL(True)
         points = []
         a = self.findAxis(axis)
         if a is None:
