@@ -299,9 +299,9 @@ def SALListCommand(cmd):
 
     .. code-block:: python
         class MyCommandClass(QWidget):
-           def __init__(self, csc):
+           def __init__(self):
                super().__init__()
-               self.csc = csc
+               self.cscs = [SALComm('MTVMS', index=1), SALComm('MTVMS', index=2)]
 
                button = QPushButton("Run!")
                button.clicked.connect(self.runIt)
@@ -312,9 +312,9 @@ def SALListCommand(cmd):
            async def runIt(self):
                await self.runTheMachine(speed=1, angle=120)
 
-           @SALCommand
+           @SALListCommand("runTheMachine")
            def runTheMachine(self, **kwargs):
-               return self.csc.remote.runTheMachine
+               return self.cscs
     """
 
     def wrapper(comms):

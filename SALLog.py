@@ -177,7 +177,10 @@ class Object(QObject):
     """Construct and populate toolbar and messages."""
 
     def __init__(self, comms, toolbar, messages):
-        self.comms = comms
+        if type(comms) == list:
+            self.comms = comms
+        else:
+            self.comms = [comms]
 
         toolbar.clear.connect(messages.clear)
         toolbar.changeLevel.connect(self.changeLevel)
