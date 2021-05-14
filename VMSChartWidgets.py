@@ -22,6 +22,7 @@ __all__ = ["BoxChartWidget", "PSDWidget"]
 import TimeChart
 import TimeBoxChart
 from VMSGUI import ToolBar
+import VMSUnit
 from PySide2.QtCore import Qt, Slot, Signal, QPointF, QSettings
 from PySide2.QtWidgets import QMenu
 from PySide2.QtCharts import QtCharts
@@ -40,7 +41,7 @@ from lsst.ts.salobj import make_done_future
 class VMSChartView(TimeChart.TimeChartView):
 
     axisChanged = Signal(bool, bool)
-    coefficientChanged = Signal(float)
+    unitChanged = Signal(str)
 
     def __init__(self, title, serieType):
         super().__init__(title)
@@ -48,7 +49,7 @@ class VMSChartView(TimeChart.TimeChartView):
         self._maxSensor = 0
         self.logX = False
         self.logY = False
-        self.coefficient = 1
+        self.unit = VMSUnit.menuUnits[0]
 
     def updateMaxSensor(self, maxSensor):
         self._maxSensor = max(self._maxSensor, maxSensor)
@@ -74,7 +75,17 @@ class VMSChartView(TimeChart.TimeChartView):
         contextMenu = QMenu()
         zoomOut = contextMenu.addAction("Zoom out")
         clear = contextMenu.addAction("Clear")
-        unit = contextMenu.addAction("Unit " + ("mm" if self.coefficient == 1 else "m"))
+        unitMenu = contextMenu.addMenu("Unit")
+
+        def addUnit(unit):
+            action = unitMenu.addAction(unit)
+            action.setCheckable(True)
+            action.setChecked(unit == self.unit)
+            return action
+
+        units_actions = [
+            addUnit(VMSUnit.menuUnits[i]) for i in range(len(VMSUnit.menuUnits))
+        ]
 
         for s in range(1, self._maxSensor + 1):
             for a in ["X", "Y", "Z"]:
@@ -98,15 +109,16 @@ class VMSChartView(TimeChart.TimeChartView):
             logY = None
 
         action = contextMenu.exec_(event.globalPos())
+        # conversions
         if action is None:
             return
         elif action == zoomOut:
             self.chart().zoomReset()
         elif action == clear:
             self.clear()
-        elif action == unit:
-            self.coefficient = 1000 if self.coefficient == 1 else 1
-            self.coefficientChanged.emit(self.coefficient)
+        elif action in units_actions:
+            self.unit = action.text()
+            self.unitChanged.emit(VMSUnit.units[VMSUnit.menuUnits.index(self.unit)])
         elif action == logX:
             self.logX = action.isChecked()
             self.axisChanged.emit(self.logX, self.logY)
@@ -143,7 +155,7 @@ class BoxChartWidget(DockWindow):
         self.setWidget(self.chartView)
 
         comm.data.connect(self.data)
-        self.chartView.coefficientChanged.connect(self.chart.coefficientChanged)
+        self.chartView.unitChanged.connect(self.chart.unitChanged)
 
     @Slot(map)
     def data(self, data):
@@ -158,9 +170,7 @@ class BoxChartWidget(DockWindow):
                     getattr(data, f"acceleration{axis}"),
                 )
                 self.chart.axes(Qt.Vertical)[0].setTitleText(
-                    "Acceleration ("
-                    + ("m" if self.chart.coefficient == 1 else "mm")
-                    + "/s<sup>2</sup>)"
+                    "Acceleration (" + self.chart.unit + ")"
                 )
 
 
@@ -196,11 +206,12 @@ class PSDWidget(DockWindow):
         self.chartView = VMSChartView(self.chart, QtCharts.QLineSeries)
         self.chartView.updateMaxSensor(self.cache.sensors())
         self.chartView.axisChanged.connect(self.axisChanged)
-        self.chartView.coefficientChanged.connect(self.coefficientChanged)
+        self.chartView.unitChanged.connect(self.unitChanged)
         for channel in channels:
             self.chartView.addSerie(str(channel[0]) + " " + channel[1])
 
         self.coefficient = 1
+        self.unit = VMSUnit.units[0]
         self.setupAxes = True
         self._setupAxes()
 
@@ -210,9 +221,10 @@ class PSDWidget(DockWindow):
     def axisChanged(self, logX, logY):
         self.setupAxes = True
 
-    @Slot(float)
-    def coefficientChanged(self, coefficient):
-        self.coefficient = coefficient
+    @Slot(str)
+    def unitChanged(self, unit):
+        self.coefficient = VMSUnit.coefficients(unit)
+        self.unit = unit
         self.setupAxes = True
 
     def _setupAxes(self):
@@ -233,11 +245,7 @@ class PSDWidget(DockWindow):
             yAxis = QtCharts.QValueAxis()
 
         xAxis.setTitleText("Frequency (Hz)")
-        yAxis.setTitleText(
-            "PSD (("
-            + ("m" if self.coefficient == 1 else "mm")
-            + "/s<sup>2</sup>)<sup>2</sup> Hz <sup>-1</sup>)"
-        )
+        yAxis.setTitleText("PSD ((" + self.unit + ")<sup>2</sup> Hz <sup>-1</sup>)")
 
         self.chart.addAxis(xAxis, Qt.AlignBottom)
         self.chart.addAxis(yAxis, Qt.AlignLeft)

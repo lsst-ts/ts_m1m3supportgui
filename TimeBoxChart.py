@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.If not, see < https:  // www.gnu.org/licenses/>.
 
+__all__ = ["TimeBoxChart"]
+
 from PySide2.QtCore import Qt, QDateTime, QPointF, Slot
 from PySide2.QtGui import QPainter
 from PySide2.QtCharts import QtCharts
@@ -26,9 +28,7 @@ import time
 import numpy as np
 
 from TimeChart import AbstractChart
-
-
-__all__ = ["TimeBoxChart"]
+import VMSUnit
 
 
 class TimeBoxChart(AbstractChart):
@@ -51,13 +51,18 @@ class TimeBoxChart(AbstractChart):
     def __init__(self, maxItems=10):
         super().__init__()
         self.maxItems = maxItems
-        self.coefficient = 1.0
+        self.coefficient = 1
+        self.unit = VMSUnit.units[0]
 
-    @Slot(float)
-    def coefficientChanged(self, coefficient):
-        # for s in self.series():
-        #    for b in
-        self.coefficient = coefficient
+    @Slot(str)
+    def unitChanged(self, unit):
+        delta = VMSUnit.deltas(self.unit, unit)
+        for s in self.series():
+            for b in s.boxSets():
+                for i in range(5):
+                    b.setValue(i, b.at(i) * delta)
+        self.coefficient = VMSUnit.coefficients(unit)
+        self.unit = unit
 
     def append(self, serie, timestamp, data):
         """Add data to a serie. Creates serie if needed. Shrink if
