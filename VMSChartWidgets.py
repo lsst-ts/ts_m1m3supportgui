@@ -29,15 +29,12 @@ from asyncqt import asyncSlot
 from CustomLabels import DockWindow
 
 import abc
-import astropy.units as u
 import asyncio
 import concurrent.futures
 from datetime import datetime
 import numpy as np
 import time
 from lsst.ts.salobj import make_done_future
-
-UG2G = u.g.to(u.ug)
 
 
 class VMSChartView(TimeChart.TimeChartView):
@@ -150,9 +147,11 @@ class BoxChartWidget(DockWindow):
                     data.timestamp,
                     "Acceleration (m/s<sup>2</sup>)",
                     name,
-                    np.array(getattr(data, f"acceleration{axis}")) * UG2G,
+                    getattr(data, f"acceleration{axis}"),
                 )
-                self.chart.axes(Qt.Vertical)[0].setTitleText("Acceleration (&micro;g)")
+                self.chart.axes(Qt.Vertical)[0].setTitleText(
+                    "Acceleration (m/s<sup>2</sup>)"
+                )
 
 
 class PSDWidget(DockWindow):
@@ -217,7 +216,9 @@ class PSDWidget(DockWindow):
             yAxis = QtCharts.QValueAxis()
 
         xAxis.setTitleText("Frequency (Hz)")
-        yAxis.setTitleText("Acceleration (&micro;g)")
+        yAxis.setTitleText(
+            "Acceleration PSD ((m/s<sup>2</sup>)<sup>2</sup> Hz <sup>-1</sup>)"
+        )
 
         self.chart.addAxis(xAxis, Qt.AlignBottom)
         self.chart.addAxis(yAxis, Qt.AlignLeft)
@@ -318,7 +319,7 @@ class PSDWidget(DockWindow):
             if N < 10:
                 return 0, 0
             # as input is real only, fft is symmetric; rfft is enough
-            psd = np.abs(np.fft.rfft(signal)) ** 2 * self.SAMPLE_TIME / N
+            psd = np.abs(np.fft.rfft(signal)) ** 2
 
             (psd, frequencies) = downsample(psd, N)
 
