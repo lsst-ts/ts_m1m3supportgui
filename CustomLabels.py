@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.If not, see <https://www.gnu.org/licenses/>.
 
-from PySide2.QtCore import Slot, QRect, QTimer
+from PySide2.QtCore import Slot, QRect, QTimer, Qt
 from PySide2.QtWidgets import (
     QFrame,
     QWidget,
@@ -407,3 +407,11 @@ class DockWindow(QDockWidget):
 
     def __init__(self, title):
         super().__init__(title)
+        self.topLevelChanged.connect(self._topLevelChanged)
+
+    @Slot(bool)
+    def _topLevelChanged(self, topLevel):
+        if topLevel:
+            self.setWindowFlags(Qt.Window)
+        else:
+            self.setWindowFlags(Qt.Widget)
