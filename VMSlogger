@@ -1,0 +1,83 @@
+#!/usr/bin/env python3.8
+
+import signal
+import sys
+
+from VMSCache import *
+
+import argparse
+import astropy.units as u
+import asyncio
+import numpy as np
+import logging
+
+from lsst.ts.salobj import Domain, Remote
+
+devices = ["M1M3", "M2", "Rotator"]
+
+parser = argparse.ArgumentParser(description="Save VMS data to a file")
+parser.add_argument(
+    "devices", type=str, nargs="+", help="name or index of CSC", choices=devices
+)
+parser.add_argument(
+    "-s", type=int, dest="size", default=50000, help="number of records to save"
+)
+parser.add_argument("-d", dest="debug", action="count", help="Increase debug level")
+
+device_sensors = [3, 6, 3]
+
+logger = logging.getLogger("VMSlogger")
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+ch.setFormatter(formatter)
+
+
+async def collect_data(index, filename, size):
+    logger.debug(f"Creating cache: index={index+1} sensors={device_sensors[index]}")
+    cache = VMSCache(size, device_sensors[index])
+    async with Domain() as domain:
+        remote = Remote(domain, "MTVMS", index=index + 1)
+        remote.tel_data.callback = lambda data: cache.newChunk(data, 0.001)
+        while not (cache.filled):
+            await asyncio.sleep(0.5)
+            logger.debug(
+                f"Waiting {devices[index]}..{100 * len(cache)/size:.02f}% {len(cache)} of {size}"
+            )
+        np.savetxt(filename, cache.data, delimiter=",")
+
+
+async def main():
+    args = parser.parse_args()
+    if args.debug > 0:
+        ch.setLevel(logging.DEBUG)
+    else:
+        ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
+
+    tasks = []
+
+    def cancel_all(signum, frame):
+        logger.info(f"Canceling after {signum}")
+        for t in tasks:
+            t.cancel()
+
+    for signum in [signal.SIGINT, signal.SIGHUP, signal.SIGTERM]:
+        signal.signal(signum, cancel_all)
+
+    for d in args.devices:
+        logger.info(f"Collecting {d}")
+        tasks.append(
+            asyncio.create_task(
+                collect_data(devices.index(d), f"dump_{d}.csv", args.size)
+            )
+        )
+    try:
+        await asyncio.gather(*tasks)
+        logger.info("Done")
+    except asyncio.exceptions.CancelledError:
+        logger.info("Canceled")
+
+
+asyncio.run(main())
