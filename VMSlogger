@@ -6,8 +6,9 @@ import sys
 from VMSCache import *
 
 import argparse
-import astropy.units as u
 import asyncio
+import click
+from datetime import datetime
 import numpy as np
 import logging
 
@@ -22,7 +23,9 @@ parser.add_argument(
 parser.add_argument(
     "-s", type=int, dest="size", default=50000, help="number of records to save"
 )
-parser.add_argument("-d", dest="debug", action="count", help="Increase debug level")
+parser.add_argument(
+    "-d", dest="debug", default=0, action="count", help="Increase debug level"
+)
 
 device_sensors = [3, 6, 3]
 
@@ -40,11 +43,29 @@ async def collect_data(index, filename, size):
     async with Domain() as domain:
         remote = Remote(domain, "MTVMS", index=index + 1)
         remote.tel_data.callback = lambda data: cache.newChunk(data, 0.001)
-        while not (cache.filled):
-            await asyncio.sleep(0.5)
-            logger.debug(
-                f"Waiting {devices[index]}..{100 * len(cache)/size:.02f}% {len(cache)} of {size}"
-            )
+        if logger.getEffectiveLevel() == logging.DEBUG:
+            while not (cache.filled):
+                await asyncio.sleep(0.5)
+                logger.debug(
+                    f"Waiting {devices[index]}..{100 * len(cache)/size:.02f}% {len(cache)} of {size}"
+                )
+        else:
+            with click.progressbar(
+                length=size,
+                label="Getting data",
+                show_eta=True,
+                show_percent=True,
+                width=0,
+            ) as bar:
+                current = 0
+                while not (cache.filled):
+                    l = len(cache)
+                    bar.update(l - current)
+                    current = l
+                    await asyncio.sleep(0.1)
+                bar.update(len(cache) - current)
+
+        logger.info(f"Saving CVS to {filename}")
         np.savetxt(filename, cache.data, delimiter=",")
 
 
@@ -53,6 +74,7 @@ async def main():
     if args.debug > 0:
         ch.setLevel(logging.DEBUG)
     else:
+        logger.setLevel(logging.INFO)
         ch.setLevel(logging.INFO)
     logger.addHandler(ch)
 
@@ -67,10 +89,11 @@ async def main():
         signal.signal(signum, cancel_all)
 
     for d in args.devices:
-        logger.info(f"Collecting {d}")
+        suffix = datetime.strftime(datetime.now(), "%Y-%d-%mT%H:%M:%S")
+        logger.info(f"Collecting {d} with suffix {suffix}")
         tasks.append(
             asyncio.create_task(
-                collect_data(devices.index(d), f"dump_{d}.csv", args.size)
+                collect_data(devices.index(d), f"{d}_{suffix}.csv", args.size)
             )
         )
     try:
