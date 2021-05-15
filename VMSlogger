@@ -85,7 +85,7 @@ async def collect_data(index, filename, size):
                 bar.update(len(cache) - current)
 
         logger.info(f"Saving CVS to {filename}")
-        np.savetxt(filename, cache.data, delimiter=",")
+        cache.savetxt(filename, delimiter=",")
 
 
 async def main():
