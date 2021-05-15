@@ -52,7 +52,7 @@ async def collect_data(index, filename, size):
         else:
             with click.progressbar(
                 length=size,
-                label="Getting data",
+                label=f"Getting data {devices[index]}",
                 show_eta=True,
                 show_percent=True,
                 width=0,
