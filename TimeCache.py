@@ -129,27 +129,34 @@ class TimeCache:
             for r in range(self._size - 1, self.current_index - 1, -1):
                 yield self.data[r]
 
-    def savetxt(self, filename, delimiter=","):
+    def savetxt(self, filename, **kwargs):
         """Saves data to file.
 
         Parameters
         ----------
         filename : `str`
             Filename to save the data.
-        delimiter : `str`, optional
-            Delimiter. Defaults to ','
+        **kwargs : `dict`, optional
+            Arguments passed to np.savetxt()
         """
         if self.filled:
             np.savetxt(
                 filename,
                 list(self.data[self.current_index + 1 :])
                 + list(self.data[: self.current_index]),
-                delimiter=",",
+                **kwargs,
             )
-        np.savetxt(filename, self.data[: self.current_index], delimiter=",")
+        else:
+            np.savetxt(filename, self.data[: self.current_index], **kwargs)
 
-    def rows(self):
-        """Returns rows names."""
+    def columns(self):
+        """Returns column names.
+
+        Returns
+        -------
+        columns : `[str]`
+            Columns names as specified in constructor.
+        """
         return self.data.dtype.names
 
     def __getitem__(self, key):

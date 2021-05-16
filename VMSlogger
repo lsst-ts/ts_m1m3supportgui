@@ -40,7 +40,10 @@ parser.add_argument(
     "devices", type=str, nargs="+", help="name or index of CSC", choices=devices
 )
 parser.add_argument(
-    "-d", dest="debug", default=0, action="count", help="Increase debug level"
+    "-d", dest="debug", default=0, action="count", help="increase debug level"
+)
+parser.add_argument(
+    "--header", dest="header", action="store_true", help="adds header with column names"
 )
 parser.add_argument(
     "-s", type=int, dest="size", default=50000, help="number of records to save"
@@ -59,7 +62,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 
 
-async def collect_data(index, filename, size, zip_file):
+async def collect_data(index, filename, size, zip_file, header):
     logger.debug(f"Creating cache: index={index+1} sensors={device_sensors[index]}")
     cache = VMSCache(size, device_sensors[index])
     async with Domain() as domain:
@@ -90,7 +93,10 @@ async def collect_data(index, filename, size, zip_file):
         if zip_file:
             filename += ".gz"
         logger.info(f"Saving CVS to {filename}")
-        cache.savetxt(filename, delimiter=",")
+        kwargs = {"delimiter": ","}
+        if header:
+            kwargs["header"] = ",".join(cache.columns())
+        cache.savetxt(filename, **kwargs)
 
 
 async def main():
@@ -118,7 +124,11 @@ async def main():
         tasks.append(
             asyncio.create_task(
                 collect_data(
-                    devices.index(d), f"{d}_{suffix}.csv", args.size, args.zip_file
+                    devices.index(d),
+                    f"{d}_{suffix}.csv",
+                    args.size,
+                    args.zip_file,
+                    args.header,
                 )
             )
         )

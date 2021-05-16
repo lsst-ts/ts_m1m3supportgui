@@ -180,7 +180,7 @@ class TimeChart(AbstractChart):
         def replot():
             axis = self.axes(Qt.Vertical)[axis_index]
             d_min = d_max = None
-            for n in cache.rows()[1:]:
+            for n in cache.columns()[1:]:
                 serie = self.findSerie(n)
                 data = cache[n]
                 if d_min is None:
