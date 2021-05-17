@@ -197,8 +197,8 @@ async def main():
             fn += ".hdf"
         else:
             fn += ".csv"
-        if "z" in file_type:
-            fn += ".gz"
+            if "z" in file_type:
+                fn += ".gz"
 
         logger.info(f"Collecting {d} to {fn}")
         c = Collector(devices.index(d), fn, args.size, file_type, args.header)
