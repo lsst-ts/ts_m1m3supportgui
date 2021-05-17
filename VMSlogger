@@ -33,11 +33,25 @@ import logging
 
 from lsst.ts.salobj import Domain, Remote
 
+try:
+    import h5py
+
+    has_h5py = True
+except ModuleNotFoundError:
+    has_h5py = False
+
+
 devices = ["M1M3", "M2", "Rotator"]
 
 parser = argparse.ArgumentParser(description="Save VMS data to a file")
 parser.add_argument(
     "devices", type=str, nargs="+", help="name or index of CSC", choices=devices
+)
+parser.add_argument(
+    "-5",
+    dest="h5py",
+    action="store_true",
+    help="save into HDF 5. Requires h5py (pip install h5py)",
 )
 parser.add_argument(
     "-d", dest="debug", default=0, action="count", help="increase debug level"
@@ -62,41 +76,82 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 
 
-async def collect_data(index, filename, size, zip_file, header):
-    logger.debug(f"Creating cache: index={index+1} sensors={device_sensors[index]}")
-    cache = VMSCache(size, device_sensors[index])
-    async with Domain() as domain:
-        remote = Remote(domain, "MTVMS", index=index + 1)
-        remote.tel_data.callback = lambda data: cache.newChunk(data, 0.001)
-        if logger.getEffectiveLevel() == logging.DEBUG:
-            while not (cache.filled):
-                await asyncio.sleep(0.5)
-                logger.debug(
-                    f"Waiting {devices[index]}..{100 * len(cache)/size:.02f}% {len(cache)} of {size}"
-                )
-        else:
-            with click.progressbar(
-                length=size,
-                label=f"Getting data {devices[index]}",
-                show_eta=True,
-                show_percent=True,
-                width=0,
-            ) as bar:
-                current = 0
-                while not (cache.filled):
-                    l = len(cache)
-                    bar.update(l - current)
-                    current = l
-                    await asyncio.sleep(0.1)
-                bar.update(len(cache) - current)
+class Collector:
+    def __init__(self, index, filename, size, file_type, header):
+        self.index = index
+        self.filename = filename
+        self.size = size
+        self.file_type = file_type
+        self.header = header
+        self.h5file = None
 
-        if zip_file:
-            filename += ".gz"
-        logger.info(f"Saving CVS to {filename}")
-        kwargs = {"delimiter": ","}
-        if header:
-            kwargs["header"] = ",".join(cache.columns())
-        cache.savetxt(filename, **kwargs)
+        logger.debug(
+            f"Creating cache: index={self.index+1} device={device_sensors[self.index]} type={self.file_type}"
+        )
+        if "5" in file_type:
+            self.chunk_size = max(1100000, size)
+            self.h5_size = 1000000
+
+            self.h5file = h5py.File(self.filename, "a")
+            self._h5_next_group()
+        else:
+            self.chunk_size = self.size
+        self.cache = VMSCache(self.chunk_size, device_sensors[self.index])
+
+    def _h5_next_group(self):
+        self.h5group = datetime.strftime(datetime.now(), "%Y-%d-%mT%H:%M:%S")
+
+    def _save_hdf5(self):
+        if self.h5file is not None and len(self.cache) > self.h5_size:
+            logger.debug(
+                f"Device {devices[self.index]} Saving group {self.h5group}"
+            )
+            group_args = {}
+            if "z" in self.file_type:
+                group_args["compression"] = "gzip"
+            self.cache.savehdf5(self.h5_size, self.h5file.create_group(self.h5group))
+            self.h5file.flush()
+            self._h5_next_group()
+
+    def close(self):
+        if self.h5file is not None:
+            logger.info(f"Closing HDF5 {self.h5file.name}")
+            self.h5file.close()
+
+    async def collect_data(self):
+        async with Domain() as domain:
+            remote = Remote(domain, "MTVMS", index=self.index + 1)
+            remote.tel_data.callback = lambda data: self.cache.newChunk(data, 0.001)
+            if logger.getEffectiveLevel() == logging.DEBUG:
+                while not (self.cache.filled):
+                    await asyncio.sleep(0.5)
+                    logger.debug(
+                        f"Waiting {devices[self.index]}..{100 * len(self.cache)/self.size:.02f}% {len(self.cache)} of {self.size}"
+                    )
+                    self._save_hdf5()
+            else:
+                with click.progressbar(
+                    length=size,
+                    label=f"Getting data {devices[self.index]}",
+                    show_eta=True,
+                    show_percent=True,
+                    width=0,
+                ) as bar:
+                    current = 0
+                    while not (self.cache.filled):
+                        l = len(self.cache)
+                        bar.update(l - current)
+                        current = l
+                        await asyncio.sleep(0.1)
+                        self._save_hdf5()
+                    bar.update(len(self.cache) - current)
+
+            if self.h5file is None:
+                logger.info(f"Saving CVS to {self.filename}")
+                kwargs = {"delimiter": ","}
+                if header:
+                    kwargs["header"] = ",".join(self.cache.columns())
+                self.cache.savetxt(self.filename, **kwargs)
 
 
 async def main():
@@ -109,29 +164,37 @@ async def main():
     logger.addHandler(ch)
 
     tasks = []
+    collectors = []
 
     def cancel_all(signum, frame):
         logger.info(f"Canceling after {signum}")
         for t in tasks:
             t.cancel()
+        for c in collectors:
+            c.close()
 
     for signum in [signal.SIGINT, signal.SIGHUP, signal.SIGTERM]:
         signal.signal(signum, cancel_all)
 
+    file_type = ""
+    if args.zip_file:
+        file_type += "z"
+    if args.h5py:
+        file_type += "5"
+
     for d in args.devices:
-        suffix = datetime.strftime(datetime.now(), "%Y-%d-%mT%H:%M:%S")
-        logger.info(f"Collecting {d} with suffix {suffix}")
-        tasks.append(
-            asyncio.create_task(
-                collect_data(
-                    devices.index(d),
-                    f"{d}_{suffix}.csv",
-                    args.size,
-                    args.zip_file,
-                    args.header,
-                )
-            )
-        )
+        fn = datetime.strftime(datetime.now(), "%Y-%d-%mT%H:%M:%S") + "_" + d
+        if "5" in file_type:
+            fn += ".hdf"
+        else:
+            fn += ".csv"
+        if "z" in file_type:
+            fn += ".gz"
+
+        logger.info(f"Collecting {d} to {fn}")
+        c = Collector(devices.index(d), fn, args.size, file_type, args.header)
+        collectors.append(c)
+        tasks.append(asyncio.create_task(c.collect_data()))
     try:
         await asyncio.gather(*tasks)
         logger.info("Done")

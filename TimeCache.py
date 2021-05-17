@@ -149,6 +149,33 @@ class TimeCache:
         else:
             np.savetxt(filename, self.data[: self.current_index], **kwargs)
 
+    def savehdf5(self, size, group, group_args={}):
+        """Save data to H5D group. Saved data are forgotten.
+
+        Parameters
+        ----------
+        size : `int`
+            Group size.
+        group : `h5py.Group`
+            HDF5 group where data will be saved.
+        group_args : `dict`
+            Keyword arguments passed to create_group call.
+        """
+        new_data = np.array(self.data)
+        remaining = len(self) - size
+
+        for n in self.data.dtype.names:
+            dset = group.create_dataset(
+                n, (size), self.data.dtype.base[n], **group_args
+            )
+            d = self[n]
+            dset[:] = d[:size]
+            new_data[n][:remaining] = d[size:]
+
+        self.filled = False
+        self.data = new_data
+        self.current_index = remaining
+
     def columns(self):
         """Returns column names.
 

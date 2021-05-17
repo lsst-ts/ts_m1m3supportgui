@@ -139,7 +139,7 @@ class TimeChart(AbstractChart):
     def _addSerie(self, name, axis):
         s = QtCharts.QLineSeries()
         s.setName(name)
-        #s.setUseOpenGL(True)
+        # s.setUseOpenGL(True)
         points = []
         a = self.findAxis(axis)
         if a is None:
