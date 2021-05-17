@@ -189,6 +189,11 @@ async def main():
     if args.zip_file:
         file_type += "z"
     if args.h5py:
+        if has_h5py is False:
+            print(
+                "Python is missing h5py module, saving HDF 5 file is not supported. Please install h5py first (pip install h5py)."
+            )
+            sys.exit(1)
         file_type += "5"
 
     for d in args.devices:
