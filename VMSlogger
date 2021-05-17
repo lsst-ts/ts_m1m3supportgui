@@ -53,6 +53,7 @@ parser.add_argument(
     action="store_true",
     help="save into HDF 5. Requires h5py (pip install h5py)",
 )
+parser.add_argument("--chunk-size", dest="chunk_size", default=300000, type=int)
 parser.add_argument(
     "-d", dest="debug", default=0, action="count", help="increase debug level"
 )
@@ -60,7 +61,7 @@ parser.add_argument(
     "--header", dest="header", action="store_true", help="adds header with column names"
 )
 parser.add_argument(
-    "-s", type=int, dest="size", default=50000, help="number of records to save"
+    "-s", type=int, dest="size", default=None, help="number of records to save"
 )
 parser.add_argument(
     "-z", action="store_true", dest="zip_file", help="gzip output files"
@@ -77,9 +78,8 @@ ch.setFormatter(formatter)
 
 
 class Collector:
-    def __init__(self, index, filename, size, file_type, header):
+    def __init__(self, index, filename, size, file_type, header, chunk_size):
         self.index = index
-        self.filename = filename
         self.size = size
         self.file_type = file_type
         self.header = header
@@ -88,34 +88,35 @@ class Collector:
         logger.debug(
             f"Creating cache: index={self.index+1} device={device_sensors[self.index]} type={self.file_type}"
         )
+
         if "5" in file_type:
-            self.chunk_size = max(1100000, size)
-            self.h5_size = 1000000
+            self.chunk_size = min(chunk_size, self.size)
+            self.cache_size = self.chunk_size + 50000
 
-            self.h5file = h5py.File(self.filename, "a")
-            self._h5_next_group()
-        else:
-            self.chunk_size = self.size
-        self.cache = VMSCache(self.chunk_size, device_sensors[self.index])
+            self.cache = VMSCache(self.cache_size, device_sensors[self.index])
 
-    def _h5_next_group(self):
-        self.h5group = datetime.strftime(datetime.now(), "%Y-%d-%mT%H:%M:%S")
-
-    def _save_hdf5(self):
-        if self.h5file is not None and len(self.cache) > self.h5_size:
-            logger.info(f"Device {devices[self.index]} Saving group {self.h5group}")
-            group_args = {}
+            self.h5file = h5py.File(filename, "a")
+            group_args = {"chunks": (self.chunk_size)}
             if "z" in self.file_type:
                 group_args["compression"] = "gzip"
-            self.cache.savehdf5(self.h5_size, self.h5file.create_group(self.h5group))
+            self.cache.create_hdf5_datasets(self.size, self.h5file, group_args)
+        else:
+            self.cache = VMSCache(self.size, device_sensors[self.index])
+            self.filename = filename
+
+    def _save_hdf5(self):
+        if self.h5file is not None and len(self.cache) >= self.chunk_size:
+            logger.info(
+                f"Device {devices[self.index]} Saving to {self.h5file.file.filename} from {self.cache.hdf5_index}"
+            )
+            self.cache.savehdf5(self.chunk_size)
             self.h5file.flush()
-            self._h5_next_group()
             return True
         return False
 
     def close(self):
         if self.h5file is not None:
-            logger.info(f"Closing HDF5 {self.h5file.name}")
+            logger.info(f"Closing HDF5 {self.h5file.file.filename}")
             self.h5file.close()
 
     async def collect_data(self):
@@ -129,6 +130,8 @@ class Collector:
                         f"Waiting {devices[self.index]}..{100 * len(self.cache)/self.size:.02f}% {len(self.cache)} of {self.size}"
                     )
                     self._save_hdf5()
+                    if self.cache.h5_filled():
+                        break
             else:
 
                 async def collect_it():
@@ -154,6 +157,8 @@ class Collector:
                 else:
                     while True:
                         await collect_it()
+                        if self.cache.h5_filled():
+                            break
 
             if self.h5file is None:
                 logger.info(f"Saving CVS to {self.filename}")
@@ -179,8 +184,6 @@ async def main():
         logger.info(f"Canceling after {signum}")
         for t in tasks:
             t.cancel()
-        for c in collectors:
-            c.close()
 
     for signum in [signal.SIGINT, signal.SIGHUP, signal.SIGTERM]:
         signal.signal(signum, cancel_all)
@@ -195,6 +198,11 @@ async def main():
             )
             sys.exit(1)
         file_type += "5"
+        if args.size is None:
+            args.size = 86400000
+    else:
+        if args.size is None:
+            args.size = 50000
 
     for d in args.devices:
         fn = d + datetime.strftime(datetime.now(), "_%Y-%d-%mT%H:%M:%S")
@@ -206,14 +214,20 @@ async def main():
                 fn += ".gz"
 
         logger.info(f"Collecting {d} to {fn}")
-        c = Collector(devices.index(d), fn, args.size, file_type, args.header)
+        c = Collector(
+            devices.index(d), fn, args.size, file_type, args.header, args.chunk_size
+        )
         collectors.append(c)
         tasks.append(asyncio.create_task(c.collect_data()))
     try:
         await asyncio.gather(*tasks)
+        close_collectors()
         logger.info("Done")
     except asyncio.exceptions.CancelledError:
         logger.info("Canceled")
+
+    for c in collectors:
+        c.close()
 
 
 asyncio.run(main())
