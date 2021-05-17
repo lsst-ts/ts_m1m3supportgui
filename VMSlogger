@@ -103,15 +103,15 @@ class Collector:
 
     def _save_hdf5(self):
         if self.h5file is not None and len(self.cache) > self.h5_size:
-            logger.debug(
-                f"Device {devices[self.index]} Saving group {self.h5group}"
-            )
+            logger.info(f"Device {devices[self.index]} Saving group {self.h5group}")
             group_args = {}
             if "z" in self.file_type:
                 group_args["compression"] = "gzip"
             self.cache.savehdf5(self.h5_size, self.h5file.create_group(self.h5group))
             self.h5file.flush()
             self._h5_next_group()
+            return True
+        return False
 
     def close(self):
         if self.h5file is not None:
@@ -130,21 +130,30 @@ class Collector:
                     )
                     self._save_hdf5()
             else:
-                with click.progressbar(
-                    length=size,
-                    label=f"Getting data {devices[self.index]}",
-                    show_eta=True,
-                    show_percent=True,
-                    width=0,
-                ) as bar:
-                    current = 0
-                    while not (self.cache.filled):
-                        l = len(self.cache)
-                        bar.update(l - current)
-                        current = l
-                        await asyncio.sleep(0.1)
-                        self._save_hdf5()
-                    bar.update(len(self.cache) - current)
+
+                async def collect_it():
+                    with click.progressbar(
+                        length=self.size,
+                        label=f"Getting data {devices[self.index]}",
+                        show_eta=True,
+                        show_percent=True,
+                        width=0,
+                    ) as bar:
+                        current = 0
+                        while not (self.cache.filled):
+                            l = len(self.cache)
+                            bar.update(l - current)
+                            current = l
+                            await asyncio.sleep(0.1)
+                            if self._save_hdf5():
+                                break
+                        bar.update(len(self.cache) - current)
+
+                if self.h5file is None:
+                    await collect_it()
+                else:
+                    while True:
+                        await collect_it()
 
             if self.h5file is None:
                 logger.info(f"Saving CVS to {self.filename}")
