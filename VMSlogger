@@ -133,7 +133,7 @@ class Collector:
 
                 async def collect_it():
                     with click.progressbar(
-                        length=self.size,
+                        length=self.chunk_size,
                         label=f"Getting data {devices[self.index]}",
                         show_eta=True,
                         show_percent=True,
@@ -192,7 +192,7 @@ async def main():
         file_type += "5"
 
     for d in args.devices:
-        fn = datetime.strftime(datetime.now(), "%Y-%d-%mT%H:%M:%S") + "_" + d
+        fn = d + datetime.strftime(datetime.now(), "_%Y-%d-%mT%H:%M:%S")
         if "5" in file_type:
             fn += ".hdf"
         else:
