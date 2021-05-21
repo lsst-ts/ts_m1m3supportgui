@@ -101,6 +101,7 @@ class Collector:
                 group_args["compression"] = "gzip"
             self.cache.create_hdf5_datasets(self.size, self.h5file, group_args)
         else:
+            self.chunk_size = self.size
             self.cache = VMSCache(self.size, device_sensors[self.index])
             self.filename = filename
 
@@ -163,7 +164,7 @@ class Collector:
             if self.h5file is None:
                 logger.info(f"Saving CVS to {self.filename}")
                 kwargs = {"delimiter": ","}
-                if header:
+                if self.header:
                     kwargs["header"] = ",".join(self.cache.columns())
                 self.cache.savetxt(self.filename, **kwargs)
 
@@ -205,7 +206,7 @@ async def main():
             args.size = 50000
 
     for d in args.devices:
-        fn = d + datetime.strftime(datetime.now(), "_%Y-%d-%mT%H:%M:%S")
+        fn = d + datetime.strftime(datetime.now(), "_%Y-%m-%dT%H:%M:%S")
         if "5" in file_type:
             fn += ".hdf"
         else:
@@ -221,7 +222,6 @@ async def main():
         tasks.append(asyncio.create_task(c.collect_data()))
     try:
         await asyncio.gather(*tasks)
-        close_collectors()
         logger.info("Done")
     except asyncio.exceptions.CancelledError:
         logger.info("Canceled")
