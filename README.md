@@ -10,7 +10,7 @@ Python 3.8
 ## Prerequsities
 
 ```bash
-make_idl_files.py MTM1M3 MTMount
+make_idl_files.py MTM1M3 MTMount MTVMS
 ```
 
 ## SALComm

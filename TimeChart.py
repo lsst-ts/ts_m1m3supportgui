@@ -139,7 +139,7 @@ class TimeChart(AbstractChart):
     def _addSerie(self, name, axis):
         s = QtCharts.QLineSeries()
         s.setName(name)
-        #s.setUseOpenGL(True)
+        # s.setUseOpenGL(True)
         points = []
         a = self.findAxis(axis)
         if a is None:
@@ -180,7 +180,7 @@ class TimeChart(AbstractChart):
         def replot():
             axis = self.axes(Qt.Vertical)[axis_index]
             d_min = d_max = None
-            for n in cache.rows()[1:]:
+            for n in cache.columns()[1:]:
                 serie = self.findSerie(n)
                 data = cache[n]
                 if d_min is None:

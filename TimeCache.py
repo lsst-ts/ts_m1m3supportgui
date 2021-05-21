@@ -129,8 +129,85 @@ class TimeCache:
             for r in range(self._size - 1, self.current_index - 1, -1):
                 yield self.data[r]
 
-    def rows(self):
-        """Returns rows names."""
+    def savetxt(self, filename, **kwargs):
+        """Saves data to file.
+
+        Parameters
+        ----------
+        filename : `str`
+            Filename to save the data.
+        **kwargs : `dict`, optional
+            Arguments passed to np.savetxt()
+        """
+        if self.filled:
+            np.savetxt(
+                filename,
+                list(self.data[self.current_index + 1 :])
+                + list(self.data[: self.current_index]),
+                **kwargs,
+            )
+        else:
+            np.savetxt(filename, self.data[: self.current_index], **kwargs)
+
+    def create_hdf5_datasets(self, size, group, group_args={}):
+        """Creates HDF5 datasets.
+
+        Parameters
+        ----------
+        size : `int`
+            Total size of records to be created.
+        group : `h5py.Group`
+            HDF5 group.
+        group_args : `dict`
+            Keyword arguments passed to create_group call. It is recommended to
+            pass at least chunks=True. Please See h5py.Group.create_dataset for details.
+        """
+        self._hdf5_datasets = {}
+
+        for n in self.data.dtype.names:
+            self._hdf5_datasets[n] = group.create_dataset(
+                n, (size), self.data.dtype.base[n], **group_args
+            )
+        self.hdf5_index = 0
+        self._hdf5_size = size
+
+    def h5_filled(self):
+        """Returns True if HDF5 files is filled."""
+        return self.hdf5_index >= self._hdf5_size
+
+    def savehdf5(self, size):
+        """Save data to H5D group. Saved data are forgotten.
+
+        Parameters
+        ----------
+        size : `int`
+            Size of data to store.
+        """
+        new_data = np.array(self.data)
+        if self.hdf5_index + size > self._hdf5_size:
+            size = self._hdf5_size - self.hdf5_index
+
+        remaining = len(self) - size
+
+        for n in self.data.dtype.names:
+            d = self[n]
+            self._hdf5_datasets[n][self.hdf5_index : self.hdf5_index + size] = d[:size]
+            new_data[n][:remaining] = d[size:]
+
+        self.filled = False
+        self.data = new_data
+        self.current_index = remaining
+
+        self.hdf5_index += size
+
+    def columns(self):
+        """Returns column names.
+
+        Returns
+        -------
+        columns : `[str]`
+            Columns names as specified in constructor.
+        """
         return self.data.dtype.names
 
     def __getitem__(self, key):
