@@ -4,6 +4,7 @@ import signal
 import sys
 
 import SALLog
+from SALStatusBar import SALStatusBar
 import ThermalValuePageWidget
 
 import SALComm
@@ -21,6 +22,8 @@ class EUI(QMainWindow):
         super().__init__()
 
         self.m1m3ts = SALComm.create("MTM1M3TS")
+
+        self.setStatusBar(SALStatusBar([self.m1m3ts]))
 
         thermalValues = ThermalValuePageWidget.ThermalValuePageWidget(self.m1m3ts)
         logDock = SALLog.Dock(self.m1m3ts)

@@ -31,7 +31,7 @@ from SALErrorCodeWidget import SALErrorCodeWidget
 import SALComm
 
 from M1M3GUI import detailedStateString
-from StatusBar import StatusBar
+from SALStatusBar import SALStatusBar
 
 from PySide2.QtCore import QSettings, Slot
 from PySide2.QtWidgets import (
@@ -107,7 +107,7 @@ class EUI(QMainWindow):
         m1m3Widget.setLayout(layout)
 
         self.setCentralWidget(m1m3Widget)
-        self.setStatusBar(StatusBar([self.m1m3, self.mtmount], detailedStateString))
+        self.setStatusBar(SALStatusBar([self.m1m3, self.mtmount], detailedStateString))
 
         self.setMinimumSize(700, 400)
 

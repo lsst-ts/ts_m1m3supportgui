@@ -24,10 +24,10 @@ from PySide2.QtWidgets import QStatusBar, QLabel, QWidget, QHBoxLayout
 
 from datetime import datetime
 
-__all__ = ["StatusBar"]
+__all__ = ["SALStatusBar"]
 
 
-class StatusBar(QStatusBar):
+class SALStatusBar(QStatusBar):
     """Status bar. Shows heartbeats, errors. Can show detailed state.
 
     Parameters
