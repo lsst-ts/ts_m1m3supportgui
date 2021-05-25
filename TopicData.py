@@ -697,7 +697,6 @@ class Topics:
             getattr(comm, self.topics[self.lastIndex].topic).disconnect(slot)
 
         self.lastIndex = index
-        print("Index", index)
         if index is None:
             return
 

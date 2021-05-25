@@ -23,7 +23,7 @@ class ThermalValuePageWidget(TopicWindow):
     def __init__(self, m1m3ts):
         self.dataWidget = DataWidget()
 
-        super().__init__(m1m3ts, Thermals(), self.dataWidget)
+        super().__init__("Thermals values", m1m3ts, Thermals(), self.dataWidget)
 
     def updateValues(self, data):
         if data is None:

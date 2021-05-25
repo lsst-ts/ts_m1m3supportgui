@@ -28,6 +28,7 @@ from PySide2.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
     QListWidget,
+    QSplitter,
 )
 import QTHelpers
 from CustomLabels import DockWindow
@@ -42,6 +43,8 @@ class TopicWindow(DockWindow):
     Parameters
     ----------
 
+    title : `str`
+        Dock title and name.
     comm : `SALComm`
         SALComm instance to communicate with SAL.
     topics : `TopicData`
@@ -59,25 +62,36 @@ class TopicWindow(DockWindow):
         then no data has been received for selected read topic.
     """
 
-    def __init__(self, comm, topics, userWidget):
-        super().__init__("Thermal Values")
-        self.setObjectName("Thermal Values")
+    def __init__(self, title, comm, topics, userWidget):
+        super().__init__(title)
+        self.setObjectName(title)
 
         self.comm = comm
         self.topics = topics
 
+        splitter = QSplitter()
+
         self.fieldDataIndex = None
 
-        self.layout = QHBoxLayout()
-        self.plotLayout = QVBoxLayout()
-        self.selectionLayout = QVBoxLayout()
-        self.detailsLayout = QFormLayout()
-        self.filterLayout = QHBoxLayout()
-        self.layout.addLayout(self.plotLayout)
-        self.layout.addLayout(self.selectionLayout)
-        self.selectionLayout.addLayout(self.detailsLayout)
-        self.selectionLayout.addWidget(QLabel("Filter Data"))
-        self.selectionLayout.addLayout(self.filterLayout)
+        plotLayout = QVBoxLayout()
+        selectionLayout = QVBoxLayout()
+        detailsLayout = QFormLayout()
+        filterLayout = QHBoxLayout()
+
+        w_left = QWidget()
+        w_left.setLayout(plotLayout)
+        splitter.addWidget(w_left)
+        w_right = QWidget()
+        w_right.setLayout(selectionLayout)
+        splitter.addWidget(w_right)
+
+        splitter.setCollapsible(0, False)
+        splitter.setStretchFactor(0, 10)
+        splitter.setStretchFactor(1, 0)
+
+        selectionLayout.addLayout(detailsLayout)
+        selectionLayout.addWidget(QLabel("Filter Data"))
+        selectionLayout.addLayout(filterLayout)
 
         self.selectedActuatorIdLabel = QLabel("")
         self.selectedActuatorValueLabel = QLabel("")
@@ -85,34 +99,28 @@ class TopicWindow(DockWindow):
         self.lastUpdatedLabel = TimeDeltaLabel()
 
         self.topicList = QListWidget()
-        self.topicList.setFixedWidth(256)
         self.topicList.currentRowChanged.connect(self.currentTopicChanged)
         for topic in self.topics.topics:
             self.topicList.addItem(topic.name)
         self.fieldList = QListWidget()
-        self.fieldList.setFixedWidth(256)
         self.fieldList.currentRowChanged.connect(self.currentFieldChanged)
 
-        self.plotLayout.addWidget(userWidget)
+        plotLayout.addWidget(userWidget)
 
-        self.detailsLayout.addRow(QLabel("Selected Actuator Details"), QLabel(""))
-        self.detailsLayout.addRow(QLabel("Actuator Id"), self.selectedActuatorIdLabel)
-        self.detailsLayout.addRow(
-            QLabel("Actuator Value"), self.selectedActuatorValueLabel
-        )
-        self.detailsLayout.addRow(
+        detailsLayout.addRow(QLabel("Selected Actuator Details"), QLabel(""))
+        detailsLayout.addRow(QLabel("Actuator Id"), self.selectedActuatorIdLabel)
+        detailsLayout.addRow(QLabel("Actuator Value"), self.selectedActuatorValueLabel)
+        detailsLayout.addRow(
             QLabel("Actuator Warning"), self.selectedActuatorWarningLabel
         )
-        self.detailsLayout.addRow(QLabel("Last Updated"), self.lastUpdatedLabel)
+        detailsLayout.addRow(QLabel("Last Updated"), self.lastUpdatedLabel)
 
-        self.filterLayout.addWidget(self.topicList)
-        self.filterLayout.addWidget(self.fieldList)
+        filterLayout.addWidget(self.topicList)
+        filterLayout.addWidget(self.fieldList)
 
         self.topicList.setCurrentRow(0)
 
-        widget = QWidget()
-        widget.setLayout(self.layout)
-        self.setWidget(widget)
+        self.setWidget(splitter)
 
     @Slot(int)
     def currentTopicChanged(self, topicIndex):

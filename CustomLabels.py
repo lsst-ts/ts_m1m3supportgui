@@ -413,5 +413,4 @@ class DockWindow(QDockWidget):
     def _topLevelChanged(self, topLevel):
         if topLevel:
             self.setWindowFlags(Qt.Window)
-        else:
-            self.setWindowFlags(Qt.Widget)
+        self.show()
