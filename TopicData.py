@@ -1,6 +1,6 @@
 from FATABLE import *
 
-__all__ = ["Topics"]
+__all__ = ["Topics", "TopicData"]
 
 
 class TopicData:
@@ -692,12 +692,13 @@ class Topics:
             ),
         ]
 
-    def changeTopic(self, index, slot, m1m3):
+    def changeTopic(self, index, slot, comm):
         if self.lastIndex is not None:
-            getattr(m1m3, self.topics[self.lastIndex].topic).disconnect(slot)
+            getattr(comm, self.topics[self.lastIndex].topic).disconnect(slot)
 
         self.lastIndex = index
+        print("Index", index)
         if index is None:
             return
 
-        getattr(m1m3, self.topics[index].topic).connect(slot)
+        getattr(comm, self.topics[index].topic).connect(slot)
